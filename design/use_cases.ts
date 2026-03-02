@@ -2,10 +2,9 @@ import type { UseCase } from './common.ts';
 
 // Use cases for parsing a single source file (Go, Dart, TypeScript).
 export const useCases: Record<string, UseCase> = {
-  ioCallsCount: {
-    name: 'io_calls_count',
-    title: 'Count I/O calls per function and method',
-    note: 'Returns counts keyed by function and method.',
+  useCase: {
+    name: '',
+    title: 'Document usecases',
   },
 };
 
