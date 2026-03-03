@@ -29,6 +29,30 @@ export const generateMarkdownAction = (context: FlowContext) => {
   calls.push(call);
   loadAppData(incrContext(context));
   validateAppData(incrContext(context));
+  generateMarkdownSections(incrContext(context));
+};
+
+export const generateMarkdownSections = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: "action.generate.markdown.sections",
+    title: "Generate the markdown sections",
+    note: "",
+    level: context.level,
+    useCases: [],
+  };
+  calls.push(call);
+  generateSingleh3Section(incrContext(context));
+};
+
+export const generateSingleh3Section = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: "action.generate.markdown.section.h3",
+    title: "Generate the H3 section",
+    note: "",
+    level: context.level,
+    useCases: [],
+  };
+  calls.push(call);
 };
 
 export const generateJsonAction = (context: FlowContext) => {
