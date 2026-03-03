@@ -2,66 +2,70 @@ import type { UseCase } from './common.ts';
 
 // Use cases for parsing a single source file (Go, Dart, TypeScript).
 export const useCases: Record<string, UseCase> = {
-  sameAsName: {
-    name: '',
-    title: 'Create notes with title and description',
-    note: 'free text description usually markdown'
-  
+  'cli.report.generate': {
+    name: 'cli.report.generate',
+    title: 'Generate design reports from configured notes and relationships',
+    note: 'This is the primary end-to-end report generation use case.',
   },
-  sameAsName: {
-    name: '',
-    title: 'Note can referenced a filepath to a file',
-    note: 'The file could be embeded in final markdown report by using triple quote'
+  'cli.note.basic-markdown': {
+    name: 'cli.note.basic-markdown',
+    title: 'Render note title and markdown description',
+    note: 'Each note includes a concise title with free-form markdown content.',
   },
-  sameAsName: {
-    name: '',
-    title: 'Note to a filepath of type csv',
-    note: 'When a file is of type csv, it can be embedded as mardown table or csv'
+  'cli.note.filepath.reference': {
+    name: 'cli.note.filepath.reference',
+    title: 'Reference a file from a note',
+    note: 'Referenced files can be embedded in generated markdown output.',
   },
-  sameAsName: {
-    name: '',
-    title: 'Filter csv by column',
-    note: 'A csv table can be reduced to a subset by filtering by a column'
+  'cli.note.csv.embed': {
+    name: 'cli.note.csv.embed',
+    title: 'Embed CSV content from a referenced file',
+    note: 'CSV input can render as a markdown table or as raw CSV.',
   },
-  sameAsName: {
-    name: '',
-    title: 'file can be an image',
-    note: 'A file can be an image that will be shown as preview'
+  'cli.note.csv.filter-column': {
+    name: 'cli.note.csv.filter-column',
+    title: 'Filter embedded CSV rows by column',
+    note: 'Column filters reduce CSV output to the relevant subset.',
   },
-  sameAsName: {
-    name: '',
-    title: 'file can be mermaid',
-    note: 'A file can be an a mermaid content that will be shown with using triple quote'
+  'cli.note.image.preview': {
+    name: 'cli.note.image.preview',
+    title: 'Preview referenced image files in markdown',
+    note: 'Image references render as embedded previews in reports.',
   },
-  sameAsName: {
-    name: '',
-    title: 'A note can have a url link',
-    note: 'The link will be converted to a markdown link'
+  'cli.note.mermaid.embed': {
+    name: 'cli.note.mermaid.embed',
+    title: 'Embed Mermaid diagrams from file content',
+    note: 'Mermaid content is emitted in fenced blocks for diagram rendering.',
   },
-  sameAsName: {
-    name: '',
-    title: 'the config should have notes with labelled relationships',
-    note: 'The config could be written in CUE to offer greater flexibility'
+  'cli.note.link.markdown': {
+    name: 'cli.note.link.markdown',
+    title: 'Convert note links to markdown links',
+    note: 'URL links are rendered with link text in markdown output.',
   },
-  sameAsName: {
-    name: '',
-    title: 'The config will declare multiple markdown reports',
-    note: ''
+  'cli.config.relationships.labeled': {
+    name: 'cli.config.relationships.labeled',
+    title: 'Define labeled relationships between notes in config',
+    note: 'CUE can be used as the source format for flexible configuration.',
   },
-  sameAsName: {
-    name: '',
-    title: 'the cli produce a list or all markdown reports',
-    note: ''
+  'cli.config.reports.multiple': {
+    name: 'cli.config.reports.multiple',
+    title: 'Declare multiple markdown reports in one config',
+    note: 'A single config can drive generation of multiple report files.',
   },
-  sameAsName: {
-    name: '',
-    title: 'Notes and relationships can be exported to JSON',
-    note: ''
+  'cli.report.list': {
+    name: 'cli.report.list',
+    title: 'List all configured markdown reports',
+    note: 'The CLI exposes a command to enumerate report targets.',
   },
-  sameAsName: {
-    name: '',
-    title: 'A report can use a sub-graph by filter relationship per label',
-    note: ''
+  'cli.export.json.graph': {
+    name: 'cli.export.json.graph',
+    title: 'Export notes and relationships as JSON',
+    note: 'JSON export supports machine-readable graph processing.',
+  },
+  'cli.report.subgraph.by-label': {
+    name: 'cli.report.subgraph.by-label',
+    title: 'Build a report from a relationship-label subgraph',
+    note: 'Report generation can include only edges matching selected labels.',
   },
 };
 

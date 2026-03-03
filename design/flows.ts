@@ -2,13 +2,15 @@ import { calls } from "./calls";
 import { incrContext, type ComponentCall, type FlowContext } from "./common";
 import { useCases } from "./use_cases.ts";
 
+const primaryUseCase = useCases["cli.report.generate"].name;
+
 export const cliRoot = (context: FlowContext) => {
   const call: ComponentCall = {
     name: "cli.root",
     title: "flyb CLI root command",
     note: "",
     level: context.level,
-    useCases: [useCases.useCase.name],
+    useCases: [primaryUseCase],
   };
   calls.push(call);
   generateMarkdownAction(incrContext(context));
@@ -22,7 +24,7 @@ export const generateMarkdownAction = (context: FlowContext) => {
     title: "Generate the markdown reports",
     note: "",
     level: context.level,
-    useCases: [useCases.useCase.name],
+    useCases: [primaryUseCase],
   };
   calls.push(call);
   loadAppData(incrContext(context));
@@ -35,7 +37,7 @@ export const generateJsonAction = (context: FlowContext) => {
     title: "Generate as json",
     note: "",
     level: context.level,
-    useCases: [useCases.useCase.name],
+    useCases: [primaryUseCase],
   };
   calls.push(call);
   loadAppData(incrContext(context));
@@ -48,7 +50,7 @@ export const validateAction = (context: FlowContext) => {
     title: "Validate the CUE file",
     note: "",
     level: context.level,
-    useCases: [useCases.useCase.name],
+    useCases: [primaryUseCase],
   };
   calls.push(call);
   loadAppData(incrContext(context));
@@ -61,7 +63,7 @@ export const loadAppData = (context: FlowContext) => {
     title: "Load CLUE application data",
     note: "",
     level: context.level,
-    useCases: [useCases.useCase.name],
+    useCases: [primaryUseCase],
   };
   calls.push(call);
 };
@@ -72,7 +74,7 @@ export const validateAppData = (context: FlowContext) => {
     title: "Validate CLUE application data",
     note: "",
     level: context.level,
-    useCases: [useCases.useCase.name],
+    useCases: [primaryUseCase],
   };
   calls.push(call);
 };
