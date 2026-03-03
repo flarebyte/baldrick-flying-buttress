@@ -30,7 +30,7 @@ export type H2Section = {
 
 export type Report = {
   title: string;
-  filename: string;
+  filepath: string;
   sections: H2Section[];
 };
 const useCase: Note = {
