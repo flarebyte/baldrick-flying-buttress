@@ -4,7 +4,10 @@ export type Note = {
   description: string;
   labels: string[];
   filepath?: string;
-  url?: string;
+  link?: {
+    url: string;
+    text: string;
+  }
   arguments?: string[];
 };
 
