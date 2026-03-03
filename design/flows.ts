@@ -1,14 +1,14 @@
-import { calls } from "./calls";
-import { incrContext, type ComponentCall, type FlowContext } from "./common";
-import { useCases } from "./use_cases.ts";
+import { calls } from './calls';
+import { type ComponentCall, type FlowContext, incrContext } from './common';
+import { useCases } from './use_cases.ts';
 
-const primaryUseCase = useCases["cli.report.generate"].name;
+const primaryUseCase = useCases['cli.report.generate'].name;
 
 export const cliRoot = (context: FlowContext) => {
   const call: ComponentCall = {
-    name: "cli.root",
-    title: "flyb CLI root command",
-    note: "",
+    name: 'cli.root',
+    title: 'flyb CLI root command',
+    note: '',
     level: context.level,
     useCases: [primaryUseCase],
   };
@@ -20,9 +20,9 @@ export const cliRoot = (context: FlowContext) => {
 
 export const generateMarkdownAction = (context: FlowContext) => {
   const call: ComponentCall = {
-    name: "action.generate.markdown",
-    title: "Generate the markdown reports",
-    note: "",
+    name: 'action.generate.markdown',
+    title: 'Generate the markdown reports',
+    note: '',
     level: context.level,
     useCases: [primaryUseCase],
   };
@@ -34,9 +34,9 @@ export const generateMarkdownAction = (context: FlowContext) => {
 
 export const generateMarkdownSections = (context: FlowContext) => {
   const call: ComponentCall = {
-    name: "action.generate.markdown.sections",
-    title: "Generate the markdown sections",
-    note: "",
+    name: 'action.generate.markdown.sections',
+    title: 'Generate the markdown sections',
+    note: '',
     level: context.level,
     useCases: [],
   };
@@ -44,22 +44,82 @@ export const generateMarkdownSections = (context: FlowContext) => {
   generateSingleh3Section(incrContext(context));
 };
 
-export const generateSingleh3Section = (context: FlowContext) => {
+export const renderSectionWithFile = (context: FlowContext) => {
   const call: ComponentCall = {
-    name: "action.generate.markdown.section.h3",
-    title: "Generate the H3 section",
-    note: "",
+    name: 'render.section.file',
+    title: 'Render section with file',
+    note: '',
+    level: context.level,
+    useCases: [],
+  };
+  calls.push(call);
+  renderSectionWithCsvFile(incrContext(context));
+  renderSectionWithMedia(incrContext(context));
+  renderSectionWithCodeSnippet(incrContext(context));
+};
+
+export const renderSectionWithCsvFile = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'render.section.file.csv',
+    title: 'Render section with csv file',
+    note: 'Render as markdown table or CSV code snippet',
+    level: context.level,
+    useCases: [],
+  };
+  calls.push(call);
+  filterCsvFile(incrContext(context));
+};
+
+export const renderSectionWithCodeSnippet = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'render.section.file.code',
+    title: 'Render section with code snippet',
+    note: '',
+    level: context.level,
+    useCases: [],
+  };
+  calls.push(call);
+  filterCsvFile(incrContext(context));
+};
+export const filterCsvFile = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'file.csv.filter',
+    title: 'Filter csv file per column',
+    note: '',
     level: context.level,
     useCases: [],
   };
   calls.push(call);
 };
 
+export const renderSectionWithMedia = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'render.section.file.media',
+    title: 'Render section with a media file',
+    note: '',
+    level: context.level,
+    useCases: [],
+  };
+  calls.push(call);
+};
+
+export const generateSingleh3Section = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'action.generate.markdown.section.h3',
+    title: 'Generate the H3 section',
+    note: '',
+    level: context.level,
+    useCases: [],
+  };
+  calls.push(call);
+  renderSectionWithFile(incrContext(context));
+};
+
 export const generateJsonAction = (context: FlowContext) => {
   const call: ComponentCall = {
-    name: "action.generate.json",
-    title: "Generate as json",
-    note: "",
+    name: 'action.generate.json',
+    title: 'Generate as json',
+    note: '',
     level: context.level,
     useCases: [primaryUseCase],
   };
@@ -70,9 +130,9 @@ export const generateJsonAction = (context: FlowContext) => {
 
 export const validateAction = (context: FlowContext) => {
   const call: ComponentCall = {
-    name: "action.validate",
-    title: "Validate the CUE file",
-    note: "",
+    name: 'action.validate',
+    title: 'Validate the CUE file',
+    note: '',
     level: context.level,
     useCases: [primaryUseCase],
   };
@@ -83,9 +143,9 @@ export const validateAction = (context: FlowContext) => {
 
 export const loadAppData = (context: FlowContext) => {
   const call: ComponentCall = {
-    name: "load.app.data",
-    title: "Load CLUE application data",
-    note: "",
+    name: 'load.app.data',
+    title: 'Load CLUE application data',
+    note: '',
     level: context.level,
     useCases: [primaryUseCase],
   };
@@ -94,9 +154,9 @@ export const loadAppData = (context: FlowContext) => {
 
 export const validateAppData = (context: FlowContext) => {
   const call: ComponentCall = {
-    name: "validate.app.data",
-    title: "Validate CLUE application data",
-    note: "",
+    name: 'validate.app.data',
+    title: 'Validate CLUE application data',
+    note: '',
     level: context.level,
     useCases: [primaryUseCase],
   };

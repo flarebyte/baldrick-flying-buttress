@@ -7,7 +7,7 @@ export type Note = {
   link?: {
     url: string;
     text: string;
-  }
+  };
   arguments?: string[];
 };
 
@@ -37,23 +37,23 @@ export type Report = {
   sections: H2Section[];
 };
 const useCase: Note = {
-  name: "usecase.io.calls.count",
-  title: "Count I/O calls per function and method",
-  description: "Returns counts keyed by function and method.",
-  labels: ["usecase"],
+  name: 'usecase.io.calls.count',
+  title: 'Count I/O calls per function and method',
+  description: 'Returns counts keyed by function and method.',
+  labels: ['usecase'],
 };
 
 const rootCall: Note = {
-  name: "cli.root",
-  title: "flyb CLI root command",
-  description: "baldrick-flying-buttress will be shorten to flyb",
-  labels: ["call"],
+  name: 'cli.root',
+  title: 'flyb CLI root command',
+  description: 'baldrick-flying-buttress will be shorten to flyb',
+  labels: ['call'],
 };
 
 const relRootCallToUseCase: Relationship = {
   from: rootCall.name,
   to: useCase.name,
-  labels: ["satisfies-usecase"],
+  labels: ['satisfies-usecase'],
 };
 
 // Helpful when documenting the exact JSON output shape in markdown/docs.
