@@ -44,6 +44,27 @@ export const generateMarkdownSections = (context: FlowContext) => {
   generateSingleh3Section(incrContext(context));
 };
 
+export const renderPlainSection = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'render.section.plain',
+    title: 'Render plain section',
+    note: '',
+    level: context.level,
+    useCases: [],
+  };
+  calls.push(call);
+};
+
+export const renderGraphSection = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'render.section.graph',
+    title: 'Render section as a graph',
+    note: 'Probably ignoring details such filepath, link, ...',
+    level: context.level,
+    useCases: [],
+  };
+  calls.push(call);
+};
 export const renderSectionWithFile = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'render.section.file',
@@ -92,6 +113,17 @@ export const filterCsvFile = (context: FlowContext) => {
   calls.push(call);
 };
 
+export const selectSubGraph = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'graph.select',
+    title: 'Extract subgraph using labels',
+    note: 'Filter notes and relationships per labels, and a starting node',
+    level: context.level,
+    useCases: [],
+  };
+  calls.push(call);
+};
+
 export const renderSectionWithMedia = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'render.section.file.media',
@@ -112,6 +144,9 @@ export const generateSingleh3Section = (context: FlowContext) => {
     useCases: [],
   };
   calls.push(call);
+  selectSubGraph(incrContext(context));
+  renderGraphSection(incrContext(context));
+  renderPlainSection(incrContext(context));
   renderSectionWithFile(incrContext(context));
 };
 

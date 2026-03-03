@@ -9,6 +9,11 @@ flyb CLI root command [cli.root]
     Validate CLUE application data [validate.app.data]
     Generate the markdown sections [action.generate.markdown.sections]
       Generate the H3 section [action.generate.markdown.section.h3]
+        Extract subgraph using labels [graph.select]
+          - note: Filter notes and relationships per labels, and a starting node
+        Render section as a graph [render.section.graph]
+          - note: Probably ignoring details such filepath, link, ...
+        Render plain section [render.section.plain]
         Render section with file [render.section.file]
           Render section with csv file [render.section.file.csv]
             - note: Render as markdown table or CSV code snippet
