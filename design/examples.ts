@@ -65,6 +65,14 @@ export type Diagnostic = {
   argumentName?: string;
 };
 
+export type GraphIntegrityPolicy = {
+  missingNode: 'error' | 'warning' | 'ignore';
+  orphanNode: 'error' | 'warning' | 'ignore';
+  duplicateNoteName: 'error' | 'warning' | 'ignore';
+  unknownRelationshipLabel: 'error' | 'warning' | 'ignore';
+  crossReportReference: 'allow' | 'disallow';
+};
+
 const useCase: Note = {
   name: 'usecase.io.calls.count',
   title: 'Count I/O calls per function and method',
@@ -157,6 +165,14 @@ const validationDiagnostic: Diagnostic = {
   argumentName: 'format-csv',
 };
 
+const graphIntegrityPolicy: GraphIntegrityPolicy = {
+  missingNode: 'error',
+  orphanNode: 'warning',
+  duplicateNoteName: 'error',
+  unknownRelationshipLabel: 'warning',
+  crossReportReference: 'disallow',
+};
+
 // Helpful when documenting the exact JSON output shape in markdown/docs.
 export const exampleNote = JSON.stringify(rootCall, null, 2);
 export const exampleUseCase = JSON.stringify(useCase, null, 2);
@@ -171,3 +187,8 @@ export const exampleReport = JSON.stringify(flowDesignReport, null, 2);
 export const exampleArgumentRegistry = JSON.stringify(argumentRegistry, null, 2);
 export const exampleOrderingPolicy = JSON.stringify(orderingPolicy, null, 2);
 export const exampleDiagnostic = JSON.stringify(validationDiagnostic, null, 2);
+export const exampleGraphIntegrityPolicy = JSON.stringify(
+  graphIntegrityPolicy,
+  null,
+  2,
+);

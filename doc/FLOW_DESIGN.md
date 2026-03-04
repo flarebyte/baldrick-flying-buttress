@@ -33,6 +33,18 @@ flyb CLI root command [cli.root]
           - note: Coerce validated values to target types (string[], boolean, enum, number).
         Extract subgraph using labels [graph.select]
           - note: Filter notes and relationships by labels and optional starting node.
+        Validate graph integrity [graph.integrity.validate]
+          - note: Run integrity checks and emit diagnostics according to resolved policy.
+          Check missing relationship nodes [graph.integrity.check.missing-nodes]
+            - note: Detect relationships that reference notes that do not exist.
+          Check orphan nodes [graph.integrity.check.orphans]
+            - note: Detect notes disconnected from report roots/sections.
+          Check duplicate note names [graph.integrity.check.duplicate-note-names]
+            - note: Detect duplicate note identifiers that can cause ambiguous references.
+          Check unknown relationship labels [graph.integrity.check.unknown-labels]
+            - note: Detect relationship labels not recognized by the configured label taxonomy.
+          Check cross-report references [graph.integrity.check.cross-report-references]
+            - note: Validate whether note/edge references across report boundaries are allowed by policy.
         Render section as a graph [render.section.graph]
           - note: Resolve cycle policy and graph shape, then render with selected renderer(s).
           Resolve renderer/plugin registry [renderer.registry.resolve]
@@ -89,6 +101,20 @@ flyb CLI root command [cli.root]
       - note: Read notes, relationships, and report definitions from config.
     Validate CUE application data [validate.app.data]
       - note: Ensure required fields and cross-reference integrity are valid and diagnostics are attached to config locations.
+    Resolve graph integrity policy [graph.integrity.policy.resolve]
+      - note: Resolve integrity policy for missing nodes, orphans, duplicates, label validity, and cross-report references.
+    Validate graph integrity [graph.integrity.validate]
+      - note: Run integrity checks and emit diagnostics according to resolved policy.
+      Check missing relationship nodes [graph.integrity.check.missing-nodes]
+        - note: Detect relationships that reference notes that do not exist.
+      Check orphan nodes [graph.integrity.check.orphans]
+        - note: Detect notes disconnected from report roots/sections.
+      Check duplicate note names [graph.integrity.check.duplicate-note-names]
+        - note: Detect duplicate note identifiers that can cause ambiguous references.
+      Check unknown relationship labels [graph.integrity.check.unknown-labels]
+        - note: Detect relationship labels not recognized by the configured label taxonomy.
+      Check cross-report references [graph.integrity.check.cross-report-references]
+        - note: Validate whether note/edge references across report boundaries are allowed by policy.
     Emit structured diagnostics [diagnostics.emit.structured]
       - note: Emit diagnostics with code, severity, source, message, and optional location.
 ```
@@ -102,6 +128,7 @@ Supported use cases:
   - Define labeled relationships between notes in config — CUE can be used as the source format for flexible configuration.
   - Emit structured diagnostics — Diagnostics include code, severity, message, source, and optional location context.
   - Report validation diagnostics with locations — Validation errors and warnings should point to config paths and offending argument or relationship names.
+  - Validate graph integrity using policy rules — Integrity checks should emit structured diagnostics tied to offending notes, relationships, and config locations.
   - Render note title and markdown description — Each note includes a concise title with free-form markdown content.
   - Guarantee deterministic output ordering — Sort notes, relationships, sections, and arguments with stable rules so repeated runs produce identical output.
   - Define an explicit ordering policy — Ordering policy is part of runtime behavior and can be documented/tested as a contract.
@@ -112,6 +139,7 @@ Supported use cases:
   - Define an argument registry schema — Registry entries define argument key, type, default, allowed values, and valid scopes.
   - Validate free-form arguments at runtime — Validate against a known argument registry and fail with clear errors on unknown keys or invalid values.
   - Coerce free-form argument values into typed values — Convert string-like argument inputs into validated typed values before rendering.
+  - Define graph integrity policy beyond cycles — Policy covers missing nodes, orphan nodes, duplicate note names, unknown relationship labels, and cross-report references.
   - Allow each H3 section to define cycle policy — H3Section arguments can declare whether cycles are disallowed, allowed, or collapsed.
   - Render graph output based on graph shape — Renderer behavior adapts to tree, DAG, and cyclic graph structures.
   - Register renderers and plugins in a capability registry — A renderer registry maps renderer names to capabilities, supported arguments, and graph-shape compatibility.

@@ -31,6 +31,8 @@ const uc = {
     useCases['cli.output.deterministic-ordering.policy'].name,
   diagnosticsModel: useCases['cli.diagnostics.model'].name,
   diagnosticsValidation: useCases['cli.diagnostics.validation'].name,
+  graphIntegrityPolicy: useCases['cli.graph.integrity.policy'].name,
+  graphIntegrityValidation: useCases['cli.graph.integrity.validation'].name,
   argumentsFreeForm: useCases['cli.arguments.free-form'].name,
   argumentsRuntimeValidation: useCases['cli.arguments.runtime-validation'].name,
   argumentsRegistrySchema: useCases['cli.arguments.registry.schema'].name,
@@ -348,6 +350,7 @@ export const generateSingleH3Section = (context: FlowContext) => {
       uc.argumentsFreeForm,
       uc.configReduceNoiseWithArgs,
       uc.outputDeterministicOrdering,
+      uc.graphIntegrityValidation,
     ],
   };
   calls.push(call);
@@ -356,6 +359,7 @@ export const generateSingleH3Section = (context: FlowContext) => {
   validateRenderArguments(incrContext(context));
   coerceRenderArguments(incrContext(context));
   selectSubGraph(incrContext(context));
+  validateGraphIntegrity(incrContext(context));
   renderGraphSection(incrContext(context));
   renderPlainSection(incrContext(context));
   renderSectionWithFile(incrContext(context));
@@ -453,11 +457,15 @@ export const validateAction = (context: FlowContext) => {
       uc.configReportsMultiple,
       uc.diagnosticsModel,
       uc.diagnosticsValidation,
+      uc.graphIntegrityPolicy,
+      uc.graphIntegrityValidation,
     ],
   };
   calls.push(call);
   loadAppData(incrContext(context));
   validateAppData(incrContext(context));
+  resolveGraphIntegrityPolicy(incrContext(context));
+  validateGraphIntegrity(incrContext(context));
   emitDiagnostics(incrContext(context));
 };
 
@@ -489,7 +497,90 @@ export const validateAppData = (context: FlowContext) => {
       uc.configReportsMultiple,
       uc.diagnosticsModel,
       uc.diagnosticsValidation,
+      uc.graphIntegrityValidation,
     ],
+  };
+  calls.push(call);
+};
+
+export const resolveGraphIntegrityPolicy = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'graph.integrity.policy.resolve',
+    title: 'Resolve graph integrity policy',
+    note: 'Resolve integrity policy for missing nodes, orphans, duplicates, label validity, and cross-report references.',
+    level: context.level,
+    useCases: [uc.graphIntegrityPolicy],
+  };
+  calls.push(call);
+};
+
+export const validateGraphIntegrity = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'graph.integrity.validate',
+    title: 'Validate graph integrity',
+    note: 'Run integrity checks and emit diagnostics according to resolved policy.',
+    level: context.level,
+    useCases: [uc.graphIntegrityValidation, uc.diagnosticsValidation],
+  };
+  calls.push(call);
+  checkMissingRelationshipNodes(incrContext(context));
+  checkOrphanNodes(incrContext(context));
+  checkDuplicateNoteNames(incrContext(context));
+  checkUnknownRelationshipLabels(incrContext(context));
+  checkCrossReportReferences(incrContext(context));
+};
+
+export const checkMissingRelationshipNodes = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'graph.integrity.check.missing-nodes',
+    title: 'Check missing relationship nodes',
+    note: 'Detect relationships that reference notes that do not exist.',
+    level: context.level,
+    useCases: [uc.graphIntegrityValidation],
+  };
+  calls.push(call);
+};
+
+export const checkOrphanNodes = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'graph.integrity.check.orphans',
+    title: 'Check orphan nodes',
+    note: 'Detect notes disconnected from report roots/sections.',
+    level: context.level,
+    useCases: [uc.graphIntegrityValidation],
+  };
+  calls.push(call);
+};
+
+export const checkDuplicateNoteNames = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'graph.integrity.check.duplicate-note-names',
+    title: 'Check duplicate note names',
+    note: 'Detect duplicate note identifiers that can cause ambiguous references.',
+    level: context.level,
+    useCases: [uc.graphIntegrityValidation],
+  };
+  calls.push(call);
+};
+
+export const checkUnknownRelationshipLabels = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'graph.integrity.check.unknown-labels',
+    title: 'Check unknown relationship labels',
+    note: 'Detect relationship labels not recognized by the configured label taxonomy.',
+    level: context.level,
+    useCases: [uc.graphIntegrityValidation, uc.configRelationshipsLabeled],
+  };
+  calls.push(call);
+};
+
+export const checkCrossReportReferences = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'graph.integrity.check.cross-report-references',
+    title: 'Check cross-report references',
+    note: 'Validate whether note/edge references across report boundaries are allowed by policy.',
+    level: context.level,
+    useCases: [uc.graphIntegrityValidation, uc.graphIntegrityPolicy],
   };
   calls.push(call);
 };

@@ -272,3 +272,15 @@
   "argumentName": "format-csv"
 }
 ```
+
+## Graph integrity policy
+
+```json
+{
+  "missingNode": "error",
+  "orphanNode": "warning",
+  "duplicateNoteName": "error",
+  "unknownRelationshipLabel": "warning",
+  "crossReportReference": "disallow"
+}
+```

@@ -13,6 +13,8 @@ This document summarizes suggested implementation choices.
 - Use CUE as the configuration source of truth [config.cue]
 - Use a structured diagnostics model [diagnostics.structured-model]
 - Attach validation diagnostics to precise config locations [diagnostics.validation-location]
+- Define a graph integrity policy model [graph.integrity.policy-model]
+- Implement graph integrity validation checks [graph.integrity.validation-engine]
 - Implement the CLI in Go [lang.go]
 - Guarantee deterministic ordering in generated outputs [output.ordering.deterministic]
 - Treat ordering policy as a testable contract [output.ordering.policy-contract]
@@ -73,6 +75,16 @@ This document summarizes suggested implementation choices.
 
 - Description: Include CUE path, related note/relationship, and argument key in diagnostics so users can quickly fix invalid configuration.
 - Calls: validate.app.data, action.validate, diagnostics.emit.structured
+
+## Define a graph integrity policy model [graph.integrity.policy-model]
+
+- Description: Define explicit integrity rules for missing nodes, orphan nodes, duplicate names, unknown labels, and cross-report references with per-rule severity.
+- Calls: graph.integrity.policy.resolve, graph.integrity.validate, validate.app.data
+
+## Implement graph integrity validation checks [graph.integrity.validation-engine]
+
+- Description: Run focused integrity checks and emit structured diagnostics linked to note names, relationships, arguments, and CUE paths.
+- Calls: graph.integrity.validate, graph.integrity.check.missing-nodes, graph.integrity.check.orphans, graph.integrity.check.duplicate-note-names, graph.integrity.check.unknown-labels, graph.integrity.check.cross-report-references, diagnostics.emit.structured
 
 ## Implement the CLI in Go [lang.go]
 

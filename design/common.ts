@@ -150,6 +150,19 @@ export type Diagnostic = {
   argumentName?: string;
 };
 
+export type GraphIntegrityPolicy = {
+  // Behavior when a relationship references a note that does not exist
+  missingNode: 'error' | 'warning' | 'ignore';
+  // Behavior when notes are disconnected from all report roots/sections
+  orphanNode: 'error' | 'warning' | 'ignore';
+  // Behavior when duplicate note names are detected
+  duplicateNoteName: 'error' | 'warning' | 'ignore';
+  // Behavior when relationship labels are unknown or ambiguous
+  unknownRelationshipLabel: 'error' | 'warning' | 'ignore';
+  // Whether cross-report references are allowed
+  crossReportReference: 'allow' | 'disallow';
+};
+
 /**
  * Carry indentation depth while walking the design tree.
  */

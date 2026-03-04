@@ -117,6 +117,16 @@ export const useCases: Record<string, UseCase> = {
     title: 'Report validation diagnostics with locations',
     note: 'Validation errors and warnings should point to config paths and offending argument or relationship names.',
   },
+  'cli.graph.integrity.policy': {
+    name: 'cli.graph.integrity.policy',
+    title: 'Define graph integrity policy beyond cycles',
+    note: 'Policy covers missing nodes, orphan nodes, duplicate note names, unknown relationship labels, and cross-report references.',
+  },
+  'cli.graph.integrity.validation': {
+    name: 'cli.graph.integrity.validation',
+    title: 'Validate graph integrity using policy rules',
+    note: 'Integrity checks should emit structured diagnostics tied to offending notes, relationships, and config locations.',
+  },
   'cli.arguments.free-form': {
     name: 'cli.arguments.free-form',
     title: 'Accept free-form arguments on H3Section and Note',

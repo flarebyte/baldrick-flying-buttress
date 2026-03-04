@@ -2,6 +2,7 @@ import { writeFile } from 'node:fs/promises';
 import {
   exampleArgumentRegistry,
   exampleDiagnostic,
+  exampleGraphIntegrityPolicy,
   exampleH2Section,
   exampleH3Section,
   exampleNote,
@@ -77,6 +78,13 @@ export const generateExamplesReport = async () => {
   lines.push('');
   lines.push('```json');
   lines.push(exampleDiagnostic);
+  lines.push('```');
+  lines.push('');
+
+  lines.push('## Graph integrity policy');
+  lines.push('');
+  lines.push('```json');
+  lines.push(exampleGraphIntegrityPolicy);
   lines.push('```');
   lines.push('');
 

@@ -92,6 +92,32 @@ export const implementations: Record<string, ImplementationConsideration> = {
       'diagnostics.emit.structured',
     ],
   },
+  'graph.integrity.policy-model': {
+    name: 'graph.integrity.policy-model',
+    title: 'Define a graph integrity policy model',
+    description:
+      'Define explicit integrity rules for missing nodes, orphan nodes, duplicate names, unknown labels, and cross-report references with per-rule severity.',
+    calls: [
+      'graph.integrity.policy.resolve',
+      'graph.integrity.validate',
+      'validate.app.data',
+    ],
+  },
+  'graph.integrity.validation-engine': {
+    name: 'graph.integrity.validation-engine',
+    title: 'Implement graph integrity validation checks',
+    description:
+      'Run focused integrity checks and emit structured diagnostics linked to note names, relationships, arguments, and CUE paths.',
+    calls: [
+      'graph.integrity.validate',
+      'graph.integrity.check.missing-nodes',
+      'graph.integrity.check.orphans',
+      'graph.integrity.check.duplicate-note-names',
+      'graph.integrity.check.unknown-labels',
+      'graph.integrity.check.cross-report-references',
+      'diagnostics.emit.structured',
+    ],
+  },
   'cli.arguments.typed-models': {
     name: 'cli.arguments.typed-models',
     title: 'Use free-form key/value arguments with typed coercion',
