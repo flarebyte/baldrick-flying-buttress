@@ -172,4 +172,37 @@ describe('validation entrypoint refactor', () => {
     expect(diagnostic.location).toBe('relationships[0].to');
     expect(diagnostic.location).toMatch(/^relationships\[\d+\]\.(from|to)$/);
   });
+
+  test('renderer arguments are resolved deterministically before plugin selection', () => {
+    const indexed = buildFlow();
+
+    expect(directChildren(indexed, 'render.section.graph')).toEqual([
+      'renderer.registry.resolve',
+      'args.renderer.resolve',
+      'renderer.plugin.select',
+      'graph.policy.cycle',
+      'graph.shape.detect',
+      'render.graph.tree-or-dag',
+      'render.graph.circular',
+    ]);
+
+    const h3Resolve = calls.find((call) => call.name === 'args.h3.resolve');
+    const noteResolve = calls.find((call) => call.name === 'args.note.resolve');
+    const rendererResolve = calls.find(
+      (call) => call.name === 'args.renderer.resolve',
+    );
+    const pluginSelect = calls.find(
+      (call) => call.name === 'renderer.plugin.select',
+    );
+
+    if (!h3Resolve || !noteResolve || !rendererResolve || !pluginSelect) {
+      throw new Error('Expected renderer argument resolution calls to exist');
+    }
+
+    expect(h3Resolve.note).toContain('renderer-scoped resolution');
+    expect(noteResolve.note).toContain('higher precedence');
+    expect(rendererResolve.note).toContain('`note` overrides `h3-section`');
+    expect(rendererResolve.note).toContain('typed validated renderer argument set');
+    expect(pluginSelect.note).toContain('pass one resolved renderer argument set');
+  });
 });

@@ -38,7 +38,7 @@ This document summarizes suggested implementation choices.
 
 ## Apply scope-aware argument resolution [cli.arguments.scope-resolution]
 
-- Description: Resolve and validate arguments by scope (h3-section, note, renderer) so options are accepted only where they are meaningful.
+- Description: Resolve and validate arguments by scope (h3-section, note, renderer) so options are accepted only where they are meaningful; renderer-scoped arguments are collected from H3Section and note argument lists with precedence `note` > `h3-section` > registry defaults.
 - Calls: args.h3.resolve, args.note.resolve, args.validate.runtime, graph.policy.cycle, renderer.plugin.select
 
 ## Use explicit type coercion for free-form arguments [cli.arguments.type-coercion]
@@ -103,12 +103,12 @@ This document summarizes suggested implementation choices.
 
 ## Define a renderer plugin registry contract [renderer.registry.contract]
 
-- Description: Define a small renderer interface (name, supportsGraphShape, supportedArguments, render) and register built-ins (markdown-text, mermaid) in a deterministic lookup map.
+- Description: Define a small renderer interface (name, supportsGraphShape, supportedArguments, render) and register built-ins (markdown-text, mermaid) in a deterministic lookup map; renderers consume one typed validated renderer-argument set resolved before plugin invocation.
 - Calls: renderer.registry.resolve, renderer.plugin.select, render.section.graph, render.graph.markdown.text, render.graph.mermaid
 
 ## Use deterministic renderer selection and fallback policy [renderer.selection.fallback-policy]
 
-- Description: Resolve renderer from arguments first, then apply stable defaults by graph shape (for example Mermaid-first for cycles, markdown-first for tree/DAG).
+- Description: Resolve renderer from renderer-scoped arguments sourced from H3Section and notes first, then apply stable defaults by graph shape (for example Mermaid-first for cycles, markdown-first for tree/DAG).
 - Calls: renderer.plugin.select, graph.shape.detect, render.graph.tree-or-dag, render.graph.circular
 
 ## Use early returns and guard clauses for errors [style.errors.guard-clauses]

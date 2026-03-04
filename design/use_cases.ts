@@ -90,12 +90,12 @@ export const useCases: Record<string, UseCase> = {
   'cli.renderer.registry': {
     name: 'cli.renderer.registry',
     title: 'Register renderers and plugins in a capability registry',
-    note: 'A renderer registry maps renderer names to capabilities, supported arguments, and graph-shape compatibility.',
+    note: 'A renderer registry maps renderer names to capabilities, supported arguments, and graph-shape compatibility, and defines defaults used by renderer-scoped argument resolution.',
   },
   'cli.renderer.plugin-selection': {
     name: 'cli.renderer.plugin-selection',
     title: 'Select renderer plugin from arguments at runtime',
-    note: 'Renderer selection is resolved from section and note arguments with fallback defaults.',
+    note: 'Renderer selection uses one resolved typed renderer argument set sourced from H3Section and note arguments with deterministic precedence and fallback defaults.',
   },
   'cli.output.deterministic-ordering': {
     name: 'cli.output.deterministic-ordering',
@@ -145,7 +145,7 @@ export const useCases: Record<string, UseCase> = {
   'cli.arguments.registry.scope-resolution': {
     name: 'cli.arguments.registry.scope-resolution',
     title: 'Resolve arguments by scope',
-    note: 'Apply argument rules by scope (h3-section, note, renderer) to prevent invalid combinations.',
+    note: 'Apply argument rules by scope (h3-section, note, renderer); for renderer scope, collect from H3Section and note arguments and apply precedence (`note` > `h3-section` > registry default).',
   },
   'cli.arguments.type-coercion': {
     name: 'cli.arguments.type-coercion',

@@ -26,7 +26,7 @@ export const implementations: Record<string, ImplementationConsideration> = {
     name: 'renderer.registry.contract',
     title: 'Define a renderer plugin registry contract',
     description:
-      'Define a small renderer interface (name, supportsGraphShape, supportedArguments, render) and register built-ins (markdown-text, mermaid) in a deterministic lookup map.',
+      'Define a small renderer interface (name, supportsGraphShape, supportedArguments, render) and register built-ins (markdown-text, mermaid) in a deterministic lookup map; renderers consume one typed validated renderer-argument set resolved before plugin invocation.',
     calls: [
       'renderer.registry.resolve',
       'renderer.plugin.select',
@@ -39,7 +39,7 @@ export const implementations: Record<string, ImplementationConsideration> = {
     name: 'renderer.selection.fallback-policy',
     title: 'Use deterministic renderer selection and fallback policy',
     description:
-      'Resolve renderer from arguments first, then apply stable defaults by graph shape (for example Mermaid-first for cycles, markdown-first for tree/DAG).',
+      'Resolve renderer from renderer-scoped arguments sourced from H3Section and notes first, then apply stable defaults by graph shape (for example Mermaid-first for cycles, markdown-first for tree/DAG).',
     calls: [
       'renderer.plugin.select',
       'graph.shape.detect',
@@ -160,7 +160,7 @@ export const implementations: Record<string, ImplementationConsideration> = {
     name: 'cli.arguments.scope-resolution',
     title: 'Apply scope-aware argument resolution',
     description:
-      'Resolve and validate arguments by scope (h3-section, note, renderer) so options are accepted only where they are meaningful.',
+      'Resolve and validate arguments by scope (h3-section, note, renderer) so options are accepted only where they are meaningful; renderer-scoped arguments are collected from H3Section and note argument lists with precedence `note` > `h3-section` > registry defaults.',
     calls: [
       'args.h3.resolve',
       'args.note.resolve',

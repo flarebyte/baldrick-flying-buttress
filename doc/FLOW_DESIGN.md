@@ -78,7 +78,7 @@ flyb CLI root command [cli.root]
       Generate a single H3 section [action.generate.markdown.section.h3]
         - note: Compose subgraph, plain content, and file-backed content with section-level arguments.
         Resolve H3Section free-form arguments [args.h3.resolve]
-          - note: Read flexible section arguments as key/value flags (for example `graph-renderer=mermaid`).
+          - note: Read flexible section arguments as key/value flags (for example `graph-renderer=mermaid`) and expose candidates for renderer-scoped resolution.
         Resolve argument registry schema [args.registry.resolve]
           - note: Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.
         Validate arguments at runtime [args.validate.runtime]
@@ -91,8 +91,10 @@ flyb CLI root command [cli.root]
           - note: Resolve cycle policy and graph shape, then render with selected renderer(s); renderer/runtime diagnostics here must not duplicate graph-integrity diagnostics.
           Resolve renderer/plugin registry [renderer.registry.resolve]
             - note: Load renderer capabilities, supported arguments, and shape compatibility.
+          Resolve renderer-scoped arguments [args.renderer.resolve]
+            - note: Collect arguments from H3Section and its notes, keep only keys whose registry scope includes `renderer`, apply precedence (`note` overrides `h3-section`, `h3-section` overrides registry defaults), and produce one typed validated renderer argument set.
           Select renderer plugin from arguments [renderer.plugin.select]
-            - note: Choose renderer by arguments with deterministic fallback when unspecified.
+            - note: Choose renderer by resolved typed renderer-scoped arguments with deterministic fallback when unspecified, then pass one resolved renderer argument set to the selected plugin.
           Resolve H3Section cycle policy argument [graph.policy.cycle]
             - note: Use section argument to disallow, allow, or collapse cycles.
           Detect graph shape (tree, DAG, or cyclic) [graph.shape.detect]
@@ -114,7 +116,7 @@ flyb CLI root command [cli.root]
         Render section with referenced file content [render.section.file]
           - note: Dispatches file rendering by type (CSV, media, code/diagram).
           Resolve Note free-form arguments [args.note.resolve]
-            - note: Read note-level rendering options as key/value flags (for example `format-csv=md`).
+            - note: Read note-level rendering options as key/value flags (for example `format-csv=md`) and expose candidates for renderer-scoped resolution with higher precedence than H3Section values.
           Resolve argument registry schema [args.registry.resolve]
             - note: Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.
           Validate arguments at runtime [args.validate.runtime]
@@ -236,7 +238,7 @@ Supported use cases:
   - Accept free-form arguments on H3Section and Note — Arguments behave like CLI flags (for example `format-csv=md`) and can carry string, string[], boolean, and similar values.
   - Define graph integrity policy beyond cycles — Policy covers missing nodes, orphan nodes, duplicate note names, unknown relationship labels, and cross-report references.
   - Validate graph integrity using policy rules — Integrity checks should emit structured diagnostics tied to offending notes, relationships, and config locations.
-  - Resolve arguments by scope — Apply argument rules by scope (h3-section, note, renderer) to prevent invalid combinations.
+  - Resolve arguments by scope — Apply argument rules by scope (h3-section, note, renderer); for renderer scope, collect from H3Section and note arguments and apply precedence (`note` > `h3-section` > registry default).
   - Render note title and markdown description — Each note includes a concise title with free-form markdown content.
   - Guarantee deterministic output ordering — Sort notes, relationships, sections, and arguments with stable rules so repeated runs produce identical output.
   - Define an explicit ordering policy — Ordering policy is part of runtime behavior and can be documented/tested as a contract.
@@ -245,8 +247,8 @@ Supported use cases:
   - Coerce free-form argument values into typed values — Convert string-like argument inputs into validated typed values before rendering.
   - Allow each H3 section to define cycle policy — H3Section arguments can declare whether cycles are disallowed, allowed, or collapsed.
   - Render graph output based on graph shape — Renderer behavior adapts to tree, DAG, and cyclic graph structures.
-  - Register renderers and plugins in a capability registry — A renderer registry maps renderer names to capabilities, supported arguments, and graph-shape compatibility.
-  - Select renderer plugin from arguments at runtime — Renderer selection is resolved from section and note arguments with fallback defaults.
+  - Register renderers and plugins in a capability registry — A renderer registry maps renderer names to capabilities, supported arguments, and graph-shape compatibility, and defines defaults used by renderer-scoped argument resolution.
+  - Select renderer plugin from arguments at runtime — Renderer selection uses one resolved typed renderer argument set sourced from H3Section and note arguments with deterministic precedence and fallback defaults.
   - Render graph output as markdown text — Text rendering supports readable hierarchy and edge summaries in markdown reports.
   - Render graph output as Mermaid diagram — Mermaid output supports visual graph rendering, including cyclic relationships.
   - Embed Mermaid diagrams from file content — Mermaid content is emitted in fenced blocks for diagram rendering.

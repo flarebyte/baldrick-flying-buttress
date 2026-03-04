@@ -137,6 +137,7 @@ export const renderGraphSection = (context: FlowContext) => {
   };
   calls.push(call);
   resolveRendererRegistry(incrContext(context));
+  resolveRendererScopedArguments(incrContext(context));
   selectRendererPlugin(incrContext(context));
   resolveH3GraphCyclePolicy(incrContext(context));
   detectGraphShape(incrContext(context));
@@ -256,9 +257,25 @@ export const selectRendererPlugin = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'renderer.plugin.select',
     title: 'Select renderer plugin from arguments',
-    note: 'Choose renderer by arguments with deterministic fallback when unspecified.',
+    note: 'Choose renderer by resolved typed renderer-scoped arguments with deterministic fallback when unspecified, then pass one resolved renderer argument set to the selected plugin.',
     level: context.level,
     useCases: [uc.rendererPluginSelection, uc.argumentsFreeForm],
+  };
+  calls.push(call);
+};
+
+export const resolveRendererScopedArguments = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'args.renderer.resolve',
+    title: 'Resolve renderer-scoped arguments',
+    note: 'Collect arguments from H3Section and its notes, keep only keys whose registry scope includes `renderer`, apply precedence (`note` overrides `h3-section`, `h3-section` overrides registry defaults), and produce one typed validated renderer argument set.',
+    level: context.level,
+    useCases: [
+      uc.argumentsScopeResolution,
+      uc.argumentsRuntimeValidation,
+      uc.argumentsTypeCoercion,
+      uc.rendererPluginSelection,
+    ],
   };
   calls.push(call);
 };
@@ -369,7 +386,7 @@ export const resolveH3SectionArguments = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'args.h3.resolve',
     title: 'Resolve H3Section free-form arguments',
-    note: 'Read flexible section arguments as key/value flags (for example `graph-renderer=mermaid`).',
+    note: 'Read flexible section arguments as key/value flags (for example `graph-renderer=mermaid`) and expose candidates for renderer-scoped resolution.',
     level: context.level,
     useCases: [
       uc.argumentsFreeForm,
@@ -384,7 +401,7 @@ export const resolveNoteRenderArguments = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'args.note.resolve',
     title: 'Resolve Note free-form arguments',
-    note: 'Read note-level rendering options as key/value flags (for example `format-csv=md`).',
+    note: 'Read note-level rendering options as key/value flags (for example `format-csv=md`) and expose candidates for renderer-scoped resolution with higher precedence than H3Section values.',
     level: context.level,
     useCases: [
       uc.argumentsFreeForm,
