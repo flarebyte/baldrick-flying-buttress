@@ -87,6 +87,16 @@ export const useCases: Record<string, UseCase> = {
     title: 'Render graph output as Mermaid diagram',
     note: 'Mermaid output supports visual graph rendering, including cyclic relationships.',
   },
+  'cli.renderer.registry': {
+    name: 'cli.renderer.registry',
+    title: 'Register renderers and plugins in a capability registry',
+    note: 'A renderer registry maps renderer names to capabilities, supported arguments, and graph-shape compatibility.',
+  },
+  'cli.renderer.plugin-selection': {
+    name: 'cli.renderer.plugin-selection',
+    title: 'Select renderer plugin from arguments at runtime',
+    note: 'Renderer selection is resolved from section and note arguments with fallback defaults.',
+  },
   'cli.arguments.free-form': {
     name: 'cli.arguments.free-form',
     title: 'Accept free-form arguments on H3Section and Note',

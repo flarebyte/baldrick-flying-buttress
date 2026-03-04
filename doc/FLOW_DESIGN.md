@@ -29,6 +29,10 @@ flyb CLI root command [cli.root]
           - note: Filter notes and relationships by labels and optional starting node.
         Render section as a graph [render.section.graph]
           - note: Resolve cycle policy and graph shape, then render with selected renderer(s).
+          Resolve renderer/plugin registry [renderer.registry.resolve]
+            - note: Load renderer capabilities, supported arguments, and shape compatibility.
+          Select renderer plugin from arguments [renderer.plugin.select]
+            - note: Choose renderer by arguments with deterministic fallback when unspecified.
           Resolve H3Section cycle policy argument [graph.policy.cycle]
             - note: Use section argument to disallow, allow, or collapse cycles.
           Detect graph shape (tree, DAG, or cyclic) [graph.shape.detect]
@@ -89,6 +93,8 @@ Supported use cases:
   - Validate free-form arguments at runtime — Validate against a known argument registry and fail with clear errors on unknown keys or invalid values.
   - Allow each H3 section to define cycle policy — H3Section arguments can declare whether cycles are disallowed, allowed, or collapsed.
   - Render graph output based on graph shape — Renderer behavior adapts to tree, DAG, and cyclic graph structures.
+  - Register renderers and plugins in a capability registry — A renderer registry maps renderer names to capabilities, supported arguments, and graph-shape compatibility.
+  - Select renderer plugin from arguments at runtime — Renderer selection is resolved from section and note arguments with fallback defaults.
   - Render graph output as markdown text — Text rendering supports readable hierarchy and edge summaries in markdown reports.
   - Render graph output as Mermaid diagram — Mermaid output supports visual graph rendering, including cyclic relationships.
   - Embed Mermaid diagrams from file content — Mermaid content is emitted in fenced blocks for diagram rendering.

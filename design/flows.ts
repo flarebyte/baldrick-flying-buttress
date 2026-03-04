@@ -23,6 +23,8 @@ const uc = {
     useCases['cli.report.graph.renderer.markdown-text'].name,
   reportGraphRendererMermaid:
     useCases['cli.report.graph.renderer.mermaid'].name,
+  rendererRegistry: useCases['cli.renderer.registry'].name,
+  rendererPluginSelection: useCases['cli.renderer.plugin-selection'].name,
   argumentsFreeForm: useCases['cli.arguments.free-form'].name,
   argumentsRuntimeValidation: useCases['cli.arguments.runtime-validation'].name,
   configReduceNoiseWithArgs: useCases['cli.config.reduce-noise.with-args'].name,
@@ -109,9 +111,13 @@ export const renderGraphSection = (context: FlowContext) => {
       uc.reportSubgraphByLabel,
       uc.sectionH3CyclePolicy,
       uc.reportGraphShapeAwareRender,
+      uc.rendererRegistry,
+      uc.rendererPluginSelection,
     ],
   };
   calls.push(call);
+  resolveRendererRegistry(incrContext(context));
+  selectRendererPlugin(incrContext(context));
   resolveH3GraphCyclePolicy(incrContext(context));
   detectGraphShape(incrContext(context));
   renderGraphTreeOrDag(incrContext(context));
@@ -209,6 +215,28 @@ export const detectGraphShape = (context: FlowContext) => {
   calls.push(call);
 };
 
+export const resolveRendererRegistry = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'renderer.registry.resolve',
+    title: 'Resolve renderer/plugin registry',
+    note: 'Load renderer capabilities, supported arguments, and shape compatibility.',
+    level: context.level,
+    useCases: [uc.rendererRegistry],
+  };
+  calls.push(call);
+};
+
+export const selectRendererPlugin = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'renderer.plugin.select',
+    title: 'Select renderer plugin from arguments',
+    note: 'Choose renderer by arguments with deterministic fallback when unspecified.',
+    level: context.level,
+    useCases: [uc.rendererPluginSelection, uc.argumentsFreeForm],
+  };
+  calls.push(call);
+};
+
 export const renderGraphTreeOrDag = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'render.graph.tree-or-dag',
@@ -250,7 +278,7 @@ export const renderGraphAsMarkdownText = (context: FlowContext) => {
     title: 'Render graph as markdown text',
     note: 'Render adjacency and hierarchy using the same markdown style as FLOW_DESIGN.',
     level: context.level,
-    useCases: [uc.reportGraphRendererMarkdownText],
+    useCases: [uc.reportGraphRendererMarkdownText, uc.rendererRegistry],
   };
   calls.push(call);
 };
@@ -261,7 +289,11 @@ export const renderGraphAsMermaid = (context: FlowContext) => {
     title: 'Render graph as Mermaid',
     note: 'Emit Mermaid syntax for visual rendering in markdown consumers.',
     level: context.level,
-    useCases: [uc.reportGraphRendererMermaid, uc.noteMermaidEmbed],
+    useCases: [
+      uc.reportGraphRendererMermaid,
+      uc.noteMermaidEmbed,
+      uc.rendererRegistry,
+    ],
   };
   calls.push(call);
 };

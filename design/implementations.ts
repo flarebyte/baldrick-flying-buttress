@@ -22,6 +22,31 @@ export const implementations: Record<string, ImplementationConsideration> = {
       'action.list.reports',
     ],
   },
+  'renderer.registry.contract': {
+    name: 'renderer.registry.contract',
+    title: 'Define a renderer plugin registry contract',
+    description:
+      'Define a small renderer interface (name, supportsGraphShape, supportedArguments, render) and register built-ins (markdown-text, mermaid) in a deterministic lookup map.',
+    calls: [
+      'renderer.registry.resolve',
+      'renderer.plugin.select',
+      'render.section.graph',
+      'render.graph.markdown.text',
+      'render.graph.mermaid',
+    ],
+  },
+  'renderer.selection.fallback-policy': {
+    name: 'renderer.selection.fallback-policy',
+    title: 'Use deterministic renderer selection and fallback policy',
+    description:
+      'Resolve renderer from arguments first, then apply stable defaults by graph shape (for example Mermaid-first for cycles, markdown-first for tree/DAG).',
+    calls: [
+      'renderer.plugin.select',
+      'graph.shape.detect',
+      'render.graph.tree-or-dag',
+      'render.graph.circular',
+    ],
+  },
   'cli.arguments.typed-models': {
     name: 'cli.arguments.typed-models',
     title: 'Use free-form key/value arguments with typed coercion',

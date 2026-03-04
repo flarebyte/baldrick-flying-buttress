@@ -9,6 +9,8 @@ This document summarizes suggested implementation choices.
 - Use arguments to reduce CUE configuration noise [config.arguments.reduce-noise]
 - Use CUE as the configuration source of truth [config.cue]
 - Implement the CLI in Go [lang.go]
+- Define a renderer plugin registry contract [renderer.registry.contract]
+- Use deterministic renderer selection and fallback policy [renderer.selection.fallback-policy]
 - Use early returns and guard clauses for errors [style.errors.guard-clauses]
 - Keep functions small and single-purpose [style.functions.small-single-purpose]
 - Separate I/O from core logic [style.io-separate-from-logic]
@@ -44,6 +46,16 @@ This document summarizes suggested implementation choices.
 
 - Description: Use Go as the primary implementation language for strong typing, fast startup, and straightforward single-binary distribution.
 - Calls: cli.root
+
+## Define a renderer plugin registry contract [renderer.registry.contract]
+
+- Description: Define a small renderer interface (name, supportsGraphShape, supportedArguments, render) and register built-ins (markdown-text, mermaid) in a deterministic lookup map.
+- Calls: renderer.registry.resolve, renderer.plugin.select, render.section.graph, render.graph.markdown.text, render.graph.mermaid
+
+## Use deterministic renderer selection and fallback policy [renderer.selection.fallback-policy]
+
+- Description: Resolve renderer from arguments first, then apply stable defaults by graph shape (for example Mermaid-first for cycles, markdown-first for tree/DAG).
+- Calls: renderer.plugin.select, graph.shape.detect, render.graph.tree-or-dag, render.graph.circular
 
 ## Use early returns and guard clauses for errors [style.errors.guard-clauses]
 
