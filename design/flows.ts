@@ -16,6 +16,13 @@ const uc = {
   reportList: useCases['cli.report.list'].name,
   exportJsonGraph: useCases['cli.export.json.graph'].name,
   reportSubgraphByLabel: useCases['cli.report.subgraph.by-label'].name,
+  sectionH3CyclePolicy: useCases['cli.section.h3.cycle-policy'].name,
+  reportGraphShapeAwareRender:
+    useCases['cli.report.graph.shape-aware-render'].name,
+  reportGraphRendererMarkdownText:
+    useCases['cli.report.graph.renderer.markdown-text'].name,
+  reportGraphRendererMermaid:
+    useCases['cli.report.graph.renderer.mermaid'].name,
 };
 
 export const cliRoot = (context: FlowContext) => {
@@ -87,11 +94,20 @@ export const renderGraphSection = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'render.section.graph',
     title: 'Render section as a graph',
-    note: 'Renders graph-focused content from filtered notes and relationships.',
+    note: 'Resolve cycle policy and graph shape, then render with selected renderer(s).',
     level: context.level,
-    useCases: [uc.configRelationshipsLabeled, uc.reportSubgraphByLabel],
+    useCases: [
+      uc.configRelationshipsLabeled,
+      uc.reportSubgraphByLabel,
+      uc.sectionH3CyclePolicy,
+      uc.reportGraphShapeAwareRender,
+    ],
   };
   calls.push(call);
+  resolveH3GraphCyclePolicy(incrContext(context));
+  detectGraphShape(incrContext(context));
+  renderGraphTreeOrDag(incrContext(context));
+  renderGraphCircular(incrContext(context));
 };
 export const renderSectionWithFile = (context: FlowContext) => {
   const call: ComponentCall = {
@@ -147,6 +163,85 @@ export const selectSubGraph = (context: FlowContext) => {
     note: 'Filter notes and relationships by labels and optional starting node.',
     level: context.level,
     useCases: [uc.configRelationshipsLabeled, uc.reportSubgraphByLabel],
+  };
+  calls.push(call);
+};
+
+export const resolveH3GraphCyclePolicy = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'graph.policy.cycle',
+    title: 'Resolve H3Section cycle policy argument',
+    note: 'Use section argument to disallow, allow, or collapse cycles.',
+    level: context.level,
+    useCases: [uc.sectionH3CyclePolicy],
+  };
+  calls.push(call);
+};
+
+export const detectGraphShape = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'graph.shape.detect',
+    title: 'Detect graph shape (tree, DAG, or cyclic)',
+    note: 'Classify graph structure before selecting rendering strategy.',
+    level: context.level,
+    useCases: [uc.reportGraphShapeAwareRender, uc.sectionH3CyclePolicy],
+  };
+  calls.push(call);
+};
+
+export const renderGraphTreeOrDag = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'render.graph.tree-or-dag',
+    title: 'Render tree or DAG graph',
+    note: 'Prefer hierarchical markdown text; Mermaid can be emitted as an additional diagram.',
+    level: context.level,
+    useCases: [
+      uc.reportGraphShapeAwareRender,
+      uc.reportGraphRendererMarkdownText,
+      uc.reportGraphRendererMermaid,
+    ],
+  };
+  calls.push(call);
+  renderGraphAsMarkdownText(incrContext(context));
+  renderGraphAsMermaid(incrContext(context));
+};
+
+export const renderGraphCircular = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'render.graph.circular',
+    title: 'Render cyclic graph',
+    note: 'Prefer Mermaid for cycle readability, with markdown text summary as fallback.',
+    level: context.level,
+    useCases: [
+      uc.sectionH3CyclePolicy,
+      uc.reportGraphShapeAwareRender,
+      uc.reportGraphRendererMermaid,
+      uc.reportGraphRendererMarkdownText,
+    ],
+  };
+  calls.push(call);
+  renderGraphAsMermaid(incrContext(context));
+  renderGraphAsMarkdownText(incrContext(context));
+};
+
+export const renderGraphAsMarkdownText = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'render.graph.markdown.text',
+    title: 'Render graph as markdown text',
+    note: 'Render adjacency and hierarchy using the same markdown style as FLOW_DESIGN.',
+    level: context.level,
+    useCases: [uc.reportGraphRendererMarkdownText],
+  };
+  calls.push(call);
+};
+
+export const renderGraphAsMermaid = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'render.graph.mermaid',
+    title: 'Render graph as Mermaid',
+    note: 'Emit Mermaid syntax for visual rendering in markdown consumers.',
+    level: context.level,
+    useCases: [uc.reportGraphRendererMermaid, uc.noteMermaidEmbed],
   };
   calls.push(call);
 };

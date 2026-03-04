@@ -24,7 +24,23 @@ flyb CLI root command [cli.root]
         Extract subgraph using labels [graph.select]
           - note: Filter notes and relationships by labels and optional starting node.
         Render section as a graph [render.section.graph]
-          - note: Renders graph-focused content from filtered notes and relationships.
+          - note: Resolve cycle policy and graph shape, then render with selected renderer(s).
+          Resolve H3Section cycle policy argument [graph.policy.cycle]
+            - note: Use section argument to disallow, allow, or collapse cycles.
+          Detect graph shape (tree, DAG, or cyclic) [graph.shape.detect]
+            - note: Classify graph structure before selecting rendering strategy.
+          Render tree or DAG graph [render.graph.tree-or-dag]
+            - note: Prefer hierarchical markdown text; Mermaid can be emitted as an additional diagram.
+            Render graph as markdown text [render.graph.markdown.text]
+              - note: Render adjacency and hierarchy using the same markdown style as FLOW_DESIGN.
+            Render graph as Mermaid [render.graph.mermaid]
+              - note: Emit Mermaid syntax for visual rendering in markdown consumers.
+          Render cyclic graph [render.graph.circular]
+            - note: Prefer Mermaid for cycle readability, with markdown text summary as fallback.
+            Render graph as Mermaid [render.graph.mermaid]
+              - note: Emit Mermaid syntax for visual rendering in markdown consumers.
+            Render graph as markdown text [render.graph.markdown.text]
+              - note: Render adjacency and hierarchy using the same markdown style as FLOW_DESIGN.
         Render plain section [render.section.plain]
           - note: Render title and markdown body, including markdown links.
         Render section with referenced file content [render.section.file]
@@ -60,11 +76,15 @@ Supported use cases:
   - Define labeled relationships between notes in config — CUE can be used as the source format for flexible configuration.
   - Render note title and markdown description — Each note includes a concise title with free-form markdown content.
   - Build a report from a relationship-label subgraph — Report generation can include only edges matching selected labels.
+  - Allow each H3 section to define cycle policy — H3Section arguments can declare whether cycles are disallowed, allowed, or collapsed.
+  - Render graph output based on graph shape — Renderer behavior adapts to tree, DAG, and cyclic graph structures.
+  - Render graph output as markdown text — Text rendering supports readable hierarchy and edge summaries in markdown reports.
+  - Render graph output as Mermaid diagram — Mermaid output supports visual graph rendering, including cyclic relationships.
+  - Embed Mermaid diagrams from file content — Mermaid content is emitted in fenced blocks for diagram rendering.
   - Convert note links to markdown links — URL links are rendered with link text in markdown output.
   - Reference a file from a note — Referenced files can be embedded in generated markdown output.
   - Embed CSV content from a referenced file — CSV input can render as a markdown table or as raw CSV.
   - Filter embedded CSV rows by column — Column filters reduce CSV output to the relevant subset.
   - Preview referenced image files in markdown — Image references render as embedded previews in reports.
-  - Embed Mermaid diagrams from file content — Mermaid content is emitted in fenced blocks for diagram rendering.
 
 

@@ -67,6 +67,26 @@ export const useCases: Record<string, UseCase> = {
     title: 'Build a report from a relationship-label subgraph',
     note: 'Report generation can include only edges matching selected labels.',
   },
+  'cli.section.h3.cycle-policy': {
+    name: 'cli.section.h3.cycle-policy',
+    title: 'Allow each H3 section to define cycle policy',
+    note: 'H3Section arguments can declare whether cycles are disallowed, allowed, or collapsed.',
+  },
+  'cli.report.graph.shape-aware-render': {
+    name: 'cli.report.graph.shape-aware-render',
+    title: 'Render graph output based on graph shape',
+    note: 'Renderer behavior adapts to tree, DAG, and cyclic graph structures.',
+  },
+  'cli.report.graph.renderer.markdown-text': {
+    name: 'cli.report.graph.renderer.markdown-text',
+    title: 'Render graph output as markdown text',
+    note: 'Text rendering supports readable hierarchy and edge summaries in markdown reports.',
+  },
+  'cli.report.graph.renderer.mermaid': {
+    name: 'cli.report.graph.renderer.mermaid',
+    title: 'Render graph output as Mermaid diagram',
+    note: 'Mermaid output supports visual graph rendering, including cyclic relationships.',
+  },
 };
 
 export const getByName = (expectedName: string) =>
