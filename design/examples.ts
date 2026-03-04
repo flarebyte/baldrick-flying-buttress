@@ -155,14 +155,13 @@ const orderingPolicy: OrderingPolicy = {
 };
 
 const validationDiagnostic: Diagnostic = {
-  code: 'ARG_ENUM_INVALID',
+  code: 'GRAPH_INTEGRITY_MISSING_NODE',
   severity: 'error',
-  source: 'args.validate.runtime',
+  source: 'graph.integrity.validate',
   message:
-    'Invalid value `pdf` for argument `format-csv`; expected one of: md, csv.',
-  location: 'reports[0].sections[0].notes[2].arguments[1]',
-  noteName: 'note.render.csv',
-  argumentName: 'format-csv',
+    'Relationship target `usecase.io.missing` does not match any configured note.',
+  location: 'relationships[0].to',
+  noteName: 'usecase.io.calls.count',
 };
 
 const graphIntegrityPolicy: GraphIntegrityPolicy = {

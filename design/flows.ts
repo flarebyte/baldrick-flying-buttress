@@ -61,20 +61,21 @@ export const listReportsAction = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'action.list.reports',
     title: 'List configured markdown reports',
-    note: 'Enumerate report targets without generating files.',
+    note: 'Enumerate report targets from the validated application model without generating files.',
     level: context.level,
     useCases: [uc.reportList, uc.configReportsMultiple],
   };
   calls.push(call);
   loadAppData(incrContext(context));
   validateAppData(incrContext(context));
+  listValidatedReports(incrContext(context));
 };
 
 export const generateMarkdownAction = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'action.generate.markdown',
     title: 'Generate markdown reports',
-    note: 'Renders one or more markdown outputs from the validated config.',
+    note: 'Renders one or more markdown outputs from a single validated application model.',
     level: context.level,
     useCases: [uc.reportGenerate, uc.configReportsMultiple],
   };
@@ -122,7 +123,7 @@ export const renderGraphSection = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'render.section.graph',
     title: 'Render section as a graph',
-    note: 'Resolve cycle policy and graph shape, then render with selected renderer(s).',
+    note: 'Resolve cycle policy and graph shape, then render with selected renderer(s); renderer/runtime diagnostics here must not duplicate graph-integrity diagnostics.',
     level: context.level,
     useCases: [
       uc.configRelationshipsLabeled,
@@ -233,7 +234,7 @@ export const detectGraphShape = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'graph.shape.detect',
     title: 'Detect graph shape (tree, DAG, or cyclic)',
-    note: 'Classify graph structure before selecting rendering strategy.',
+    note: 'Classify graph structure before selecting rendering strategy; emits renderer/runtime warnings only when applicable.',
     level: context.level,
     useCases: [uc.reportGraphShapeAwareRender, uc.sectionH3CyclePolicy],
   };
@@ -350,7 +351,6 @@ export const generateSingleH3Section = (context: FlowContext) => {
       uc.argumentsFreeForm,
       uc.configReduceNoiseWithArgs,
       uc.outputDeterministicOrdering,
-      uc.graphIntegrityValidation,
     ],
   };
   calls.push(call);
@@ -359,7 +359,6 @@ export const generateSingleH3Section = (context: FlowContext) => {
   validateRenderArguments(incrContext(context));
   coerceRenderArguments(incrContext(context));
   selectSubGraph(incrContext(context));
-  validateGraphIntegrity(incrContext(context));
   renderGraphSection(incrContext(context));
   renderPlainSection(incrContext(context));
   renderSectionWithFile(incrContext(context));
@@ -444,28 +443,25 @@ export const generateJsonAction = (context: FlowContext) => {
   calls.push(call);
   loadAppData(incrContext(context));
   validateAppData(incrContext(context));
+  exportJsonGraph(incrContext(context));
 };
 
 export const validateAction = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'action.validate',
     title: 'Validate the CUE file',
-    note: 'Validate configuration structure and constraints and emit structured diagnostics.',
+    note: 'Run canonical application validation and emit the same diagnostics that gate generation.',
     level: context.level,
     useCases: [
       uc.configRelationshipsLabeled,
       uc.configReportsMultiple,
       uc.diagnosticsModel,
       uc.diagnosticsValidation,
-      uc.graphIntegrityPolicy,
-      uc.graphIntegrityValidation,
     ],
   };
   calls.push(call);
   loadAppData(incrContext(context));
   validateAppData(incrContext(context));
-  resolveGraphIntegrityPolicy(incrContext(context));
-  validateGraphIntegrity(incrContext(context));
   emitDiagnostics(incrContext(context));
 };
 
@@ -490,14 +486,92 @@ export const validateAppData = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'validate.app.data',
     title: 'Validate CUE application data',
-    note: 'Ensure required fields and cross-reference integrity are valid and diagnostics are attached to config locations.',
+    note: 'Canonical validation pipeline: schema checks, argument registry and free-form argument validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.',
     level: context.level,
     useCases: [
       uc.configRelationshipsLabeled,
       uc.configReportsMultiple,
       uc.diagnosticsModel,
       uc.diagnosticsValidation,
+      uc.argumentsRegistrySchema,
+      uc.argumentsRuntimeValidation,
+      uc.argumentsFreeForm,
+      uc.graphIntegrityPolicy,
       uc.graphIntegrityValidation,
+    ],
+  };
+  calls.push(call);
+  validateCueSchema(incrContext(context));
+  resolveArgumentRegistry(incrContext(context));
+  validateArgumentRegistry(incrContext(context));
+  validateConfigArguments(incrContext(context));
+  resolveGraphIntegrityPolicy(incrContext(context));
+  validateGraphIntegrity(incrContext(context));
+  collectValidationDiagnostics(incrContext(context));
+  normalizeValidatedAppModel(incrContext(context));
+};
+
+export const validateCueSchema = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'validate.cue.schema',
+    title: 'Validate CUE schema and structure',
+    note: 'Validate required fields, types, and cross-references and attach precise config locations to diagnostics.',
+    level: context.level,
+    useCases: [uc.diagnosticsValidation, uc.configReportsMultiple],
+  };
+  calls.push(call);
+};
+
+export const validateArgumentRegistry = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'args.registry.validate',
+    title: 'Validate argument registry schema consistency',
+    note: 'Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.',
+    level: context.level,
+    useCases: [uc.argumentsRegistrySchema, uc.diagnosticsValidation],
+  };
+  calls.push(call);
+};
+
+export const validateConfigArguments = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'args.validate.config',
+    title: 'Validate configured free-form arguments',
+    note: 'Validate free-form arguments declared in config against registry definitions and scope rules.',
+    level: context.level,
+    useCases: [
+      uc.argumentsFreeForm,
+      uc.argumentsRuntimeValidation,
+      uc.argumentsScopeResolution,
+      uc.diagnosticsValidation,
+    ],
+  };
+  calls.push(call);
+};
+
+export const collectValidationDiagnostics = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'diagnostics.collect.validation',
+    title: 'Collect validation diagnostics',
+    note: 'Collect stable diagnostic codes, severities, sources, and precise config locations.',
+    level: context.level,
+    useCases: [uc.diagnosticsModel, uc.diagnosticsValidation],
+  };
+  calls.push(call);
+};
+
+export const normalizeValidatedAppModel = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'app.model.normalize',
+    title: 'Normalize validated application model',
+    note: 'Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.',
+    level: context.level,
+    useCases: [
+      uc.configReportsMultiple,
+      uc.configRelationshipsLabeled,
+      uc.graphIntegrityPolicy,
+      uc.argumentsRegistrySchema,
+      uc.diagnosticsModel,
     ],
   };
   calls.push(call);
@@ -617,6 +691,28 @@ export const emitDiagnostics = (context: FlowContext) => {
     note: 'Emit diagnostics with code, severity, source, message, and optional location.',
     level: context.level,
     useCases: [uc.diagnosticsModel, uc.diagnosticsValidation],
+  };
+  calls.push(call);
+};
+
+export const listValidatedReports = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'list.reports.output',
+    title: 'List reports from ValidatedApp',
+    note: 'Enumerate reports from the normalized validated model with optional strictness behavior handled by validation policy.',
+    level: context.level,
+    useCases: [uc.reportList, uc.configReportsMultiple],
+  };
+  calls.push(call);
+};
+
+export const exportJsonGraph = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'export.graph.json',
+    title: 'Export validated graph as JSON',
+    note: 'Export notes and relationships from ValidatedApp without re-running validation steps.',
+    level: context.level,
+    useCases: [uc.exportJsonGraph],
   };
   calls.push(call);
 };

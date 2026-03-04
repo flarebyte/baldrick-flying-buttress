@@ -6,17 +6,71 @@
 flyb CLI root command [cli.root]
   - note: Entry point for report generation, listing, JSON export, and config validation.
   List configured markdown reports [action.list.reports]
-    - note: Enumerate report targets without generating files.
+    - note: Enumerate report targets from the validated application model without generating files.
     Load CUE application data [load.app.data]
       - note: Read notes, relationships, and report definitions from config.
     Validate CUE application data [validate.app.data]
-      - note: Ensure required fields and cross-reference integrity are valid and diagnostics are attached to config locations.
+      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
+      Validate CUE schema and structure [validate.cue.schema]
+        - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
+      Resolve argument registry schema [args.registry.resolve]
+        - note: Load known argument definitions (type, default, allowed values, scopes).
+      Validate argument registry schema consistency [args.registry.validate]
+        - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
+      Validate configured free-form arguments [args.validate.config]
+        - note: Validate free-form arguments declared in config against registry definitions and scope rules.
+      Resolve graph integrity policy [graph.integrity.policy.resolve]
+        - note: Resolve integrity policy for missing nodes, orphans, duplicates, label validity, and cross-report references.
+      Validate graph integrity [graph.integrity.validate]
+        - note: Run integrity checks and emit diagnostics according to resolved policy.
+        Check missing relationship nodes [graph.integrity.check.missing-nodes]
+          - note: Detect relationships that reference notes that do not exist.
+        Check orphan nodes [graph.integrity.check.orphans]
+          - note: Detect notes disconnected from report roots/sections.
+        Check duplicate note names [graph.integrity.check.duplicate-note-names]
+          - note: Detect duplicate note identifiers that can cause ambiguous references.
+        Check unknown relationship labels [graph.integrity.check.unknown-labels]
+          - note: Detect relationship labels not recognized by the configured label taxonomy.
+        Check cross-report references [graph.integrity.check.cross-report-references]
+          - note: Validate whether note/edge references across report boundaries are allowed by policy.
+      Collect validation diagnostics [diagnostics.collect.validation]
+        - note: Collect stable diagnostic codes, severities, sources, and precise config locations.
+      Normalize validated application model [app.model.normalize]
+        - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
+    List reports from ValidatedApp [list.reports.output]
+      - note: Enumerate reports from the normalized validated model with optional strictness behavior handled by validation policy.
   Generate markdown reports [action.generate.markdown]
-    - note: Renders one or more markdown outputs from the validated config.
+    - note: Renders one or more markdown outputs from a single validated application model.
     Load CUE application data [load.app.data]
       - note: Read notes, relationships, and report definitions from config.
     Validate CUE application data [validate.app.data]
-      - note: Ensure required fields and cross-reference integrity are valid and diagnostics are attached to config locations.
+      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
+      Validate CUE schema and structure [validate.cue.schema]
+        - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
+      Resolve argument registry schema [args.registry.resolve]
+        - note: Load known argument definitions (type, default, allowed values, scopes).
+      Validate argument registry schema consistency [args.registry.validate]
+        - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
+      Validate configured free-form arguments [args.validate.config]
+        - note: Validate free-form arguments declared in config against registry definitions and scope rules.
+      Resolve graph integrity policy [graph.integrity.policy.resolve]
+        - note: Resolve integrity policy for missing nodes, orphans, duplicates, label validity, and cross-report references.
+      Validate graph integrity [graph.integrity.validate]
+        - note: Run integrity checks and emit diagnostics according to resolved policy.
+        Check missing relationship nodes [graph.integrity.check.missing-nodes]
+          - note: Detect relationships that reference notes that do not exist.
+        Check orphan nodes [graph.integrity.check.orphans]
+          - note: Detect notes disconnected from report roots/sections.
+        Check duplicate note names [graph.integrity.check.duplicate-note-names]
+          - note: Detect duplicate note identifiers that can cause ambiguous references.
+        Check unknown relationship labels [graph.integrity.check.unknown-labels]
+          - note: Detect relationship labels not recognized by the configured label taxonomy.
+        Check cross-report references [graph.integrity.check.cross-report-references]
+          - note: Validate whether note/edge references across report boundaries are allowed by policy.
+      Collect validation diagnostics [diagnostics.collect.validation]
+        - note: Collect stable diagnostic codes, severities, sources, and precise config locations.
+      Normalize validated application model [app.model.normalize]
+        - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
     Generate markdown sections [action.generate.markdown.sections]
       - note: Build H3 sections from note subsets and renderers with deterministic ordering.
       Resolve deterministic ordering policy [ordering.policy.resolve]
@@ -33,20 +87,8 @@ flyb CLI root command [cli.root]
           - note: Coerce validated values to target types (string[], boolean, enum, number).
         Extract subgraph using labels [graph.select]
           - note: Filter notes and relationships by labels and optional starting node.
-        Validate graph integrity [graph.integrity.validate]
-          - note: Run integrity checks and emit diagnostics according to resolved policy.
-          Check missing relationship nodes [graph.integrity.check.missing-nodes]
-            - note: Detect relationships that reference notes that do not exist.
-          Check orphan nodes [graph.integrity.check.orphans]
-            - note: Detect notes disconnected from report roots/sections.
-          Check duplicate note names [graph.integrity.check.duplicate-note-names]
-            - note: Detect duplicate note identifiers that can cause ambiguous references.
-          Check unknown relationship labels [graph.integrity.check.unknown-labels]
-            - note: Detect relationship labels not recognized by the configured label taxonomy.
-          Check cross-report references [graph.integrity.check.cross-report-references]
-            - note: Validate whether note/edge references across report boundaries are allowed by policy.
         Render section as a graph [render.section.graph]
-          - note: Resolve cycle policy and graph shape, then render with selected renderer(s).
+          - note: Resolve cycle policy and graph shape, then render with selected renderer(s); renderer/runtime diagnostics here must not duplicate graph-integrity diagnostics.
           Resolve renderer/plugin registry [renderer.registry.resolve]
             - note: Load renderer capabilities, supported arguments, and shape compatibility.
           Select renderer plugin from arguments [renderer.plugin.select]
@@ -54,7 +96,7 @@ flyb CLI root command [cli.root]
           Resolve H3Section cycle policy argument [graph.policy.cycle]
             - note: Use section argument to disallow, allow, or collapse cycles.
           Detect graph shape (tree, DAG, or cyclic) [graph.shape.detect]
-            - note: Classify graph structure before selecting rendering strategy.
+            - note: Classify graph structure before selecting rendering strategy; emits renderer/runtime warnings only when applicable.
           Render tree or DAG graph [render.graph.tree-or-dag]
             - note: Prefer hierarchical markdown text; Mermaid can be emitted as an additional diagram.
             Render graph as markdown text [render.graph.markdown.text]
@@ -94,30 +136,91 @@ flyb CLI root command [cli.root]
     Load CUE application data [load.app.data]
       - note: Read notes, relationships, and report definitions from config.
     Validate CUE application data [validate.app.data]
-      - note: Ensure required fields and cross-reference integrity are valid and diagnostics are attached to config locations.
+      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
+      Validate CUE schema and structure [validate.cue.schema]
+        - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
+      Resolve argument registry schema [args.registry.resolve]
+        - note: Load known argument definitions (type, default, allowed values, scopes).
+      Validate argument registry schema consistency [args.registry.validate]
+        - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
+      Validate configured free-form arguments [args.validate.config]
+        - note: Validate free-form arguments declared in config against registry definitions and scope rules.
+      Resolve graph integrity policy [graph.integrity.policy.resolve]
+        - note: Resolve integrity policy for missing nodes, orphans, duplicates, label validity, and cross-report references.
+      Validate graph integrity [graph.integrity.validate]
+        - note: Run integrity checks and emit diagnostics according to resolved policy.
+        Check missing relationship nodes [graph.integrity.check.missing-nodes]
+          - note: Detect relationships that reference notes that do not exist.
+        Check orphan nodes [graph.integrity.check.orphans]
+          - note: Detect notes disconnected from report roots/sections.
+        Check duplicate note names [graph.integrity.check.duplicate-note-names]
+          - note: Detect duplicate note identifiers that can cause ambiguous references.
+        Check unknown relationship labels [graph.integrity.check.unknown-labels]
+          - note: Detect relationship labels not recognized by the configured label taxonomy.
+        Check cross-report references [graph.integrity.check.cross-report-references]
+          - note: Validate whether note/edge references across report boundaries are allowed by policy.
+      Collect validation diagnostics [diagnostics.collect.validation]
+        - note: Collect stable diagnostic codes, severities, sources, and precise config locations.
+      Normalize validated application model [app.model.normalize]
+        - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
+    Export validated graph as JSON [export.graph.json]
+      - note: Export notes and relationships from ValidatedApp without re-running validation steps.
   Validate the CUE file [action.validate]
-    - note: Validate configuration structure and constraints and emit structured diagnostics.
+    - note: Run canonical application validation and emit the same diagnostics that gate generation.
     Load CUE application data [load.app.data]
       - note: Read notes, relationships, and report definitions from config.
     Validate CUE application data [validate.app.data]
-      - note: Ensure required fields and cross-reference integrity are valid and diagnostics are attached to config locations.
-    Resolve graph integrity policy [graph.integrity.policy.resolve]
-      - note: Resolve integrity policy for missing nodes, orphans, duplicates, label validity, and cross-report references.
-    Validate graph integrity [graph.integrity.validate]
-      - note: Run integrity checks and emit diagnostics according to resolved policy.
-      Check missing relationship nodes [graph.integrity.check.missing-nodes]
-        - note: Detect relationships that reference notes that do not exist.
-      Check orphan nodes [graph.integrity.check.orphans]
-        - note: Detect notes disconnected from report roots/sections.
-      Check duplicate note names [graph.integrity.check.duplicate-note-names]
-        - note: Detect duplicate note identifiers that can cause ambiguous references.
-      Check unknown relationship labels [graph.integrity.check.unknown-labels]
-        - note: Detect relationship labels not recognized by the configured label taxonomy.
-      Check cross-report references [graph.integrity.check.cross-report-references]
-        - note: Validate whether note/edge references across report boundaries are allowed by policy.
+      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
+      Validate CUE schema and structure [validate.cue.schema]
+        - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
+      Resolve argument registry schema [args.registry.resolve]
+        - note: Load known argument definitions (type, default, allowed values, scopes).
+      Validate argument registry schema consistency [args.registry.validate]
+        - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
+      Validate configured free-form arguments [args.validate.config]
+        - note: Validate free-form arguments declared in config against registry definitions and scope rules.
+      Resolve graph integrity policy [graph.integrity.policy.resolve]
+        - note: Resolve integrity policy for missing nodes, orphans, duplicates, label validity, and cross-report references.
+      Validate graph integrity [graph.integrity.validate]
+        - note: Run integrity checks and emit diagnostics according to resolved policy.
+        Check missing relationship nodes [graph.integrity.check.missing-nodes]
+          - note: Detect relationships that reference notes that do not exist.
+        Check orphan nodes [graph.integrity.check.orphans]
+          - note: Detect notes disconnected from report roots/sections.
+        Check duplicate note names [graph.integrity.check.duplicate-note-names]
+          - note: Detect duplicate note identifiers that can cause ambiguous references.
+        Check unknown relationship labels [graph.integrity.check.unknown-labels]
+          - note: Detect relationship labels not recognized by the configured label taxonomy.
+        Check cross-report references [graph.integrity.check.cross-report-references]
+          - note: Validate whether note/edge references across report boundaries are allowed by policy.
+      Collect validation diagnostics [diagnostics.collect.validation]
+        - note: Collect stable diagnostic codes, severities, sources, and precise config locations.
+      Normalize validated application model [app.model.normalize]
+        - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
     Emit structured diagnostics [diagnostics.emit.structured]
       - note: Emit diagnostics with code, severity, source, message, and optional location.
 ```
+
+## Validation Contract
+
+- `validate.app.data` is the canonical validation entrypoint for all CLI commands and always includes graph integrity policy resolution and graph integrity validation.
+- Guarantees: schema/structure validation, argument registry validation, configured free-form argument validation, graph integrity checks, and structured diagnostics collection with stable codes/severities/sources/locations.
+- Return shape: `ValidatedApp` containing:
+  - normalized `notes`, `relationships`, and `reports`
+  - resolved `graphIntegrityPolicy` and `argumentRegistry`
+  - optional ordering policy resolution (currently deferred to generation-time ordering components)
+  - `diagnostics: Diagnostic[]` always present (empty when no issues)
+- Generation block rule: any `error` severity diagnostic from `validate.app.data` blocks generation; warnings remain non-blocking by default but are still emitted consistently.
+
+## Refactor Notes (Pseudo-diff)
+
+- Removed direct `graph.integrity.validate` calls from `action.generate.markdown.section.h3` and `action.validate`.
+- `validate.app.data` now invokes: `validate.cue.schema`, `args.registry.resolve`, `args.registry.validate`, `args.validate.config`, `graph.integrity.policy.resolve`, `graph.integrity.validate`, `diagnostics.collect.validation`, `app.model.normalize`.
+- Updated command flows to consume `ValidatedApp`:
+  - `action.generate.markdown`: `load.app.data -> validate.app.data -> action.generate.markdown.sections`
+  - `action.generate.json`: `load.app.data -> validate.app.data -> export.graph.json`
+  - `action.validate`: `load.app.data -> validate.app.data -> diagnostics.emit.structured`
+  - `action.list.reports`: `load.app.data -> validate.app.data -> list.reports.output`
 
 Supported use cases:
 
@@ -128,18 +231,18 @@ Supported use cases:
   - Define labeled relationships between notes in config — CUE can be used as the source format for flexible configuration.
   - Emit structured diagnostics — Diagnostics include code, severity, message, source, and optional location context.
   - Report validation diagnostics with locations — Validation errors and warnings should point to config paths and offending argument or relationship names.
+  - Define an argument registry schema — Registry entries define argument key, type, default, allowed values, and valid scopes.
+  - Validate free-form arguments at runtime — Validate against a known argument registry and fail with clear errors on unknown keys or invalid values.
+  - Accept free-form arguments on H3Section and Note — Arguments behave like CLI flags (for example `format-csv=md`) and can carry string, string[], boolean, and similar values.
+  - Define graph integrity policy beyond cycles — Policy covers missing nodes, orphan nodes, duplicate note names, unknown relationship labels, and cross-report references.
   - Validate graph integrity using policy rules — Integrity checks should emit structured diagnostics tied to offending notes, relationships, and config locations.
+  - Resolve arguments by scope — Apply argument rules by scope (global, h2, h3, note, renderer) to prevent invalid combinations.
   - Render note title and markdown description — Each note includes a concise title with free-form markdown content.
   - Guarantee deterministic output ordering — Sort notes, relationships, sections, and arguments with stable rules so repeated runs produce identical output.
   - Define an explicit ordering policy — Ordering policy is part of runtime behavior and can be documented/tested as a contract.
   - Build a report from a relationship-label subgraph — Report generation can include only edges matching selected labels.
-  - Accept free-form arguments on H3Section and Note — Arguments behave like CLI flags (for example `format-csv=md`) and can carry string, string[], boolean, and similar values.
   - Keep CUE config compact with argument-driven rendering options — Prefer small composable argument lists over proliferating specialized configuration fields.
-  - Resolve arguments by scope — Apply argument rules by scope (global, h2, h3, note, renderer) to prevent invalid combinations.
-  - Define an argument registry schema — Registry entries define argument key, type, default, allowed values, and valid scopes.
-  - Validate free-form arguments at runtime — Validate against a known argument registry and fail with clear errors on unknown keys or invalid values.
   - Coerce free-form argument values into typed values — Convert string-like argument inputs into validated typed values before rendering.
-  - Define graph integrity policy beyond cycles — Policy covers missing nodes, orphan nodes, duplicate note names, unknown relationship labels, and cross-report references.
   - Allow each H3 section to define cycle policy — H3Section arguments can declare whether cycles are disallowed, allowed, or collapsed.
   - Render graph output based on graph shape — Renderer behavior adapts to tree, DAG, and cyclic graph structures.
   - Register renderers and plugins in a capability registry — A renderer registry maps renderer names to capabilities, supported arguments, and graph-shape compatibility.

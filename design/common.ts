@@ -163,6 +163,51 @@ export type GraphIntegrityPolicy = {
   crossReportReference: 'allow' | 'disallow';
 };
 
+export type ValidatedNote = {
+  name: string;
+  title: string;
+  description?: string;
+  labels: string[];
+  arguments?: string[];
+  location?: string;
+};
+
+export type ValidatedRelationship = {
+  from: string;
+  to: string;
+  labels: string[];
+  location?: string;
+};
+
+export type ValidatedH3Section = {
+  title: string;
+  description: string;
+  arguments?: string[];
+};
+
+export type ValidatedH2Section = {
+  title: string;
+  description: string;
+  sections: ValidatedH3Section[];
+};
+
+export type ValidatedReport = {
+  title: string;
+  filepath: string;
+  sections: ValidatedH2Section[];
+};
+
+export type ValidatedApp = {
+  notes: ValidatedNote[];
+  relationships: ValidatedRelationship[];
+  reports: ValidatedReport[];
+  // Ordering policy can remain generation-time if desired.
+  orderingPolicy?: OrderingPolicy;
+  graphIntegrityPolicy: GraphIntegrityPolicy;
+  argumentRegistry: ArgumentRegistry;
+  diagnostics: Diagnostic[];
+};
+
 /**
  * Carry indentation depth while walking the design tree.
  */
