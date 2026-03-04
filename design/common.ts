@@ -118,6 +118,38 @@ export type ArgumentRegistry = {
   arguments: ArgumentDefinition[];
 };
 
+export type OrderingStrategy =
+  | 'by-name'
+  | 'by-title'
+  | 'by-label-then-name'
+  | 'source-order';
+
+export type OrderingPolicy = {
+  notes: OrderingStrategy;
+  relationships: OrderingStrategy;
+  sections: OrderingStrategy;
+  arguments: OrderingStrategy;
+};
+
+export type DiagnosticSeverity = 'error' | 'warning' | 'info';
+
+export type Diagnostic = {
+  code: string;
+  message: string;
+  severity: DiagnosticSeverity;
+  // Logical component/call that produced this diagnostic
+  source: string;
+  // Optional location inside user config, e.g. "reports[0].sections[1].arguments[2]"
+  location?: string;
+  // Optional entity linkage
+  noteName?: string;
+  relationship?: {
+    from: string;
+    to: string;
+  };
+  argumentName?: string;
+};
+
 /**
  * Carry indentation depth while walking the design tree.
  */

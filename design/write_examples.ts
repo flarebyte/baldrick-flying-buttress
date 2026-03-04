@@ -1,9 +1,11 @@
 import { writeFile } from 'node:fs/promises';
 import {
   exampleArgumentRegistry,
+  exampleDiagnostic,
   exampleH2Section,
   exampleH3Section,
   exampleNote,
+  exampleOrderingPolicy,
   exampleRelationship,
   exampleReport,
   exampleUseCase,
@@ -61,6 +63,20 @@ export const generateExamplesReport = async () => {
   lines.push('');
   lines.push('```json');
   lines.push(exampleArgumentRegistry);
+  lines.push('```');
+  lines.push('');
+
+  lines.push('## Ordering policy');
+  lines.push('');
+  lines.push('```json');
+  lines.push(exampleOrderingPolicy);
+  lines.push('```');
+  lines.push('');
+
+  lines.push('## Diagnostic');
+  lines.push('');
+  lines.push('```json');
+  lines.push(exampleDiagnostic);
   lines.push('```');
   lines.push('');
 

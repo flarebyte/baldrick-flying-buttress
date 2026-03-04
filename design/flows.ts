@@ -25,6 +25,12 @@ const uc = {
     useCases['cli.report.graph.renderer.mermaid'].name,
   rendererRegistry: useCases['cli.renderer.registry'].name,
   rendererPluginSelection: useCases['cli.renderer.plugin-selection'].name,
+  outputDeterministicOrdering:
+    useCases['cli.output.deterministic-ordering'].name,
+  outputDeterministicOrderingPolicy:
+    useCases['cli.output.deterministic-ordering.policy'].name,
+  diagnosticsModel: useCases['cli.diagnostics.model'].name,
+  diagnosticsValidation: useCases['cli.diagnostics.validation'].name,
   argumentsFreeForm: useCases['cli.arguments.free-form'].name,
   argumentsRuntimeValidation: useCases['cli.arguments.runtime-validation'].name,
   argumentsRegistrySchema: useCases['cli.arguments.registry.schema'].name,
@@ -80,11 +86,17 @@ export const generateMarkdownSections = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'action.generate.markdown.sections',
     title: 'Generate markdown sections',
-    note: 'Build H3 sections from note subsets and renderers.',
+    note: 'Build H3 sections from note subsets and renderers with deterministic ordering.',
     level: context.level,
-    useCases: [uc.reportGenerate, uc.noteBasicMarkdown],
+    useCases: [
+      uc.reportGenerate,
+      uc.noteBasicMarkdown,
+      uc.outputDeterministicOrdering,
+      uc.outputDeterministicOrderingPolicy,
+    ],
   };
   calls.push(call);
+  resolveOrderingPolicy(incrContext(context));
   generateSingleH3Section(incrContext(context));
 };
 
@@ -117,6 +129,7 @@ export const renderGraphSection = (context: FlowContext) => {
       uc.reportGraphShapeAwareRender,
       uc.rendererRegistry,
       uc.rendererPluginSelection,
+      uc.outputDeterministicOrdering,
     ],
   };
   calls.push(call);
@@ -133,7 +146,11 @@ export const renderSectionWithFile = (context: FlowContext) => {
     title: 'Render section with referenced file content',
     note: 'Dispatches file rendering by type (CSV, media, code/diagram).',
     level: context.level,
-    useCases: [uc.noteFilepathReference, uc.argumentsFreeForm],
+    useCases: [
+      uc.noteFilepathReference,
+      uc.argumentsFreeForm,
+      uc.outputDeterministicOrdering,
+    ],
   };
   calls.push(call);
   resolveNoteRenderArguments(incrContext(context));
@@ -330,6 +347,7 @@ export const generateSingleH3Section = (context: FlowContext) => {
       uc.reportSubgraphByLabel,
       uc.argumentsFreeForm,
       uc.configReduceNoiseWithArgs,
+      uc.outputDeterministicOrdering,
     ],
   };
   calls.push(call);
@@ -341,6 +359,7 @@ export const generateSingleH3Section = (context: FlowContext) => {
   renderGraphSection(incrContext(context));
   renderPlainSection(incrContext(context));
   renderSectionWithFile(incrContext(context));
+  applyDeterministicOrdering(incrContext(context));
 };
 
 export const resolveH3SectionArguments = (context: FlowContext) => {
@@ -427,13 +446,19 @@ export const validateAction = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'action.validate',
     title: 'Validate the CUE file',
-    note: 'Validate configuration structure and constraints without rendering output.',
+    note: 'Validate configuration structure and constraints and emit structured diagnostics.',
     level: context.level,
-    useCases: [uc.configRelationshipsLabeled, uc.configReportsMultiple],
+    useCases: [
+      uc.configRelationshipsLabeled,
+      uc.configReportsMultiple,
+      uc.diagnosticsModel,
+      uc.diagnosticsValidation,
+    ],
   };
   calls.push(call);
   loadAppData(incrContext(context));
   validateAppData(incrContext(context));
+  emitDiagnostics(incrContext(context));
 };
 
 export const loadAppData = (context: FlowContext) => {
@@ -457,9 +482,50 @@ export const validateAppData = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'validate.app.data',
     title: 'Validate CUE application data',
-    note: 'Ensure required fields and cross-reference integrity are valid.',
+    note: 'Ensure required fields and cross-reference integrity are valid and diagnostics are attached to config locations.',
     level: context.level,
-    useCases: [uc.configRelationshipsLabeled, uc.configReportsMultiple],
+    useCases: [
+      uc.configRelationshipsLabeled,
+      uc.configReportsMultiple,
+      uc.diagnosticsModel,
+      uc.diagnosticsValidation,
+    ],
+  };
+  calls.push(call);
+};
+
+export const resolveOrderingPolicy = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'ordering.policy.resolve',
+    title: 'Resolve deterministic ordering policy',
+    note: 'Resolve stable ordering rules for notes, relationships, sections, and arguments.',
+    level: context.level,
+    useCases: [uc.outputDeterministicOrderingPolicy],
+  };
+  calls.push(call);
+};
+
+export const applyDeterministicOrdering = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'ordering.apply.deterministic',
+    title: 'Apply deterministic ordering',
+    note: 'Sort entities and edges with stable tie-breakers before rendering output.',
+    level: context.level,
+    useCases: [
+      uc.outputDeterministicOrdering,
+      uc.outputDeterministicOrderingPolicy,
+    ],
+  };
+  calls.push(call);
+};
+
+export const emitDiagnostics = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'diagnostics.emit.structured',
+    title: 'Emit structured diagnostics',
+    note: 'Emit diagnostics with code, severity, source, message, and optional location.',
+    level: context.level,
+    useCases: [uc.diagnosticsModel, uc.diagnosticsValidation],
   };
   calls.push(call);
 };

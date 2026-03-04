@@ -11,7 +11,11 @@ This document summarizes suggested implementation choices.
 - Use Cobra for CLI command and argument parsing [cli.cobra]
 - Use arguments to reduce CUE configuration noise [config.arguments.reduce-noise]
 - Use CUE as the configuration source of truth [config.cue]
+- Use a structured diagnostics model [diagnostics.structured-model]
+- Attach validation diagnostics to precise config locations [diagnostics.validation-location]
 - Implement the CLI in Go [lang.go]
+- Guarantee deterministic ordering in generated outputs [output.ordering.deterministic]
+- Treat ordering policy as a testable contract [output.ordering.policy-contract]
 - Define a renderer plugin registry contract [renderer.registry.contract]
 - Use deterministic renderer selection and fallback policy [renderer.selection.fallback-policy]
 - Use early returns and guard clauses for errors [style.errors.guard-clauses]
@@ -60,10 +64,30 @@ This document summarizes suggested implementation choices.
 - Description: Represent notes, relationships, and report definitions in CUE for schema validation, defaults, and composable configuration.
 - Calls: load.app.data, validate.app.data, action.validate
 
+## Use a structured diagnostics model [diagnostics.structured-model]
+
+- Description: Standardize diagnostics with code, severity, source, message, and location to support CLI UX, CI checks, and future editor integrations.
+- Calls: validate.app.data, args.validate.runtime, diagnostics.emit.structured
+
+## Attach validation diagnostics to precise config locations [diagnostics.validation-location]
+
+- Description: Include CUE path, related note/relationship, and argument key in diagnostics so users can quickly fix invalid configuration.
+- Calls: validate.app.data, action.validate, diagnostics.emit.structured
+
 ## Implement the CLI in Go [lang.go]
 
 - Description: Use Go as the primary implementation language for strong typing, fast startup, and straightforward single-binary distribution.
 - Calls: cli.root
+
+## Guarantee deterministic ordering in generated outputs [output.ordering.deterministic]
+
+- Description: Apply explicit stable sorting for notes, relationships, sections, and arguments so output remains reproducible across runs and machines.
+- Calls: ordering.policy.resolve, ordering.apply.deterministic, action.generate.markdown.sections, action.generate.markdown.section.h3
+
+## Treat ordering policy as a testable contract [output.ordering.policy-contract]
+
+- Description: Define ordering rules and tie-breakers as a versioned policy and verify them with golden-file tests.
+- Calls: ordering.policy.resolve, ordering.apply.deterministic, action.generate.markdown
 
 ## Define a renderer plugin registry contract [renderer.registry.contract]
 

@@ -97,6 +97,26 @@ export const useCases: Record<string, UseCase> = {
     title: 'Select renderer plugin from arguments at runtime',
     note: 'Renderer selection is resolved from section and note arguments with fallback defaults.',
   },
+  'cli.output.deterministic-ordering': {
+    name: 'cli.output.deterministic-ordering',
+    title: 'Guarantee deterministic output ordering',
+    note: 'Sort notes, relationships, sections, and arguments with stable rules so repeated runs produce identical output.',
+  },
+  'cli.output.deterministic-ordering.policy': {
+    name: 'cli.output.deterministic-ordering.policy',
+    title: 'Define an explicit ordering policy',
+    note: 'Ordering policy is part of runtime behavior and can be documented/tested as a contract.',
+  },
+  'cli.diagnostics.model': {
+    name: 'cli.diagnostics.model',
+    title: 'Emit structured diagnostics',
+    note: 'Diagnostics include code, severity, message, source, and optional location context.',
+  },
+  'cli.diagnostics.validation': {
+    name: 'cli.diagnostics.validation',
+    title: 'Report validation diagnostics with locations',
+    note: 'Validation errors and warnings should point to config paths and offending argument or relationship names.',
+  },
   'cli.arguments.free-form': {
     name: 'cli.arguments.free-form',
     title: 'Accept free-form arguments on H3Section and Note',

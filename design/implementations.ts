@@ -47,6 +47,51 @@ export const implementations: Record<string, ImplementationConsideration> = {
       'render.graph.circular',
     ],
   },
+  'output.ordering.deterministic': {
+    name: 'output.ordering.deterministic',
+    title: 'Guarantee deterministic ordering in generated outputs',
+    description:
+      'Apply explicit stable sorting for notes, relationships, sections, and arguments so output remains reproducible across runs and machines.',
+    calls: [
+      'ordering.policy.resolve',
+      'ordering.apply.deterministic',
+      'action.generate.markdown.sections',
+      'action.generate.markdown.section.h3',
+    ],
+  },
+  'output.ordering.policy-contract': {
+    name: 'output.ordering.policy-contract',
+    title: 'Treat ordering policy as a testable contract',
+    description:
+      'Define ordering rules and tie-breakers as a versioned policy and verify them with golden-file tests.',
+    calls: [
+      'ordering.policy.resolve',
+      'ordering.apply.deterministic',
+      'action.generate.markdown',
+    ],
+  },
+  'diagnostics.structured-model': {
+    name: 'diagnostics.structured-model',
+    title: 'Use a structured diagnostics model',
+    description:
+      'Standardize diagnostics with code, severity, source, message, and location to support CLI UX, CI checks, and future editor integrations.',
+    calls: [
+      'validate.app.data',
+      'args.validate.runtime',
+      'diagnostics.emit.structured',
+    ],
+  },
+  'diagnostics.validation-location': {
+    name: 'diagnostics.validation-location',
+    title: 'Attach validation diagnostics to precise config locations',
+    description:
+      'Include CUE path, related note/relationship, and argument key in diagnostics so users can quickly fix invalid configuration.',
+    calls: [
+      'validate.app.data',
+      'action.validate',
+      'diagnostics.emit.structured',
+    ],
+  },
   'cli.arguments.typed-models': {
     name: 'cli.arguments.typed-models',
     title: 'Use free-form key/value arguments with typed coercion',

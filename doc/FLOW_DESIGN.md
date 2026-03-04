@@ -10,15 +10,17 @@ flyb CLI root command [cli.root]
     Load CUE application data [load.app.data]
       - note: Read notes, relationships, and report definitions from config.
     Validate CUE application data [validate.app.data]
-      - note: Ensure required fields and cross-reference integrity are valid.
+      - note: Ensure required fields and cross-reference integrity are valid and diagnostics are attached to config locations.
   Generate markdown reports [action.generate.markdown]
     - note: Renders one or more markdown outputs from the validated config.
     Load CUE application data [load.app.data]
       - note: Read notes, relationships, and report definitions from config.
     Validate CUE application data [validate.app.data]
-      - note: Ensure required fields and cross-reference integrity are valid.
+      - note: Ensure required fields and cross-reference integrity are valid and diagnostics are attached to config locations.
     Generate markdown sections [action.generate.markdown.sections]
-      - note: Build H3 sections from note subsets and renderers.
+      - note: Build H3 sections from note subsets and renderers with deterministic ordering.
+      Resolve deterministic ordering policy [ordering.policy.resolve]
+        - note: Resolve stable ordering rules for notes, relationships, sections, and arguments.
       Generate a single H3 section [action.generate.markdown.section.h3]
         - note: Compose subgraph, plain content, and file-backed content with section-level arguments.
         Resolve H3Section free-form arguments [args.h3.resolve]
@@ -73,18 +75,22 @@ flyb CLI root command [cli.root]
             - note: Embed image previews for supported media types.
           Render section with code or Mermaid snippet [render.section.file.code]
             - note: Preserve fenced-block formatting for code and Mermaid content.
+        Apply deterministic ordering [ordering.apply.deterministic]
+          - note: Sort entities and edges with stable tie-breakers before rendering output.
   Generate JSON graph export [action.generate.json]
     - note: Export notes and relationships in machine-readable JSON format.
     Load CUE application data [load.app.data]
       - note: Read notes, relationships, and report definitions from config.
     Validate CUE application data [validate.app.data]
-      - note: Ensure required fields and cross-reference integrity are valid.
+      - note: Ensure required fields and cross-reference integrity are valid and diagnostics are attached to config locations.
   Validate the CUE file [action.validate]
-    - note: Validate configuration structure and constraints without rendering output.
+    - note: Validate configuration structure and constraints and emit structured diagnostics.
     Load CUE application data [load.app.data]
       - note: Read notes, relationships, and report definitions from config.
     Validate CUE application data [validate.app.data]
-      - note: Ensure required fields and cross-reference integrity are valid.
+      - note: Ensure required fields and cross-reference integrity are valid and diagnostics are attached to config locations.
+    Emit structured diagnostics [diagnostics.emit.structured]
+      - note: Emit diagnostics with code, severity, source, message, and optional location.
 ```
 
 Supported use cases:
@@ -94,7 +100,11 @@ Supported use cases:
   - Declare multiple markdown reports in one config — A single config can drive generation of multiple report files.
   - Export notes and relationships as JSON — JSON export supports machine-readable graph processing.
   - Define labeled relationships between notes in config — CUE can be used as the source format for flexible configuration.
+  - Emit structured diagnostics — Diagnostics include code, severity, message, source, and optional location context.
+  - Report validation diagnostics with locations — Validation errors and warnings should point to config paths and offending argument or relationship names.
   - Render note title and markdown description — Each note includes a concise title with free-form markdown content.
+  - Guarantee deterministic output ordering — Sort notes, relationships, sections, and arguments with stable rules so repeated runs produce identical output.
+  - Define an explicit ordering policy — Ordering policy is part of runtime behavior and can be documented/tested as a contract.
   - Build a report from a relationship-label subgraph — Report generation can include only edges matching selected labels.
   - Accept free-form arguments on H3Section and Note — Arguments behave like CLI flags (for example `format-csv=md`) and can carry string, string[], boolean, and similar values.
   - Keep CUE config compact with argument-driven rendering options — Prefer small composable argument lists over proliferating specialized configuration fields.

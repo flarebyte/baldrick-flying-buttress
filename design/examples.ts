@@ -48,6 +48,23 @@ export type ArgumentRegistry = {
   }>;
 };
 
+export type OrderingPolicy = {
+  notes: 'by-name' | 'by-title' | 'by-label-then-name' | 'source-order';
+  relationships: 'by-name' | 'by-title' | 'by-label-then-name' | 'source-order';
+  sections: 'by-name' | 'by-title' | 'by-label-then-name' | 'source-order';
+  arguments: 'by-name' | 'by-title' | 'by-label-then-name' | 'source-order';
+};
+
+export type Diagnostic = {
+  code: string;
+  severity: 'error' | 'warning' | 'info';
+  source: string;
+  message: string;
+  location?: string;
+  noteName?: string;
+  argumentName?: string;
+};
+
 const useCase: Note = {
   name: 'usecase.io.calls.count',
   title: 'Count I/O calls per function and method',
@@ -122,6 +139,24 @@ const argumentRegistry: ArgumentRegistry = {
   ],
 };
 
+const orderingPolicy: OrderingPolicy = {
+  notes: 'by-label-then-name',
+  relationships: 'by-name',
+  sections: 'by-title',
+  arguments: 'by-name',
+};
+
+const validationDiagnostic: Diagnostic = {
+  code: 'ARG_ENUM_INVALID',
+  severity: 'error',
+  source: 'args.validate.runtime',
+  message:
+    'Invalid value `pdf` for argument `format-csv`; expected one of: md, csv.',
+  location: 'reports[0].sections[0].notes[2].arguments[1]',
+  noteName: 'note.render.csv',
+  argumentName: 'format-csv',
+};
+
 // Helpful when documenting the exact JSON output shape in markdown/docs.
 export const exampleNote = JSON.stringify(rootCall, null, 2);
 export const exampleUseCase = JSON.stringify(useCase, null, 2);
@@ -134,3 +169,5 @@ export const exampleH3Section = JSON.stringify(sectionGraphRendering, null, 2);
 export const exampleH2Section = JSON.stringify(sectionFlowDesign, null, 2);
 export const exampleReport = JSON.stringify(flowDesignReport, null, 2);
 export const exampleArgumentRegistry = JSON.stringify(argumentRegistry, null, 2);
+export const exampleOrderingPolicy = JSON.stringify(orderingPolicy, null, 2);
+export const exampleDiagnostic = JSON.stringify(validationDiagnostic, null, 2);

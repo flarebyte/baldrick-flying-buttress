@@ -247,3 +247,28 @@
   ]
 }
 ```
+
+## Ordering policy
+
+```json
+{
+  "notes": "by-label-then-name",
+  "relationships": "by-name",
+  "sections": "by-title",
+  "arguments": "by-name"
+}
+```
+
+## Diagnostic
+
+```json
+{
+  "code": "ARG_ENUM_INVALID",
+  "severity": "error",
+  "source": "args.validate.runtime",
+  "message": "Invalid value `pdf` for argument `format-csv`; expected one of: md, csv.",
+  "location": "reports[0].sections[0].notes[2].arguments[1]",
+  "noteName": "note.render.csv",
+  "argumentName": "format-csv"
+}
+```
