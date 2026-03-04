@@ -24,13 +24,39 @@ export const implementations: Record<string, ImplementationConsideration> = {
   },
   'cli.arguments.typed-models': {
     name: 'cli.arguments.typed-models',
-    title: 'Model Note and H3Section arguments with typed structs',
+    title: 'Use free-form key/value arguments with typed coercion',
     description:
-      'Define small typed argument models for command inputs and section/note filters so argument handling remains explicit and testable.',
+      'Treat H3Section and Note arguments like CLI-style flags (for example `format-csv=md`) to keep config flexible, then coerce values into typed runtime options per renderer.',
     calls: [
       'action.generate.markdown.sections',
       'action.generate.markdown.section.h3',
+      'args.h3.resolve',
+      'args.note.resolve',
       'render.section.plain',
+      'render.section.file',
+    ],
+  },
+  'cli.arguments.runtime-validation': {
+    name: 'cli.arguments.runtime-validation',
+    title: 'Validate free-form arguments with Cobra-style validators',
+    description:
+      'Validate argument keys and values at runtime against a known registry (enums, booleans, repeated values) using familiar CLI validation patterns and clear error messages.',
+    calls: [
+      'args.validate.runtime',
+      'action.generate.markdown.section.h3',
+      'render.section.file.csv',
+      'render.section.graph',
+    ],
+  },
+  'config.arguments.reduce-noise': {
+    name: 'config.arguments.reduce-noise',
+    title: 'Use arguments to reduce CUE configuration noise',
+    description:
+      'Prefer composable argument lists over adding many specialized CUE fields, so rendering capabilities can evolve without large schema churn.',
+    calls: [
+      'args.h3.resolve',
+      'args.note.resolve',
+      'action.generate.markdown.section.h3',
       'render.section.file',
     ],
   },

@@ -23,6 +23,9 @@ const uc = {
     useCases['cli.report.graph.renderer.markdown-text'].name,
   reportGraphRendererMermaid:
     useCases['cli.report.graph.renderer.mermaid'].name,
+  argumentsFreeForm: useCases['cli.arguments.free-form'].name,
+  argumentsRuntimeValidation: useCases['cli.arguments.runtime-validation'].name,
+  configReduceNoiseWithArgs: useCases['cli.config.reduce-noise.with-args'].name,
 };
 
 export const cliRoot = (context: FlowContext) => {
@@ -83,9 +86,14 @@ export const renderPlainSection = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'render.section.plain',
     title: 'Render plain section',
-    note: 'Render title and markdown body, including markdown links.',
+    note: 'Render title and markdown body, including markdown links and note-level argument options.',
     level: context.level,
-    useCases: [uc.noteBasicMarkdown, uc.noteLinkMarkdown],
+    useCases: [
+      uc.noteBasicMarkdown,
+      uc.noteLinkMarkdown,
+      uc.argumentsFreeForm,
+      uc.argumentsRuntimeValidation,
+    ],
   };
   calls.push(call);
 };
@@ -115,9 +123,11 @@ export const renderSectionWithFile = (context: FlowContext) => {
     title: 'Render section with referenced file content',
     note: 'Dispatches file rendering by type (CSV, media, code/diagram).',
     level: context.level,
-    useCases: [uc.noteFilepathReference],
+    useCases: [uc.noteFilepathReference, uc.argumentsFreeForm],
   };
   calls.push(call);
+  resolveNoteRenderArguments(incrContext(context));
+  validateRenderArguments(incrContext(context));
   renderSectionWithCsvFile(incrContext(context));
   renderSectionWithMedia(incrContext(context));
   renderSectionWithCodeSnippet(incrContext(context));
@@ -127,9 +137,14 @@ export const renderSectionWithCsvFile = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'render.section.file.csv',
     title: 'Render section with CSV file',
-    note: 'Render as a markdown table or raw CSV code block.',
+    note: 'Render as a markdown table or raw CSV code block (for example `format-csv=md`).',
     level: context.level,
-    useCases: [uc.noteFilepathReference, uc.noteCsvEmbed],
+    useCases: [
+      uc.noteFilepathReference,
+      uc.noteCsvEmbed,
+      uc.argumentsFreeForm,
+      uc.argumentsRuntimeValidation,
+    ],
   };
   calls.push(call);
   filterCsvFile(incrContext(context));
@@ -141,7 +156,12 @@ export const renderSectionWithCodeSnippet = (context: FlowContext) => {
     title: 'Render section with code or Mermaid snippet',
     note: 'Preserve fenced-block formatting for code and Mermaid content.',
     level: context.level,
-    useCases: [uc.noteFilepathReference, uc.noteMermaidEmbed],
+    useCases: [
+      uc.noteFilepathReference,
+      uc.noteMermaidEmbed,
+      uc.argumentsFreeForm,
+      uc.argumentsRuntimeValidation,
+    ],
   };
   calls.push(call);
 };
@@ -151,7 +171,7 @@ export const filterCsvFile = (context: FlowContext) => {
     title: 'Filter CSV rows by column',
     note: 'Apply include/exclude filters before rendering CSV output.',
     level: context.level,
-    useCases: [uc.noteCsvFilterColumn],
+    useCases: [uc.noteCsvFilterColumn, uc.argumentsFreeForm],
   };
   calls.push(call);
 };
@@ -252,7 +272,11 @@ export const renderSectionWithMedia = (context: FlowContext) => {
     title: 'Render section with media file',
     note: 'Embed image previews for supported media types.',
     level: context.level,
-    useCases: [uc.noteFilepathReference, uc.noteImagePreview],
+    useCases: [
+      uc.noteFilepathReference,
+      uc.noteImagePreview,
+      uc.argumentsFreeForm,
+    ],
   };
   calls.push(call);
 };
@@ -261,15 +285,55 @@ export const generateSingleH3Section = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'action.generate.markdown.section.h3',
     title: 'Generate a single H3 section',
-    note: 'Compose subgraph, plain content, and file-backed content for one section.',
+    note: 'Compose subgraph, plain content, and file-backed content with section-level arguments.',
     level: context.level,
-    useCases: [uc.reportGenerate, uc.reportSubgraphByLabel],
+    useCases: [
+      uc.reportGenerate,
+      uc.reportSubgraphByLabel,
+      uc.argumentsFreeForm,
+      uc.configReduceNoiseWithArgs,
+    ],
   };
   calls.push(call);
+  resolveH3SectionArguments(incrContext(context));
+  validateRenderArguments(incrContext(context));
   selectSubGraph(incrContext(context));
   renderGraphSection(incrContext(context));
   renderPlainSection(incrContext(context));
   renderSectionWithFile(incrContext(context));
+};
+
+export const resolveH3SectionArguments = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'args.h3.resolve',
+    title: 'Resolve H3Section free-form arguments',
+    note: 'Read flexible section arguments as key/value flags (for example `graph-renderer=mermaid`).',
+    level: context.level,
+    useCases: [uc.argumentsFreeForm, uc.configReduceNoiseWithArgs],
+  };
+  calls.push(call);
+};
+
+export const resolveNoteRenderArguments = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'args.note.resolve',
+    title: 'Resolve Note free-form arguments',
+    note: 'Read note-level rendering options as key/value flags (for example `format-csv=md`).',
+    level: context.level,
+    useCases: [uc.argumentsFreeForm, uc.configReduceNoiseWithArgs],
+  };
+  calls.push(call);
+};
+
+export const validateRenderArguments = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'args.validate.runtime',
+    title: 'Validate arguments at runtime',
+    note: 'Validate keys and values against a known argument registry and fail fast on invalid input.',
+    level: context.level,
+    useCases: [uc.argumentsRuntimeValidation],
+  };
+  calls.push(call);
 };
 
 export const generateJsonAction = (context: FlowContext) => {

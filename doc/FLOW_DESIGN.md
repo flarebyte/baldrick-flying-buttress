@@ -20,7 +20,11 @@ flyb CLI root command [cli.root]
     Generate markdown sections [action.generate.markdown.sections]
       - note: Build H3 sections from note subsets and renderers.
       Generate a single H3 section [action.generate.markdown.section.h3]
-        - note: Compose subgraph, plain content, and file-backed content for one section.
+        - note: Compose subgraph, plain content, and file-backed content with section-level arguments.
+        Resolve H3Section free-form arguments [args.h3.resolve]
+          - note: Read flexible section arguments as key/value flags (for example `graph-renderer=mermaid`).
+        Validate arguments at runtime [args.validate.runtime]
+          - note: Validate keys and values against a known argument registry and fail fast on invalid input.
         Extract subgraph using labels [graph.select]
           - note: Filter notes and relationships by labels and optional starting node.
         Render section as a graph [render.section.graph]
@@ -42,11 +46,15 @@ flyb CLI root command [cli.root]
             Render graph as markdown text [render.graph.markdown.text]
               - note: Render adjacency and hierarchy using the same markdown style as FLOW_DESIGN.
         Render plain section [render.section.plain]
-          - note: Render title and markdown body, including markdown links.
+          - note: Render title and markdown body, including markdown links and note-level argument options.
         Render section with referenced file content [render.section.file]
           - note: Dispatches file rendering by type (CSV, media, code/diagram).
+          Resolve Note free-form arguments [args.note.resolve]
+            - note: Read note-level rendering options as key/value flags (for example `format-csv=md`).
+          Validate arguments at runtime [args.validate.runtime]
+            - note: Validate keys and values against a known argument registry and fail fast on invalid input.
           Render section with CSV file [render.section.file.csv]
-            - note: Render as a markdown table or raw CSV code block.
+            - note: Render as a markdown table or raw CSV code block (for example `format-csv=md`).
             Filter CSV rows by column [file.csv.filter]
               - note: Apply include/exclude filters before rendering CSV output.
           Render section with media file [render.section.file.media]
@@ -76,6 +84,9 @@ Supported use cases:
   - Define labeled relationships between notes in config — CUE can be used as the source format for flexible configuration.
   - Render note title and markdown description — Each note includes a concise title with free-form markdown content.
   - Build a report from a relationship-label subgraph — Report generation can include only edges matching selected labels.
+  - Accept free-form arguments on H3Section and Note — Arguments behave like CLI flags (for example `format-csv=md`) and can carry string, string[], boolean, and similar values.
+  - Keep CUE config compact with argument-driven rendering options — Prefer small composable argument lists over proliferating specialized configuration fields.
+  - Validate free-form arguments at runtime — Validate against a known argument registry and fail with clear errors on unknown keys or invalid values.
   - Allow each H3 section to define cycle policy — H3Section arguments can declare whether cycles are disallowed, allowed, or collapsed.
   - Render graph output based on graph shape — Renderer behavior adapts to tree, DAG, and cyclic graph structures.
   - Render graph output as markdown text — Text rendering supports readable hierarchy and edge summaries in markdown reports.

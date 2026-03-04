@@ -3,8 +3,10 @@
 This document summarizes suggested implementation choices.
 
 ## Summary
-- Model Note and H3Section arguments with typed structs [cli.arguments.typed-models]
+- Validate free-form arguments with Cobra-style validators [cli.arguments.runtime-validation]
+- Use free-form key/value arguments with typed coercion [cli.arguments.typed-models]
 - Use Cobra for CLI command and argument parsing [cli.cobra]
+- Use arguments to reduce CUE configuration noise [config.arguments.reduce-noise]
 - Use CUE as the configuration source of truth [config.cue]
 - Implement the CLI in Go [lang.go]
 - Use early returns and guard clauses for errors [style.errors.guard-clauses]
@@ -13,15 +15,25 @@ This document summarizes suggested implementation choices.
 - Use tiny structs to avoid long parameter lists [style.parameters.tiny-structs]
 - Replace boolean soup with named predicates [style.predicates.named]
 
-## Model Note and H3Section arguments with typed structs [cli.arguments.typed-models]
+## Validate free-form arguments with Cobra-style validators [cli.arguments.runtime-validation]
 
-- Description: Define small typed argument models for command inputs and section/note filters so argument handling remains explicit and testable.
-- Calls: action.generate.markdown.sections, action.generate.markdown.section.h3, render.section.plain, render.section.file
+- Description: Validate argument keys and values at runtime against a known registry (enums, booleans, repeated values) using familiar CLI validation patterns and clear error messages.
+- Calls: args.validate.runtime, action.generate.markdown.section.h3, render.section.file.csv, render.section.graph
+
+## Use free-form key/value arguments with typed coercion [cli.arguments.typed-models]
+
+- Description: Treat H3Section and Note arguments like CLI-style flags (for example `format-csv=md`) to keep config flexible, then coerce values into typed runtime options per renderer.
+- Calls: action.generate.markdown.sections, action.generate.markdown.section.h3, args.h3.resolve, args.note.resolve, render.section.plain, render.section.file
 
 ## Use Cobra for CLI command and argument parsing [cli.cobra]
 
 - Description: Use Cobra to model commands, flags, and subcommands (`generate markdown`, `generate json`, `validate`, `list`) with a consistent command tree.
 - Calls: cli.root, action.generate.markdown, action.generate.json, action.validate, action.list.reports
+
+## Use arguments to reduce CUE configuration noise [config.arguments.reduce-noise]
+
+- Description: Prefer composable argument lists over adding many specialized CUE fields, so rendering capabilities can evolve without large schema churn.
+- Calls: args.h3.resolve, args.note.resolve, action.generate.markdown.section.h3, render.section.file
 
 ## Use CUE as the configuration source of truth [config.cue]
 

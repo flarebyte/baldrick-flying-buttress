@@ -87,6 +87,21 @@ export const useCases: Record<string, UseCase> = {
     title: 'Render graph output as Mermaid diagram',
     note: 'Mermaid output supports visual graph rendering, including cyclic relationships.',
   },
+  'cli.arguments.free-form': {
+    name: 'cli.arguments.free-form',
+    title: 'Accept free-form arguments on H3Section and Note',
+    note: 'Arguments behave like CLI flags (for example `format-csv=md`) and can carry string, string[], boolean, and similar values.',
+  },
+  'cli.arguments.runtime-validation': {
+    name: 'cli.arguments.runtime-validation',
+    title: 'Validate free-form arguments at runtime',
+    note: 'Validate against a known argument registry and fail with clear errors on unknown keys or invalid values.',
+  },
+  'cli.config.reduce-noise.with-args': {
+    name: 'cli.config.reduce-noise.with-args',
+    title: 'Keep CUE config compact with argument-driven rendering options',
+    note: 'Prefer small composable argument lists over proliferating specialized configuration fields.',
+  },
 };
 
 export const getByName = (expectedName: string) =>
