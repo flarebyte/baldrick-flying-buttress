@@ -3,7 +3,10 @@
 This document summarizes suggested implementation choices.
 
 ## Summary
+- Define a typed argument registry schema [cli.arguments.registry-schema]
 - Validate free-form arguments with Cobra-style validators [cli.arguments.runtime-validation]
+- Apply scope-aware argument resolution [cli.arguments.scope-resolution]
+- Use explicit type coercion for free-form arguments [cli.arguments.type-coercion]
 - Use free-form key/value arguments with typed coercion [cli.arguments.typed-models]
 - Use Cobra for CLI command and argument parsing [cli.cobra]
 - Use arguments to reduce CUE configuration noise [config.arguments.reduce-noise]
@@ -17,10 +20,25 @@ This document summarizes suggested implementation choices.
 - Use tiny structs to avoid long parameter lists [style.parameters.tiny-structs]
 - Replace boolean soup with named predicates [style.predicates.named]
 
+## Define a typed argument registry schema [cli.arguments.registry-schema]
+
+- Description: Maintain a registry of argument definitions (name, type, default, allowed values, scopes) and use it as the single source of truth for argument behavior.
+- Calls: args.registry.resolve, args.validate.runtime, args.coerce.typed
+
 ## Validate free-form arguments with Cobra-style validators [cli.arguments.runtime-validation]
 
 - Description: Validate argument keys and values at runtime against a known registry (enums, booleans, repeated values) using familiar CLI validation patterns and clear error messages.
-- Calls: args.validate.runtime, action.generate.markdown.section.h3, render.section.file.csv, render.section.graph
+- Calls: args.validate.runtime, args.registry.resolve, action.generate.markdown.section.h3, render.section.file.csv, render.section.graph
+
+## Apply scope-aware argument resolution [cli.arguments.scope-resolution]
+
+- Description: Resolve and validate arguments by scope (global, h2, h3, note, renderer) so options are accepted only where they are meaningful.
+- Calls: args.h3.resolve, args.note.resolve, args.validate.runtime, graph.policy.cycle, renderer.plugin.select
+
+## Use explicit type coercion for free-form arguments [cli.arguments.type-coercion]
+
+- Description: After validation, coerce argument values to typed runtime options before rendering to avoid stringly-typed behavior in renderers.
+- Calls: args.coerce.typed, render.section.file.csv, render.graph.mermaid, render.graph.markdown.text
 
 ## Use free-form key/value arguments with typed coercion [cli.arguments.typed-models]
 

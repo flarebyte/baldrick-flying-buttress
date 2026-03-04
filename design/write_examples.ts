@@ -1,5 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 import {
+  exampleArgumentRegistry,
   exampleH2Section,
   exampleH3Section,
   exampleNote,
@@ -53,6 +54,13 @@ export const generateExamplesReport = async () => {
   lines.push('');
   lines.push('```json');
   lines.push(exampleReport);
+  lines.push('```');
+  lines.push('');
+
+  lines.push('## Argument registry');
+  lines.push('');
+  lines.push('```json');
+  lines.push(exampleArgumentRegistry);
   lines.push('```');
   lines.push('');
 

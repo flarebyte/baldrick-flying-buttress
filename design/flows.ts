@@ -27,6 +27,10 @@ const uc = {
   rendererPluginSelection: useCases['cli.renderer.plugin-selection'].name,
   argumentsFreeForm: useCases['cli.arguments.free-form'].name,
   argumentsRuntimeValidation: useCases['cli.arguments.runtime-validation'].name,
+  argumentsRegistrySchema: useCases['cli.arguments.registry.schema'].name,
+  argumentsScopeResolution:
+    useCases['cli.arguments.registry.scope-resolution'].name,
+  argumentsTypeCoercion: useCases['cli.arguments.type-coercion'].name,
   configReduceNoiseWithArgs: useCases['cli.config.reduce-noise.with-args'].name,
 };
 
@@ -133,7 +137,9 @@ export const renderSectionWithFile = (context: FlowContext) => {
   };
   calls.push(call);
   resolveNoteRenderArguments(incrContext(context));
+  resolveArgumentRegistry(incrContext(context));
   validateRenderArguments(incrContext(context));
+  coerceRenderArguments(incrContext(context));
   renderSectionWithCsvFile(incrContext(context));
   renderSectionWithMedia(incrContext(context));
   renderSectionWithCodeSnippet(incrContext(context));
@@ -199,7 +205,7 @@ export const resolveH3GraphCyclePolicy = (context: FlowContext) => {
     title: 'Resolve H3Section cycle policy argument',
     note: 'Use section argument to disallow, allow, or collapse cycles.',
     level: context.level,
-    useCases: [uc.sectionH3CyclePolicy],
+    useCases: [uc.sectionH3CyclePolicy, uc.argumentsScopeResolution],
   };
   calls.push(call);
 };
@@ -328,7 +334,9 @@ export const generateSingleH3Section = (context: FlowContext) => {
   };
   calls.push(call);
   resolveH3SectionArguments(incrContext(context));
+  resolveArgumentRegistry(incrContext(context));
   validateRenderArguments(incrContext(context));
+  coerceRenderArguments(incrContext(context));
   selectSubGraph(incrContext(context));
   renderGraphSection(incrContext(context));
   renderPlainSection(incrContext(context));
@@ -341,7 +349,11 @@ export const resolveH3SectionArguments = (context: FlowContext) => {
     title: 'Resolve H3Section free-form arguments',
     note: 'Read flexible section arguments as key/value flags (for example `graph-renderer=mermaid`).',
     level: context.level,
-    useCases: [uc.argumentsFreeForm, uc.configReduceNoiseWithArgs],
+    useCases: [
+      uc.argumentsFreeForm,
+      uc.configReduceNoiseWithArgs,
+      uc.argumentsScopeResolution,
+    ],
   };
   calls.push(call);
 };
@@ -352,7 +364,11 @@ export const resolveNoteRenderArguments = (context: FlowContext) => {
     title: 'Resolve Note free-form arguments',
     note: 'Read note-level rendering options as key/value flags (for example `format-csv=md`).',
     level: context.level,
-    useCases: [uc.argumentsFreeForm, uc.configReduceNoiseWithArgs],
+    useCases: [
+      uc.argumentsFreeForm,
+      uc.configReduceNoiseWithArgs,
+      uc.argumentsScopeResolution,
+    ],
   };
   calls.push(call);
 };
@@ -363,7 +379,33 @@ export const validateRenderArguments = (context: FlowContext) => {
     title: 'Validate arguments at runtime',
     note: 'Validate keys and values against a known argument registry and fail fast on invalid input.',
     level: context.level,
-    useCases: [uc.argumentsRuntimeValidation],
+    useCases: [
+      uc.argumentsRuntimeValidation,
+      uc.argumentsRegistrySchema,
+      uc.argumentsScopeResolution,
+    ],
+  };
+  calls.push(call);
+};
+
+export const resolveArgumentRegistry = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'args.registry.resolve',
+    title: 'Resolve argument registry schema',
+    note: 'Load known argument definitions (type, default, allowed values, scopes).',
+    level: context.level,
+    useCases: [uc.argumentsRegistrySchema],
+  };
+  calls.push(call);
+};
+
+export const coerceRenderArguments = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'args.coerce.typed',
+    title: 'Coerce arguments to typed values',
+    note: 'Coerce validated values to target types (string[], boolean, enum, number).',
+    level: context.level,
+    useCases: [uc.argumentsTypeCoercion, uc.argumentsRegistrySchema],
   };
   calls.push(call);
 };

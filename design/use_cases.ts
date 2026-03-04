@@ -107,6 +107,21 @@ export const useCases: Record<string, UseCase> = {
     title: 'Validate free-form arguments at runtime',
     note: 'Validate against a known argument registry and fail with clear errors on unknown keys or invalid values.',
   },
+  'cli.arguments.registry.schema': {
+    name: 'cli.arguments.registry.schema',
+    title: 'Define an argument registry schema',
+    note: 'Registry entries define argument key, type, default, allowed values, and valid scopes.',
+  },
+  'cli.arguments.registry.scope-resolution': {
+    name: 'cli.arguments.registry.scope-resolution',
+    title: 'Resolve arguments by scope',
+    note: 'Apply argument rules by scope (global, h2, h3, note, renderer) to prevent invalid combinations.',
+  },
+  'cli.arguments.type-coercion': {
+    name: 'cli.arguments.type-coercion',
+    title: 'Coerce free-form argument values into typed values',
+    note: 'Convert string-like argument inputs into validated typed values before rendering.',
+  },
   'cli.config.reduce-noise.with-args': {
     name: 'cli.config.reduce-noise.with-args',
     title: 'Keep CUE config compact with argument-driven rendering options',

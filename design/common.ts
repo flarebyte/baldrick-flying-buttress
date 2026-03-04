@@ -88,6 +88,36 @@ export type Stickie = {
   labels: string[];
 };
 
+export type ArgumentScope = 'global' | 'h2-section' | 'h3-section' | 'note' | 'renderer';
+
+export type ArgumentValueType =
+  | 'string'
+  | 'string[]'
+  | 'boolean'
+  | 'int'
+  | 'float'
+  | 'enum';
+
+export type ArgumentDefinition = {
+  // Machine-friendly key used in free-form arguments, e.g. "format-csv"
+  name: string;
+  title: string;
+  description: string;
+  valueType: ArgumentValueType;
+  required?: boolean;
+  defaultValue?: string | string[] | boolean | number;
+  allowedValues?: string[];
+  // Where this argument is valid
+  scopes: ArgumentScope[];
+  // Optional renderer compatibility hints
+  renderers?: string[];
+};
+
+export type ArgumentRegistry = {
+  version: string;
+  arguments: ArgumentDefinition[];
+};
+
 /**
  * Carry indentation depth while walking the design tree.
  */

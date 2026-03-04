@@ -23,8 +23,12 @@ flyb CLI root command [cli.root]
         - note: Compose subgraph, plain content, and file-backed content with section-level arguments.
         Resolve H3Section free-form arguments [args.h3.resolve]
           - note: Read flexible section arguments as key/value flags (for example `graph-renderer=mermaid`).
+        Resolve argument registry schema [args.registry.resolve]
+          - note: Load known argument definitions (type, default, allowed values, scopes).
         Validate arguments at runtime [args.validate.runtime]
           - note: Validate keys and values against a known argument registry and fail fast on invalid input.
+        Coerce arguments to typed values [args.coerce.typed]
+          - note: Coerce validated values to target types (string[], boolean, enum, number).
         Extract subgraph using labels [graph.select]
           - note: Filter notes and relationships by labels and optional starting node.
         Render section as a graph [render.section.graph]
@@ -55,8 +59,12 @@ flyb CLI root command [cli.root]
           - note: Dispatches file rendering by type (CSV, media, code/diagram).
           Resolve Note free-form arguments [args.note.resolve]
             - note: Read note-level rendering options as key/value flags (for example `format-csv=md`).
+          Resolve argument registry schema [args.registry.resolve]
+            - note: Load known argument definitions (type, default, allowed values, scopes).
           Validate arguments at runtime [args.validate.runtime]
             - note: Validate keys and values against a known argument registry and fail fast on invalid input.
+          Coerce arguments to typed values [args.coerce.typed]
+            - note: Coerce validated values to target types (string[], boolean, enum, number).
           Render section with CSV file [render.section.file.csv]
             - note: Render as a markdown table or raw CSV code block (for example `format-csv=md`).
             Filter CSV rows by column [file.csv.filter]
@@ -90,7 +98,10 @@ Supported use cases:
   - Build a report from a relationship-label subgraph — Report generation can include only edges matching selected labels.
   - Accept free-form arguments on H3Section and Note — Arguments behave like CLI flags (for example `format-csv=md`) and can carry string, string[], boolean, and similar values.
   - Keep CUE config compact with argument-driven rendering options — Prefer small composable argument lists over proliferating specialized configuration fields.
+  - Resolve arguments by scope — Apply argument rules by scope (global, h2, h3, note, renderer) to prevent invalid combinations.
+  - Define an argument registry schema — Registry entries define argument key, type, default, allowed values, and valid scopes.
   - Validate free-form arguments at runtime — Validate against a known argument registry and fail with clear errors on unknown keys or invalid values.
+  - Coerce free-form argument values into typed values — Convert string-like argument inputs into validated typed values before rendering.
   - Allow each H3 section to define cycle policy — H3Section arguments can declare whether cycles are disallowed, allowed, or collapsed.
   - Render graph output based on graph shape — Renderer behavior adapts to tree, DAG, and cyclic graph structures.
   - Register renderers and plugins in a capability registry — A renderer registry maps renderer names to capabilities, supported arguments, and graph-shape compatibility.

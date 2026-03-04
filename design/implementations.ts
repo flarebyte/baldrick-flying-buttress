@@ -68,9 +68,46 @@ export const implementations: Record<string, ImplementationConsideration> = {
       'Validate argument keys and values at runtime against a known registry (enums, booleans, repeated values) using familiar CLI validation patterns and clear error messages.',
     calls: [
       'args.validate.runtime',
+      'args.registry.resolve',
       'action.generate.markdown.section.h3',
       'render.section.file.csv',
       'render.section.graph',
+    ],
+  },
+  'cli.arguments.registry-schema': {
+    name: 'cli.arguments.registry-schema',
+    title: 'Define a typed argument registry schema',
+    description:
+      'Maintain a registry of argument definitions (name, type, default, allowed values, scopes) and use it as the single source of truth for argument behavior.',
+    calls: [
+      'args.registry.resolve',
+      'args.validate.runtime',
+      'args.coerce.typed',
+    ],
+  },
+  'cli.arguments.scope-resolution': {
+    name: 'cli.arguments.scope-resolution',
+    title: 'Apply scope-aware argument resolution',
+    description:
+      'Resolve and validate arguments by scope (global, h2, h3, note, renderer) so options are accepted only where they are meaningful.',
+    calls: [
+      'args.h3.resolve',
+      'args.note.resolve',
+      'args.validate.runtime',
+      'graph.policy.cycle',
+      'renderer.plugin.select',
+    ],
+  },
+  'cli.arguments.type-coercion': {
+    name: 'cli.arguments.type-coercion',
+    title: 'Use explicit type coercion for free-form arguments',
+    description:
+      'After validation, coerce argument values to typed runtime options before rendering to avoid stringly-typed behavior in renderers.',
+    calls: [
+      'args.coerce.typed',
+      'render.section.file.csv',
+      'render.graph.mermaid',
+      'render.graph.markdown.text',
     ],
   },
   'config.arguments.reduce-noise': {

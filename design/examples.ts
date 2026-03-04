@@ -37,6 +37,17 @@ export type Report = {
   sections: H2Section[];
 };
 
+export type ArgumentRegistry = {
+  version: string;
+  arguments: Array<{
+    name: string;
+    valueType: 'string' | 'string[]' | 'boolean' | 'int' | 'float' | 'enum';
+    scopes: Array<'global' | 'h2-section' | 'h3-section' | 'note' | 'renderer'>;
+    defaultValue?: string | string[] | boolean | number;
+    allowedValues?: string[];
+  }>;
+};
+
 const useCase: Note = {
   name: 'usecase.io.calls.count',
   title: 'Count I/O calls per function and method',
@@ -78,6 +89,39 @@ const flowDesignReport: Report = {
   sections: [sectionFlowDesign],
 };
 
+const argumentRegistry: ArgumentRegistry = {
+  version: 'v1',
+  arguments: [
+    {
+      name: 'format-csv',
+      valueType: 'enum',
+      scopes: ['note'],
+      defaultValue: 'md',
+      allowedValues: ['md', 'csv'],
+    },
+    {
+      name: 'graph-renderer',
+      valueType: 'enum',
+      scopes: ['h3-section', 'renderer'],
+      defaultValue: 'markdown-text',
+      allowedValues: ['markdown-text', 'mermaid'],
+    },
+    {
+      name: 'cycle-policy',
+      valueType: 'enum',
+      scopes: ['h3-section'],
+      defaultValue: 'disallow',
+      allowedValues: ['disallow', 'allow', 'collapse'],
+    },
+    {
+      name: 'show-legend',
+      valueType: 'boolean',
+      scopes: ['renderer'],
+      defaultValue: true,
+    },
+  ],
+};
+
 // Helpful when documenting the exact JSON output shape in markdown/docs.
 export const exampleNote = JSON.stringify(rootCall, null, 2);
 export const exampleUseCase = JSON.stringify(useCase, null, 2);
@@ -89,3 +133,4 @@ export const exampleRelationship = JSON.stringify(
 export const exampleH3Section = JSON.stringify(sectionGraphRendering, null, 2);
 export const exampleH2Section = JSON.stringify(sectionFlowDesign, null, 2);
 export const exampleReport = JSON.stringify(flowDesignReport, null, 2);
+export const exampleArgumentRegistry = JSON.stringify(argumentRegistry, null, 2);

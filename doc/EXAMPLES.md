@@ -191,3 +191,59 @@
   ]
 }
 ```
+
+## Argument registry
+
+```json
+{
+  "version": "v1",
+  "arguments": [
+    {
+      "name": "format-csv",
+      "valueType": "enum",
+      "scopes": [
+        "note"
+      ],
+      "defaultValue": "md",
+      "allowedValues": [
+        "md",
+        "csv"
+      ]
+    },
+    {
+      "name": "graph-renderer",
+      "valueType": "enum",
+      "scopes": [
+        "h3-section",
+        "renderer"
+      ],
+      "defaultValue": "markdown-text",
+      "allowedValues": [
+        "markdown-text",
+        "mermaid"
+      ]
+    },
+    {
+      "name": "cycle-policy",
+      "valueType": "enum",
+      "scopes": [
+        "h3-section"
+      ],
+      "defaultValue": "disallow",
+      "allowedValues": [
+        "disallow",
+        "allow",
+        "collapse"
+      ]
+    },
+    {
+      "name": "show-legend",
+      "valueType": "boolean",
+      "scopes": [
+        "renderer"
+      ],
+      "defaultValue": true
+    }
+  ]
+}
+```
