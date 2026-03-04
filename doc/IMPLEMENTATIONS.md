@@ -28,7 +28,7 @@ This document summarizes suggested implementation choices.
 
 ## Define a typed argument registry schema [cli.arguments.registry-schema]
 
-- Description: Maintain a registry of argument definitions (name, type, default, allowed values, scopes) and use it as the single source of truth for argument behavior.
+- Description: Maintain a registry of argument definitions (name, type, default, allowed values, scopes) and use it as the single source of truth for argument behavior; valid scopes are `h3-section`, `note`, and `renderer`.
 - Calls: args.registry.resolve, args.validate.runtime, args.coerce.typed
 
 ## Validate free-form arguments with Cobra-style validators [cli.arguments.runtime-validation]
@@ -38,7 +38,7 @@ This document summarizes suggested implementation choices.
 
 ## Apply scope-aware argument resolution [cli.arguments.scope-resolution]
 
-- Description: Resolve and validate arguments by scope (global, h2, h3, note, renderer) so options are accepted only where they are meaningful.
+- Description: Resolve and validate arguments by scope (h3-section, note, renderer) so options are accepted only where they are meaningful.
 - Calls: args.h3.resolve, args.note.resolve, args.validate.runtime, graph.policy.cycle, renderer.plugin.select
 
 ## Use explicit type coercion for free-form arguments [cli.arguments.type-coercion]

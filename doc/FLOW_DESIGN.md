@@ -14,7 +14,7 @@ flyb CLI root command [cli.root]
       Validate CUE schema and structure [validate.cue.schema]
         - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
       Resolve argument registry schema [args.registry.resolve]
-        - note: Load known argument definitions (type, default, allowed values, scopes).
+        - note: Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.
       Validate argument registry schema consistency [args.registry.validate]
         - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
       Validate configured free-form arguments [args.validate.config]
@@ -48,7 +48,7 @@ flyb CLI root command [cli.root]
       Validate CUE schema and structure [validate.cue.schema]
         - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
       Resolve argument registry schema [args.registry.resolve]
-        - note: Load known argument definitions (type, default, allowed values, scopes).
+        - note: Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.
       Validate argument registry schema consistency [args.registry.validate]
         - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
       Validate configured free-form arguments [args.validate.config]
@@ -80,7 +80,7 @@ flyb CLI root command [cli.root]
         Resolve H3Section free-form arguments [args.h3.resolve]
           - note: Read flexible section arguments as key/value flags (for example `graph-renderer=mermaid`).
         Resolve argument registry schema [args.registry.resolve]
-          - note: Load known argument definitions (type, default, allowed values, scopes).
+          - note: Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.
         Validate arguments at runtime [args.validate.runtime]
           - note: Validate keys and values against a known argument registry and fail fast on invalid input.
         Coerce arguments to typed values [args.coerce.typed]
@@ -116,7 +116,7 @@ flyb CLI root command [cli.root]
           Resolve Note free-form arguments [args.note.resolve]
             - note: Read note-level rendering options as key/value flags (for example `format-csv=md`).
           Resolve argument registry schema [args.registry.resolve]
-            - note: Load known argument definitions (type, default, allowed values, scopes).
+            - note: Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.
           Validate arguments at runtime [args.validate.runtime]
             - note: Validate keys and values against a known argument registry and fail fast on invalid input.
           Coerce arguments to typed values [args.coerce.typed]
@@ -140,7 +140,7 @@ flyb CLI root command [cli.root]
       Validate CUE schema and structure [validate.cue.schema]
         - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
       Resolve argument registry schema [args.registry.resolve]
-        - note: Load known argument definitions (type, default, allowed values, scopes).
+        - note: Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.
       Validate argument registry schema consistency [args.registry.validate]
         - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
       Validate configured free-form arguments [args.validate.config]
@@ -174,7 +174,7 @@ flyb CLI root command [cli.root]
       Validate CUE schema and structure [validate.cue.schema]
         - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
       Resolve argument registry schema [args.registry.resolve]
-        - note: Load known argument definitions (type, default, allowed values, scopes).
+        - note: Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.
       Validate argument registry schema consistency [args.registry.validate]
         - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
       Validate configured free-form arguments [args.validate.config]
@@ -231,12 +231,12 @@ Supported use cases:
   - Define labeled relationships between notes in config — CUE can be used as the source format for flexible configuration.
   - Emit structured diagnostics — Diagnostics include code, severity, message, source, and optional location context.
   - Report validation diagnostics with locations — Validation errors and warnings should point to config paths and offending argument or relationship names.
-  - Define an argument registry schema — Registry entries define argument key, type, default, allowed values, and valid scopes.
+  - Define an argument registry schema — Registry entries define argument key, type, default, allowed values, and valid scopes (`h3-section`, `note`, `renderer`).
   - Validate free-form arguments at runtime — Validate against a known argument registry and fail with clear errors on unknown keys or invalid values.
   - Accept free-form arguments on H3Section and Note — Arguments behave like CLI flags (for example `format-csv=md`) and can carry string, string[], boolean, and similar values.
   - Define graph integrity policy beyond cycles — Policy covers missing nodes, orphan nodes, duplicate note names, unknown relationship labels, and cross-report references.
   - Validate graph integrity using policy rules — Integrity checks should emit structured diagnostics tied to offending notes, relationships, and config locations.
-  - Resolve arguments by scope — Apply argument rules by scope (global, h2, h3, note, renderer) to prevent invalid combinations.
+  - Resolve arguments by scope — Apply argument rules by scope (h3-section, note, renderer) to prevent invalid combinations.
   - Render note title and markdown description — Each note includes a concise title with free-form markdown content.
   - Guarantee deterministic output ordering — Sort notes, relationships, sections, and arguments with stable rules so repeated runs produce identical output.
   - Define an explicit ordering policy — Ordering policy is part of runtime behavior and can be documented/tested as a contract.

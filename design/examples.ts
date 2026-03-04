@@ -42,7 +42,7 @@ export type ArgumentRegistry = {
   arguments: Array<{
     name: string;
     valueType: 'string' | 'string[]' | 'boolean' | 'int' | 'float' | 'enum';
-    scopes: Array<'global' | 'h2-section' | 'h3-section' | 'note' | 'renderer'>;
+    scopes: Array<'h3-section' | 'note' | 'renderer'>;
     defaultValue?: string | string[] | boolean | number;
     allowedValues?: string[];
   }>;

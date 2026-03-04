@@ -88,7 +88,7 @@ export type Stickie = {
   labels: string[];
 };
 
-export type ArgumentScope = 'global' | 'h2-section' | 'h3-section' | 'note' | 'renderer';
+export type ArgumentScope = 'h3-section' | 'note' | 'renderer';
 
 export type ArgumentValueType =
   | 'string'

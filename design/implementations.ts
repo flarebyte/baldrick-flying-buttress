@@ -149,7 +149,7 @@ export const implementations: Record<string, ImplementationConsideration> = {
     name: 'cli.arguments.registry-schema',
     title: 'Define a typed argument registry schema',
     description:
-      'Maintain a registry of argument definitions (name, type, default, allowed values, scopes) and use it as the single source of truth for argument behavior.',
+      'Maintain a registry of argument definitions (name, type, default, allowed values, scopes) and use it as the single source of truth for argument behavior; valid scopes are `h3-section`, `note`, and `renderer`.',
     calls: [
       'args.registry.resolve',
       'args.validate.runtime',
@@ -160,7 +160,7 @@ export const implementations: Record<string, ImplementationConsideration> = {
     name: 'cli.arguments.scope-resolution',
     title: 'Apply scope-aware argument resolution',
     description:
-      'Resolve and validate arguments by scope (global, h2, h3, note, renderer) so options are accepted only where they are meaningful.',
+      'Resolve and validate arguments by scope (h3-section, note, renderer) so options are accepted only where they are meaningful.',
     calls: [
       'args.h3.resolve',
       'args.note.resolve',

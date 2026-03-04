@@ -140,12 +140,12 @@ export const useCases: Record<string, UseCase> = {
   'cli.arguments.registry.schema': {
     name: 'cli.arguments.registry.schema',
     title: 'Define an argument registry schema',
-    note: 'Registry entries define argument key, type, default, allowed values, and valid scopes.',
+    note: 'Registry entries define argument key, type, default, allowed values, and valid scopes (`h3-section`, `note`, `renderer`).',
   },
   'cli.arguments.registry.scope-resolution': {
     name: 'cli.arguments.registry.scope-resolution',
     title: 'Resolve arguments by scope',
-    note: 'Apply argument rules by scope (global, h2, h3, note, renderer) to prevent invalid combinations.',
+    note: 'Apply argument rules by scope (h3-section, note, renderer) to prevent invalid combinations.',
   },
   'cli.arguments.type-coercion': {
     name: 'cli.arguments.type-coercion',

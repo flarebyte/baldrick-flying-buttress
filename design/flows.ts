@@ -414,7 +414,7 @@ export const resolveArgumentRegistry = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'args.registry.resolve',
     title: 'Resolve argument registry schema',
-    note: 'Load known argument definitions (type, default, allowed values, scopes).',
+    note: 'Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.',
     level: context.level,
     useCases: [uc.argumentsRegistrySchema],
   };
