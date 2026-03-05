@@ -213,7 +213,7 @@ export const selectSubGraph = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'graph.select',
     title: 'Extract subgraph using labels',
-    note: 'Filter notes and relationships by labels and optional starting node.',
+    note: 'Filter notes and relationships by labels and optional starting node; label references are pre-validated against dataset labels (union of note.labels and relationship.labels).',
     level: context.level,
     useCases: [uc.configRelationshipsLabeled, uc.reportSubgraphByLabel],
   };
@@ -503,7 +503,7 @@ export const validateAppData = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'validate.app.data',
     title: 'Validate CUE application data',
-    note: 'Canonical validation pipeline: schema checks, argument registry and free-form argument validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.',
+    note: 'Canonical validation pipeline: schema checks, argument registry and free-form argument validation, dataset-based label reference validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.',
     level: context.level,
     useCases: [
       uc.configRelationshipsLabeled,
@@ -522,6 +522,8 @@ export const validateAppData = (context: FlowContext) => {
   resolveArgumentRegistry(incrContext(context));
   validateArgumentRegistry(incrContext(context));
   validateConfigArguments(incrContext(context));
+  collectDatasetLabels(incrContext(context));
+  validateLabelReferences(incrContext(context));
   resolveGraphIntegrityPolicy(incrContext(context));
   validateGraphIntegrity(incrContext(context));
   collectValidationDiagnostics(incrContext(context));
@@ -566,6 +568,33 @@ export const validateConfigArguments = (context: FlowContext) => {
   calls.push(call);
 };
 
+export const collectDatasetLabels = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'labels.dataset.collect',
+    title: 'Collect dataset labels',
+    note: 'Build authoritative labelSet as the union of labels from note.labels and relationship.labels without enforcing a taxonomy.',
+    level: context.level,
+    useCases: [uc.configRelationshipsLabeled, uc.diagnosticsValidation],
+  };
+  calls.push(call);
+};
+
+export const validateLabelReferences = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'labels.reference.validate',
+    title: 'Validate label references',
+    note: 'Validate referenced labels used by config elements (for example graph.select label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.',
+    level: context.level,
+    useCases: [
+      uc.reportSubgraphByLabel,
+      uc.configRelationshipsLabeled,
+      uc.argumentsScopeResolution,
+      uc.diagnosticsValidation,
+    ],
+  };
+  calls.push(call);
+};
+
 export const collectValidationDiagnostics = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'diagnostics.collect.validation',
@@ -598,7 +627,7 @@ export const resolveGraphIntegrityPolicy = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'graph.integrity.policy.resolve',
     title: 'Resolve graph integrity policy',
-    note: 'Resolve integrity policy for missing nodes, orphans, duplicates, label validity, and cross-report references.',
+    note: 'Resolve integrity policy for missing nodes, orphans, duplicates, unknown label references, and cross-report references.',
     level: context.level,
     useCases: [uc.graphIntegrityPolicy],
   };
@@ -617,7 +646,6 @@ export const validateGraphIntegrity = (context: FlowContext) => {
   checkMissingRelationshipNodes(incrContext(context));
   checkOrphanNodes(incrContext(context));
   checkDuplicateNoteNames(incrContext(context));
-  checkUnknownRelationshipLabels(incrContext(context));
   checkCrossReportReferences(incrContext(context));
 };
 
@@ -650,17 +678,6 @@ export const checkDuplicateNoteNames = (context: FlowContext) => {
     note: 'Detect duplicate note identifiers that can cause ambiguous references.',
     level: context.level,
     useCases: [uc.graphIntegrityValidation],
-  };
-  calls.push(call);
-};
-
-export const checkUnknownRelationshipLabels = (context: FlowContext) => {
-  const call: ComponentCall = {
-    name: 'graph.integrity.check.unknown-labels',
-    title: 'Check unknown relationship labels',
-    note: 'Detect relationship labels not recognized by the configured label taxonomy.',
-    level: context.level,
-    useCases: [uc.graphIntegrityValidation, uc.configRelationshipsLabeled],
   };
   calls.push(call);
 };

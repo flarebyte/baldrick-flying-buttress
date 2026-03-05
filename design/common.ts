@@ -158,6 +158,7 @@ export type Diagnostic = {
     to: string;
   };
   argumentName?: string;
+  labelValue?: string;
 };
 
 export type GraphIntegrityPolicy = {
@@ -167,7 +168,7 @@ export type GraphIntegrityPolicy = {
   orphanNode: 'error' | 'warning' | 'ignore';
   // Behavior when duplicate note names are detected
   duplicateNoteName: 'error' | 'warning' | 'ignore';
-  // Behavior when relationship labels are unknown or ambiguous
+  // Behavior when referenced labels (for example label-filter arguments) are unknown
   unknownRelationshipLabel: 'error' | 'warning' | 'ignore';
   // Whether cross-report references are allowed
   crossReportReference: 'allow' | 'disallow';

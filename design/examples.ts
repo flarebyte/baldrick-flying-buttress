@@ -67,6 +67,7 @@ export type Diagnostic = {
   location?: string;
   noteName?: string;
   argumentName?: string;
+  labelValue?: string;
 };
 
 export type GraphIntegrityPolicy = {
@@ -159,13 +160,14 @@ const orderingPolicy: OrderingPolicy = {
 };
 
 const validationDiagnostic: Diagnostic = {
-  code: 'GRAPH_INTEGRITY_MISSING_NODE',
-  severity: 'error',
-  source: 'graph.integrity.validate',
+  code: 'LABEL_REF_UNKNOWN',
+  severity: 'warning',
+  source: 'labels.reference.validate',
   message:
-    'Relationship target `usecase.io.missing` does not match any configured note.',
-  location: 'relationships[0].to',
-  noteName: 'usecase.io.calls.count',
+    'Label reference `unknown-tag` is not present in dataset labels (note.labels and relationship.labels union).',
+  location: 'reports[0].sections[0].arguments[1]',
+  argumentName: 'select-labels',
+  labelValue: 'unknown-tag',
 };
 
 const graphIntegrityPolicy: GraphIntegrityPolicy = {

@@ -10,7 +10,7 @@ flyb CLI root command [cli.root]
     Load CUE application data [load.app.data]
       - note: Read notes, relationships, and report definitions from config.
     Validate CUE application data [validate.app.data]
-      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
+      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, dataset-based label reference validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
       Validate CUE schema and structure [validate.cue.schema]
         - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
       Resolve argument registry schema [args.registry.resolve]
@@ -19,8 +19,12 @@ flyb CLI root command [cli.root]
         - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
       Validate configured free-form arguments [args.validate.config]
         - note: Validate free-form arguments declared in config against registry definitions and scope rules.
+      Collect dataset labels [labels.dataset.collect]
+        - note: Build authoritative labelSet as the union of labels from note.labels and relationship.labels without enforcing a taxonomy.
+      Validate label references [labels.reference.validate]
+        - note: Validate referenced labels used by config elements (for example graph.select label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.
       Resolve graph integrity policy [graph.integrity.policy.resolve]
-        - note: Resolve integrity policy for missing nodes, orphans, duplicates, label validity, and cross-report references.
+        - note: Resolve integrity policy for missing nodes, orphans, duplicates, unknown label references, and cross-report references.
       Validate graph integrity [graph.integrity.validate]
         - note: Run integrity checks and emit diagnostics according to resolved policy.
         Check missing relationship nodes [graph.integrity.check.missing-nodes]
@@ -29,8 +33,6 @@ flyb CLI root command [cli.root]
           - note: Detect notes disconnected from report roots/sections.
         Check duplicate note names [graph.integrity.check.duplicate-note-names]
           - note: Detect duplicate note identifiers that can cause ambiguous references.
-        Check unknown relationship labels [graph.integrity.check.unknown-labels]
-          - note: Detect relationship labels not recognized by the configured label taxonomy.
         Check cross-report references [graph.integrity.check.cross-report-references]
           - note: Validate whether note/edge references across report boundaries are allowed by policy.
       Collect validation diagnostics [diagnostics.collect.validation]
@@ -44,7 +46,7 @@ flyb CLI root command [cli.root]
     Load CUE application data [load.app.data]
       - note: Read notes, relationships, and report definitions from config.
     Validate CUE application data [validate.app.data]
-      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
+      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, dataset-based label reference validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
       Validate CUE schema and structure [validate.cue.schema]
         - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
       Resolve argument registry schema [args.registry.resolve]
@@ -53,8 +55,12 @@ flyb CLI root command [cli.root]
         - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
       Validate configured free-form arguments [args.validate.config]
         - note: Validate free-form arguments declared in config against registry definitions and scope rules.
+      Collect dataset labels [labels.dataset.collect]
+        - note: Build authoritative labelSet as the union of labels from note.labels and relationship.labels without enforcing a taxonomy.
+      Validate label references [labels.reference.validate]
+        - note: Validate referenced labels used by config elements (for example graph.select label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.
       Resolve graph integrity policy [graph.integrity.policy.resolve]
-        - note: Resolve integrity policy for missing nodes, orphans, duplicates, label validity, and cross-report references.
+        - note: Resolve integrity policy for missing nodes, orphans, duplicates, unknown label references, and cross-report references.
       Validate graph integrity [graph.integrity.validate]
         - note: Run integrity checks and emit diagnostics according to resolved policy.
         Check missing relationship nodes [graph.integrity.check.missing-nodes]
@@ -63,8 +69,6 @@ flyb CLI root command [cli.root]
           - note: Detect notes disconnected from report roots/sections.
         Check duplicate note names [graph.integrity.check.duplicate-note-names]
           - note: Detect duplicate note identifiers that can cause ambiguous references.
-        Check unknown relationship labels [graph.integrity.check.unknown-labels]
-          - note: Detect relationship labels not recognized by the configured label taxonomy.
         Check cross-report references [graph.integrity.check.cross-report-references]
           - note: Validate whether note/edge references across report boundaries are allowed by policy.
       Collect validation diagnostics [diagnostics.collect.validation]
@@ -86,7 +90,7 @@ flyb CLI root command [cli.root]
         Coerce arguments to typed values [args.coerce.typed]
           - note: Coerce validated values to target types (string[], boolean, enum, number).
         Extract subgraph using labels [graph.select]
-          - note: Filter notes and relationships by labels and optional starting node.
+          - note: Filter notes and relationships by labels and optional starting node; label references are pre-validated against dataset labels (union of note.labels and relationship.labels).
         Render section as a graph [render.section.graph]
           - note: Resolve cycle policy and graph shape, then render with selected renderer(s); renderer/runtime diagnostics here must not duplicate graph-integrity diagnostics.
           Resolve renderer/plugin registry [renderer.registry.resolve]
@@ -138,7 +142,7 @@ flyb CLI root command [cli.root]
     Load CUE application data [load.app.data]
       - note: Read notes, relationships, and report definitions from config.
     Validate CUE application data [validate.app.data]
-      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
+      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, dataset-based label reference validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
       Validate CUE schema and structure [validate.cue.schema]
         - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
       Resolve argument registry schema [args.registry.resolve]
@@ -147,8 +151,12 @@ flyb CLI root command [cli.root]
         - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
       Validate configured free-form arguments [args.validate.config]
         - note: Validate free-form arguments declared in config against registry definitions and scope rules.
+      Collect dataset labels [labels.dataset.collect]
+        - note: Build authoritative labelSet as the union of labels from note.labels and relationship.labels without enforcing a taxonomy.
+      Validate label references [labels.reference.validate]
+        - note: Validate referenced labels used by config elements (for example graph.select label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.
       Resolve graph integrity policy [graph.integrity.policy.resolve]
-        - note: Resolve integrity policy for missing nodes, orphans, duplicates, label validity, and cross-report references.
+        - note: Resolve integrity policy for missing nodes, orphans, duplicates, unknown label references, and cross-report references.
       Validate graph integrity [graph.integrity.validate]
         - note: Run integrity checks and emit diagnostics according to resolved policy.
         Check missing relationship nodes [graph.integrity.check.missing-nodes]
@@ -157,8 +165,6 @@ flyb CLI root command [cli.root]
           - note: Detect notes disconnected from report roots/sections.
         Check duplicate note names [graph.integrity.check.duplicate-note-names]
           - note: Detect duplicate note identifiers that can cause ambiguous references.
-        Check unknown relationship labels [graph.integrity.check.unknown-labels]
-          - note: Detect relationship labels not recognized by the configured label taxonomy.
         Check cross-report references [graph.integrity.check.cross-report-references]
           - note: Validate whether note/edge references across report boundaries are allowed by policy.
       Collect validation diagnostics [diagnostics.collect.validation]
@@ -172,7 +178,7 @@ flyb CLI root command [cli.root]
     Load CUE application data [load.app.data]
       - note: Read notes, relationships, and report definitions from config.
     Validate CUE application data [validate.app.data]
-      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
+      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, dataset-based label reference validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
       Validate CUE schema and structure [validate.cue.schema]
         - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
       Resolve argument registry schema [args.registry.resolve]
@@ -181,8 +187,12 @@ flyb CLI root command [cli.root]
         - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
       Validate configured free-form arguments [args.validate.config]
         - note: Validate free-form arguments declared in config against registry definitions and scope rules.
+      Collect dataset labels [labels.dataset.collect]
+        - note: Build authoritative labelSet as the union of labels from note.labels and relationship.labels without enforcing a taxonomy.
+      Validate label references [labels.reference.validate]
+        - note: Validate referenced labels used by config elements (for example graph.select label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.
       Resolve graph integrity policy [graph.integrity.policy.resolve]
-        - note: Resolve integrity policy for missing nodes, orphans, duplicates, label validity, and cross-report references.
+        - note: Resolve integrity policy for missing nodes, orphans, duplicates, unknown label references, and cross-report references.
       Validate graph integrity [graph.integrity.validate]
         - note: Run integrity checks and emit diagnostics according to resolved policy.
         Check missing relationship nodes [graph.integrity.check.missing-nodes]
@@ -191,8 +201,6 @@ flyb CLI root command [cli.root]
           - note: Detect notes disconnected from report roots/sections.
         Check duplicate note names [graph.integrity.check.duplicate-note-names]
           - note: Detect duplicate note identifiers that can cause ambiguous references.
-        Check unknown relationship labels [graph.integrity.check.unknown-labels]
-          - note: Detect relationship labels not recognized by the configured label taxonomy.
         Check cross-report references [graph.integrity.check.cross-report-references]
           - note: Validate whether note/edge references across report boundaries are allowed by policy.
       Collect validation diagnostics [diagnostics.collect.validation]
@@ -205,19 +213,20 @@ flyb CLI root command [cli.root]
 
 ## Validation Contract
 
-- `validate.app.data` is the canonical validation entrypoint for all CLI commands and always includes graph integrity policy resolution and graph integrity validation.
-- Guarantees: schema/structure validation, argument registry validation, configured free-form argument validation, graph integrity checks, and structured diagnostics collection with stable codes/severities/sources/locations.
+- `validate.app.data` is the canonical validation entrypoint for all CLI commands and always includes dataset-based label-reference validation plus graph integrity policy resolution and graph integrity validation.
+- Guarantees: schema/structure validation, argument registry validation, configured free-form argument validation, dataset-based label-reference validation, graph integrity checks, and structured diagnostics collection with stable codes/severities/sources/locations.
 - Return shape: `ValidatedApp` containing:
   - normalized `notes`, `relationships`, and `reports`
   - resolved `graphIntegrityPolicy` and `argumentRegistry`
   - optional ordering policy resolution (currently deferred to generation-time ordering components)
   - `diagnostics: Diagnostic[]` always present (empty when no issues)
 - Generation block rule: any `error` severity diagnostic from `validate.app.data` blocks generation; warnings remain non-blocking by default but are still emitted consistently.
+- Label reference rule: labels on notes/relationships are free-form definitions; only label references are validated against dataset `labelSet` and unknown references emit `LABEL_REF_UNKNOWN` with default `warning` severity.
 
 ## Refactor Notes (Pseudo-diff)
 
 - Removed direct `graph.integrity.validate` calls from `action.generate.markdown.section.h3` and `action.validate`.
-- `validate.app.data` now invokes: `validate.cue.schema`, `args.registry.resolve`, `args.registry.validate`, `args.validate.config`, `graph.integrity.policy.resolve`, `graph.integrity.validate`, `diagnostics.collect.validation`, `app.model.normalize`.
+- `validate.app.data` now invokes: `validate.cue.schema`, `args.registry.resolve`, `args.registry.validate`, `args.validate.config`, `labels.dataset.collect`, `labels.reference.validate`, `graph.integrity.policy.resolve`, `graph.integrity.validate`, `diagnostics.collect.validation`, `app.model.normalize`.
 - Updated command flows to consume `ValidatedApp`:
   - `action.generate.markdown`: `load.app.data -> validate.app.data -> action.generate.markdown.sections`
   - `action.generate.json`: `load.app.data -> validate.app.data -> export.graph.json`
@@ -230,19 +239,19 @@ Supported use cases:
   - List all configured markdown reports — The CLI exposes a command to enumerate report targets.
   - Declare multiple markdown reports in one config — A single config can drive generation of multiple report files.
   - Export notes and relationships as JSON — JSON export supports machine-readable graph processing.
-  - Define labeled relationships between notes in config — CUE can be used as the source format for flexible configuration.
+  - Define labeled relationships between notes in config — CUE can be used as the source format for flexible configuration; labels on notes and relationships remain free-form.
   - Emit structured diagnostics — Diagnostics include code, severity, message, source, and optional location context.
   - Report validation diagnostics with locations — Validation errors and warnings should point to config paths and offending argument or relationship names.
   - Define an argument registry schema — Registry entries define argument key, type, default, allowed values, and valid scopes (`h3-section`, `note`, `renderer`).
   - Validate free-form arguments at runtime — Validate against a known argument registry and fail with clear errors on unknown keys or invalid values.
   - Accept free-form arguments on H3Section and Note — Arguments behave like CLI flags (for example `format-csv=md`) and can carry string, string[], boolean, and similar values.
-  - Define graph integrity policy beyond cycles — Policy covers missing nodes, orphan nodes, duplicate note names, unknown relationship labels, and cross-report references.
+  - Define graph integrity policy beyond cycles — Policy covers missing nodes, orphan nodes, duplicate note names, unknown referenced labels, and cross-report references.
   - Validate graph integrity using policy rules — Integrity checks should emit structured diagnostics tied to offending notes, relationships, and config locations.
   - Resolve arguments by scope — Apply argument rules by scope (h3-section, note, renderer); for renderer scope, collect from H3Section and note arguments and apply precedence (`note` > `h3-section` > registry default).
+  - Build a report from a relationship-label subgraph — Report generation can include only edges matching selected labels, where label references are validated against dataset labels derived from notes and relationships.
   - Render note title and markdown description — Each note includes a concise title with free-form markdown content.
   - Guarantee deterministic output ordering — Sort notes, relationships, sections, and arguments with explicit comparators and tie-breakers so repeated runs produce identical output.
   - Define an explicit ordering policy — Ordering policy is part of runtime behavior and contractually defines comparators: notes (primaryLabel, name), relationships (from, to, labelsSortedJoined), sections (case-insensitive title, originalIndex), arguments (name).
-  - Build a report from a relationship-label subgraph — Report generation can include only edges matching selected labels.
   - Keep CUE config compact with argument-driven rendering options — Prefer small composable argument lists over proliferating specialized configuration fields.
   - Coerce free-form argument values into typed values — Convert string-like argument inputs into validated typed values before rendering.
   - Allow each H3 section to define cycle policy — H3Section arguments can declare whether cycles are disallowed, allowed, or collapsed.

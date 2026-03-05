@@ -130,12 +130,13 @@ describe('validation entrypoint refactor', () => {
       'args.registry.resolve',
       'args.registry.validate',
       'args.validate.config',
+      'labels.dataset.collect',
+      'labels.reference.validate',
       'graph.integrity.policy.resolve',
       'graph.integrity.validate',
       'graph.integrity.check.missing-nodes',
       'graph.integrity.check.orphans',
       'graph.integrity.check.duplicate-note-names',
-      'graph.integrity.check.unknown-labels',
       'graph.integrity.check.cross-report-references',
       'diagnostics.collect.validation',
       'app.model.normalize',
@@ -164,13 +165,15 @@ describe('validation entrypoint refactor', () => {
       severity: string;
       source: string;
       location?: string;
+      labelValue?: string;
     };
 
-    expect(diagnostic.code).toBe('GRAPH_INTEGRITY_MISSING_NODE');
-    expect(diagnostic.severity).toBe('error');
-    expect(diagnostic.source).toBe('graph.integrity.validate');
-    expect(diagnostic.location).toBe('relationships[0].to');
-    expect(diagnostic.location).toMatch(/^relationships\[\d+\]\.(from|to)$/);
+    expect(diagnostic.code).toBe('LABEL_REF_UNKNOWN');
+    expect(diagnostic.severity).toBe('warning');
+    expect(diagnostic.source).toBe('labels.reference.validate');
+    expect(diagnostic.location).toBe('reports[0].sections[0].arguments[1]');
+    expect(diagnostic.location).toMatch(/^reports\[\d+\]\.sections\[\d+\]\.arguments\[\d+\]$/);
+    expect(diagnostic.labelValue).toBe('unknown-tag');
   });
 
   test('renderer arguments are resolved deterministically before plugin selection', () => {
@@ -227,5 +230,32 @@ describe('validation entrypoint refactor', () => {
     expect(resolveOrdering.note).toContain('arguments by argument name');
     expect(applyOrdering.note).toContain('stable tie-breakers only');
     expect(applyOrdering.note).toContain('without runtime randomness');
+  });
+
+  test('label references are validated against dataset labels in validate.app.data', () => {
+    const indexed = buildFlow();
+
+    const validateApp = indexed.find((item) => item.name === 'validate.app.data');
+    if (!validateApp) {
+      throw new Error('Expected validate.app.data');
+    }
+
+    const validationPipeline = subtreeNames(indexed, validateApp.index);
+    expect(validationPipeline).toContain('labels.dataset.collect');
+    expect(validationPipeline).toContain('labels.reference.validate');
+
+    const selectSubgraph = calls.find((call) => call.name === 'graph.select');
+    const labelRefValidation = calls.find(
+      (call) => call.name === 'labels.reference.validate',
+    );
+
+    if (!selectSubgraph || !labelRefValidation) {
+      throw new Error('Expected graph.select and labels.reference.validate');
+    }
+
+    expect(selectSubgraph.note).toContain('pre-validated against dataset labels');
+    expect(labelRefValidation.note).toContain('`LABEL_REF_UNKNOWN`');
+    expect(labelRefValidation.note).toContain('default severity `warning`');
+    expect(validationPipeline).not.toContain('graph.integrity.check.unknown-labels');
   });
 });

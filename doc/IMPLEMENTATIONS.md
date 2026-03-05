@@ -78,13 +78,13 @@ This document summarizes suggested implementation choices.
 
 ## Define a graph integrity policy model [graph.integrity.policy-model]
 
-- Description: Define explicit integrity rules for missing nodes, orphan nodes, duplicate names, unknown labels, and cross-report references with per-rule severity.
+- Description: Define explicit integrity rules for missing nodes, orphan nodes, duplicate names, and cross-report references with per-rule severity; validate label references separately against dataset-derived labels.
 - Calls: graph.integrity.policy.resolve, graph.integrity.validate, validate.app.data
 
 ## Implement graph integrity validation checks [graph.integrity.validation-engine]
 
-- Description: Run focused integrity checks and emit structured diagnostics linked to note names, relationships, arguments, and CUE paths.
-- Calls: graph.integrity.validate, graph.integrity.check.missing-nodes, graph.integrity.check.orphans, graph.integrity.check.duplicate-note-names, graph.integrity.check.unknown-labels, graph.integrity.check.cross-report-references, diagnostics.emit.structured
+- Description: Run focused integrity checks and emit structured diagnostics linked to note names, relationships, arguments, and CUE paths; keep label-definition handling free-form and validate only label references.
+- Calls: graph.integrity.validate, graph.integrity.check.missing-nodes, graph.integrity.check.orphans, graph.integrity.check.duplicate-note-names, graph.integrity.check.cross-report-references, labels.dataset.collect, labels.reference.validate, diagnostics.emit.structured
 
 ## Implement the CLI in Go [lang.go]
 

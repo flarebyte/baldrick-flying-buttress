@@ -45,7 +45,7 @@ export const useCases: Record<string, UseCase> = {
   'cli.config.relationships.labeled': {
     name: 'cli.config.relationships.labeled',
     title: 'Define labeled relationships between notes in config',
-    note: 'CUE can be used as the source format for flexible configuration.',
+    note: 'CUE can be used as the source format for flexible configuration; labels on notes and relationships remain free-form.',
   },
   'cli.config.reports.multiple': {
     name: 'cli.config.reports.multiple',
@@ -65,7 +65,7 @@ export const useCases: Record<string, UseCase> = {
   'cli.report.subgraph.by-label': {
     name: 'cli.report.subgraph.by-label',
     title: 'Build a report from a relationship-label subgraph',
-    note: 'Report generation can include only edges matching selected labels.',
+    note: 'Report generation can include only edges matching selected labels, where label references are validated against dataset labels derived from notes and relationships.',
   },
   'cli.section.h3.cycle-policy': {
     name: 'cli.section.h3.cycle-policy',
@@ -120,7 +120,7 @@ export const useCases: Record<string, UseCase> = {
   'cli.graph.integrity.policy': {
     name: 'cli.graph.integrity.policy',
     title: 'Define graph integrity policy beyond cycles',
-    note: 'Policy covers missing nodes, orphan nodes, duplicate note names, unknown relationship labels, and cross-report references.',
+    note: 'Policy covers missing nodes, orphan nodes, duplicate note names, unknown referenced labels, and cross-report references.',
   },
   'cli.graph.integrity.validation': {
     name: 'cli.graph.integrity.validation',
