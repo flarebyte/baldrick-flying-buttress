@@ -1,0 +1,212 @@
+import type { UseCase } from './common.ts';
+
+// Use cases for parsing a single source file (Go, Dart, TypeScript).
+export const useCases: Record<string, UseCase> = {
+  'cli.report.generate': {
+    name: 'cli.report.generate',
+    title: 'Generate design reports from configured notes and relationships',
+    note: 'This is the primary end-to-end report generation use case.',
+  },
+  'cli.note.basic-markdown': {
+    name: 'cli.note.basic-markdown',
+    title: 'Render note title and markdown description',
+    note: 'Each note includes a concise title with free-form markdown content.',
+  },
+  'cli.note.filepath.reference': {
+    name: 'cli.note.filepath.reference',
+    title: 'Reference a file from a note',
+    note: 'Referenced files can be embedded in generated markdown output.',
+  },
+  'cli.note.csv.embed': {
+    name: 'cli.note.csv.embed',
+    title: 'Embed CSV content from a referenced file',
+    note: 'CSV input can render as a markdown table or as raw CSV.',
+  },
+  'cli.note.csv.filter-column': {
+    name: 'cli.note.csv.filter-column',
+    title: 'Filter embedded CSV rows by column',
+    note: 'Column filters reduce CSV output to the relevant subset using `csv-include=column:value` and `csv-exclude=column:value` exact-match arguments.',
+  },
+  'cli.note.image.preview': {
+    name: 'cli.note.image.preview',
+    title: 'Preview referenced image files in markdown',
+    note: 'Image references render as embedded previews in reports.',
+  },
+  'cli.note.mermaid.embed': {
+    name: 'cli.note.mermaid.embed',
+    title: 'Embed Mermaid diagrams from file content',
+    note: 'Mermaid content is emitted in fenced blocks for diagram rendering.',
+  },
+  'cli.note.link.markdown': {
+    name: 'cli.note.link.markdown',
+    title: 'Convert note links to markdown links',
+    note: 'URL links are rendered with link text in markdown output.',
+  },
+  'cli.config.relationships.labeled': {
+    name: 'cli.config.relationships.labeled',
+    title: 'Define labeled relationships between notes in config',
+    note: 'CUE can be used as the source format for flexible configuration; labels on notes and relationships remain free-form.',
+  },
+  'cli.config.reports.multiple': {
+    name: 'cli.config.reports.multiple',
+    title: 'Declare multiple markdown reports in one config',
+    note: 'A single config can drive generation of multiple report files.',
+  },
+  'cli.report.list': {
+    name: 'cli.report.list',
+    title: 'List all configured markdown reports',
+    note: 'The CLI exposes a command to enumerate report targets.',
+  },
+  'cli.names.list': {
+    name: 'cli.names.list',
+    title: 'List note and relationship names for daily inventory',
+    note: 'The CLI exposes `flyb list names` with `--prefix` filtering and `--format table|json` output.',
+  },
+  'cli.names.lint': {
+    name: 'cli.names.lint',
+    title: 'Lint note and relationship names for style hygiene',
+    note: 'The CLI exposes `flyb lint names` to emit structured diagnostics for naming-style violations without introducing label taxonomy requirements.',
+  },
+  'cli.names.style-policy': {
+    name: 'cli.names.style-policy',
+    title: 'Define explicit name style policy',
+    note: 'Name styles are case-sensitive: dot=`^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$`, snake=`^[a-z][a-z0-9_]*$`, regex=user-provided `--pattern`.',
+  },
+  'cli.names.prefix-filter': {
+    name: 'cli.names.prefix-filter',
+    title: 'Filter names by prefix scope',
+    note: 'Prefix filtering keeps notes whose name starts with prefix and relationships where `from` or `to` starts with prefix.',
+  },
+  'cli.names.output-formats': {
+    name: 'cli.names.output-formats',
+    title: 'Render names as table or JSON',
+    note: 'Default output is human-friendly table; JSON is opt-in and returns `{ notes: [], relationships: [] }`.',
+  },
+  'cli.orphans.query.contextual': {
+    name: 'cli.orphans.query.contextual',
+    title: 'Define contextual orphan query',
+    note: 'A subject note (filtered by subject label) is orphan when it has zero matching connections under query filters: relationship label, counterpart note label, and direction in|out|either.',
+  },
+  'cli.orphans.lint': {
+    name: 'cli.orphans.lint',
+    title: 'Lint contextual orphan queries',
+    note: 'The CLI exposes `flyb lint orphans` to emit structured diagnostics (`ORPHAN_QUERY_MISSING_LINK`) for notes missing required contextual links, without requiring a label taxonomy.',
+  },
+  'cli.orphans.report.section': {
+    name: 'cli.orphans.report.section',
+    title: 'Render contextual orphan report section',
+    note: 'H3 section arguments can render a deterministic orphan list/table using orphan query filters (`orphan-subject-label`, `orphan-edge-label`, `orphan-counterpart-label`, `orphan-direction`).',
+  },
+  'cli.export.json.graph': {
+    name: 'cli.export.json.graph',
+    title: 'Export notes and relationships as JSON',
+    note: 'JSON export supports machine-readable graph processing.',
+  },
+  'cli.report.subgraph.by-label': {
+    name: 'cli.report.subgraph.by-label',
+    title: 'Build a report from a relationship-label subgraph',
+    note: 'Report generation can include only edges matching selected labels, where label references are validated against dataset labels derived from notes and relationships.',
+  },
+  'cli.section.h3.cycle-policy': {
+    name: 'cli.section.h3.cycle-policy',
+    title: 'Allow each H3 section to define cycle policy',
+    note: 'H3Section arguments can declare whether cycles are disallowed or allowed.',
+  },
+  'cli.report.graph.shape-aware-render': {
+    name: 'cli.report.graph.shape-aware-render',
+    title: 'Render graph output based on graph shape',
+    note: 'Renderer behavior adapts to tree, DAG, and cyclic graph structures with deterministic traversal and safe repetition controls.',
+  },
+  'cli.report.graph.renderer.markdown-text': {
+    name: 'cli.report.graph.renderer.markdown-text',
+    title: 'Render graph output as markdown text',
+    note: 'Text rendering uses deterministic hierarchy traversal with stable anchors/references for repeated or cyclic nodes plus a short adjacency summary for cyclic graphs.',
+  },
+  'cli.report.graph.renderer.mermaid': {
+    name: 'cli.report.graph.renderer.mermaid',
+    title: 'Render graph output as Mermaid diagram',
+    note: 'Mermaid output supports visual graph rendering, including cyclic relationships.',
+  },
+  'cli.renderer.registry': {
+    name: 'cli.renderer.registry',
+    title: 'Register renderers and plugins in a capability registry',
+    note: 'A renderer registry maps renderer names to capabilities, supported arguments, and graph-shape compatibility, and defines defaults used by renderer-scoped argument resolution.',
+  },
+  'cli.renderer.plugin-selection': {
+    name: 'cli.renderer.plugin-selection',
+    title: 'Select renderer plugin from arguments at runtime',
+    note: 'Renderer selection uses one resolved typed renderer argument set sourced from H3Section and note arguments with deterministic precedence and fallback defaults.',
+  },
+  'cli.output.deterministic-ordering': {
+    name: 'cli.output.deterministic-ordering',
+    title: 'Guarantee deterministic output ordering',
+    note: 'Sort notes, relationships, sections, and arguments with explicit comparators and tie-breakers so repeated runs produce identical output.',
+  },
+  'cli.output.deterministic-ordering.policy': {
+    name: 'cli.output.deterministic-ordering.policy',
+    title: 'Define an explicit ordering policy',
+    note: 'Ordering policy is part of runtime behavior and contractually defines comparators: notes (primaryLabel, name), relationships (from, to, labelsSortedJoined), sections (case-insensitive title, originalIndex), arguments (name).',
+  },
+  'cli.diagnostics.model': {
+    name: 'cli.diagnostics.model',
+    title: 'Emit structured diagnostics',
+    note: 'Diagnostics include code, severity, message, source, canonical machine-readable `location`, and additional human-readable context fields.',
+  },
+  'cli.diagnostics.validation': {
+    name: 'cli.diagnostics.validation',
+    title: 'Report validation diagnostics with locations',
+    note: 'Validation errors and warnings should include canonical index-based config paths plus readable identifiers (report title, section title, note/relationship/argument names).',
+  },
+  'cli.graph.integrity.policy': {
+    name: 'cli.graph.integrity.policy',
+    title: 'Define graph integrity policy beyond cycles',
+    note: 'Policy covers missing nodes, orphan nodes, duplicate note names, unknown referenced labels, and cross-report references.',
+  },
+  'cli.graph.integrity.validation': {
+    name: 'cli.graph.integrity.validation',
+    title: 'Validate graph integrity using policy rules',
+    note: 'Integrity checks should emit structured diagnostics tied to offending notes, relationships, and config locations.',
+  },
+  'cli.arguments.free-form': {
+    name: 'cli.arguments.free-form',
+    title: 'Accept free-form arguments on H3Section and Note',
+    note: 'Arguments behave like CLI flags (for example `format-csv=md`) and can carry string, string[], boolean, and similar values.',
+  },
+  'cli.arguments.runtime-validation': {
+    name: 'cli.arguments.runtime-validation',
+    title: 'Validate free-form arguments at runtime',
+    note: 'Validate against a known argument registry and fail with clear errors on unknown keys or invalid values.',
+  },
+  'cli.arguments.registry.schema': {
+    name: 'cli.arguments.registry.schema',
+    title: 'Define an argument registry schema',
+    note: 'Registry entries define argument key, type, default, allowed values, and valid scopes (`h3-section`, `note`, `renderer`).',
+  },
+  'cli.arguments.registry.scope-resolution': {
+    name: 'cli.arguments.registry.scope-resolution',
+    title: 'Resolve arguments by scope',
+    note: 'Apply argument rules by scope (h3-section, note, renderer); for renderer scope, collect from H3Section and note arguments and apply precedence (`note` > `h3-section` > registry default).',
+  },
+  'cli.arguments.type-coercion': {
+    name: 'cli.arguments.type-coercion',
+    title: 'Coerce free-form argument values into typed values',
+    note: 'Convert string-like argument inputs into validated typed values before rendering.',
+  },
+  'cli.config.reduce-noise.with-args': {
+    name: 'cli.config.reduce-noise.with-args',
+    title: 'Keep CUE config compact with argument-driven rendering options',
+    note: 'Prefer small composable argument lists over proliferating specialized configuration fields.',
+  },
+};
+
+export const getByName = (expectedName: string) =>
+  Object.values(useCases).find(({ name }) => name === expectedName);
+
+export const mustUseCases = new Set([
+  ...Object.values(useCases).map(({ name }) => name),
+]);
+
+export const useCaseCatalogByName: Record<
+  string,
+  { name: string; title: string; note?: string }
+> = Object.fromEntries(Object.values(useCases).map((u) => [u.name, u]));
