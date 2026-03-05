@@ -338,7 +338,7 @@ export const renderGraphTreeOrDag = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'render.graph.tree-or-dag',
     title: 'Render tree or DAG graph',
-    note: 'Prefer hierarchical markdown text; Mermaid can be emitted as an additional diagram.',
+    note: 'Tree: render full hierarchy as nested markdown lists (`**name** — title` plus optional short description). DAG: use stable DFS by ordering policy, expand first encounter, and on repeated encounters allow repetition only when children<=3 and depth<=2; otherwise emit `*(see above)*` reference linking to first anchor.',
     level: context.level,
     useCases: [
       uc.reportGraphShapeAwareRender,
@@ -355,7 +355,7 @@ export const renderGraphCircular = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'render.graph.circular',
     title: 'Render cyclic graph',
-    note: 'Render only when cycle-policy is `allow`; prefer Mermaid for deterministic cycle readability, with markdown text summary fallback.',
+    note: 'Render only when cycle-policy is `allow`; markdown traversal expands each node once and when revisiting a node emits `*(cycle back to <node>)*` linking to first anchor, then appends a short deterministic adjacency summary (`A -> B (labels)`). Mermaid remains preferred for cycle readability.',
     level: context.level,
     useCases: [
       uc.sectionH3CyclePolicy,
@@ -373,7 +373,7 @@ export const renderGraphAsMarkdownText = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'render.graph.markdown.text',
     title: 'Render graph as markdown text',
-    note: 'Render adjacency and hierarchy using the same markdown style as FLOW_DESIGN.',
+    note: 'Render tree/DAG/cyclic graphs in plain markdown with deterministic traversal order, stable note anchors derived from note names, and reference links to first occurrence anchors for repeated nodes or cycle backs.',
     level: context.level,
     useCases: [uc.reportGraphRendererMarkdownText, uc.rendererRegistry],
   };

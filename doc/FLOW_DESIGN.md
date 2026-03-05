@@ -102,17 +102,17 @@ flyb CLI root command [cli.root]
           Detect graph shape (tree, DAG, or cyclic) [graph.shape.detect]
             - note: Classify selected graph as tree, DAG, or cyclic before renderer selection; if shape is cyclic and cycle-policy is `disallow`, emit error diagnostic and prevent graph rendering for that section.
           Render tree or DAG graph [render.graph.tree-or-dag]
-            - note: Prefer hierarchical markdown text; Mermaid can be emitted as an additional diagram.
+            - note: Tree: render full hierarchy as nested markdown lists (`**name** — title` plus optional short description). DAG: use stable DFS by ordering policy, expand first encounter, and on repeated encounters allow repetition only when children<=3 and depth<=2; otherwise emit `*(see above)*` reference linking to first anchor.
             Render graph as markdown text [render.graph.markdown.text]
-              - note: Render adjacency and hierarchy using the same markdown style as FLOW_DESIGN.
+              - note: Render tree/DAG/cyclic graphs in plain markdown with deterministic traversal order, stable note anchors derived from note names, and reference links to first occurrence anchors for repeated nodes or cycle backs.
             Render graph as Mermaid [render.graph.mermaid]
               - note: Emit Mermaid syntax for visual rendering in markdown consumers.
           Render cyclic graph [render.graph.circular]
-            - note: Render only when cycle-policy is `allow`; prefer Mermaid for deterministic cycle readability, with markdown text summary fallback.
+            - note: Render only when cycle-policy is `allow`; markdown traversal expands each node once and when revisiting a node emits `*(cycle back to <node>)*` linking to first anchor, then appends a short deterministic adjacency summary (`A -> B (labels)`). Mermaid remains preferred for cycle readability.
             Render graph as Mermaid [render.graph.mermaid]
               - note: Emit Mermaid syntax for visual rendering in markdown consumers.
             Render graph as markdown text [render.graph.markdown.text]
-              - note: Render adjacency and hierarchy using the same markdown style as FLOW_DESIGN.
+              - note: Render tree/DAG/cyclic graphs in plain markdown with deterministic traversal order, stable note anchors derived from note names, and reference links to first occurrence anchors for repeated nodes or cycle backs.
         Render plain section [render.section.plain]
           - note: Render title and markdown body, including markdown links and note-level argument options.
         Render section with referenced file content [render.section.file]
@@ -243,10 +243,10 @@ Supported use cases:
   - Define contextual orphan query — A subject note (filtered by subject label) is orphan when it has zero matching connections under query filters: relationship label, counterpart note label, and direction in|out|either.
   - Lint contextual orphan queries — The CLI exposes `flyb lint orphans` to emit structured diagnostics (`ORPHAN_QUERY_MISSING_LINK`) for notes missing required contextual links, without requiring a label taxonomy.
   - Allow each H3 section to define cycle policy — H3Section arguments can declare whether cycles are disallowed or allowed.
-  - Render graph output based on graph shape — Renderer behavior adapts to tree, DAG, and cyclic graph structures.
+  - Render graph output based on graph shape — Renderer behavior adapts to tree, DAG, and cyclic graph structures with deterministic traversal and safe repetition controls.
   - Register renderers and plugins in a capability registry — A renderer registry maps renderer names to capabilities, supported arguments, and graph-shape compatibility, and defines defaults used by renderer-scoped argument resolution.
   - Select renderer plugin from arguments at runtime — Renderer selection uses one resolved typed renderer argument set sourced from H3Section and note arguments with deterministic precedence and fallback defaults.
-  - Render graph output as markdown text — Text rendering supports readable hierarchy and edge summaries in markdown reports.
+  - Render graph output as markdown text — Text rendering uses deterministic hierarchy traversal with stable anchors/references for repeated or cyclic nodes plus a short adjacency summary for cyclic graphs.
   - Render graph output as Mermaid diagram — Mermaid output supports visual graph rendering, including cyclic relationships.
   - Embed Mermaid diagrams from file content — Mermaid content is emitted in fenced blocks for diagram rendering.
   - Convert note links to markdown links — URL links are rendered with link text in markdown output.

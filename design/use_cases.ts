@@ -115,12 +115,12 @@ export const useCases: Record<string, UseCase> = {
   'cli.report.graph.shape-aware-render': {
     name: 'cli.report.graph.shape-aware-render',
     title: 'Render graph output based on graph shape',
-    note: 'Renderer behavior adapts to tree, DAG, and cyclic graph structures.',
+    note: 'Renderer behavior adapts to tree, DAG, and cyclic graph structures with deterministic traversal and safe repetition controls.',
   },
   'cli.report.graph.renderer.markdown-text': {
     name: 'cli.report.graph.renderer.markdown-text',
     title: 'Render graph output as markdown text',
-    note: 'Text rendering supports readable hierarchy and edge summaries in markdown reports.',
+    note: 'Text rendering uses deterministic hierarchy traversal with stable anchors/references for repeated or cyclic nodes plus a short adjacency summary for cyclic graphs.',
   },
   'cli.report.graph.renderer.mermaid': {
     name: 'cli.report.graph.renderer.mermaid',

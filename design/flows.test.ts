@@ -450,4 +450,32 @@ describe('validation entrypoint refactor', () => {
     expect(orphanSection.note).toContain('deterministic orphan list/table');
     expect(orphanRows.note).toContain('`name`, `title`, and `labels`');
   });
+
+  test('markdown graph renderer defines deterministic tree, dag, and cyclic rules', () => {
+    buildFlow();
+
+    const treeOrDag = calls.find((call) => call.name === 'render.graph.tree-or-dag');
+    const markdownText = calls.find(
+      (call) => call.name === 'render.graph.markdown.text',
+    );
+    const circular = calls.find((call) => call.name === 'render.graph.circular');
+
+    if (!treeOrDag || !markdownText || !circular) {
+      throw new Error('Expected markdown graph rendering calls');
+    }
+
+    expect(treeOrDag.note).toContain('Tree: render full hierarchy as nested markdown lists');
+    expect(treeOrDag.note).toContain('stable DFS by ordering policy');
+    expect(treeOrDag.note).toContain('children<=3 and depth<=2');
+    expect(treeOrDag.note).toContain('reference linking to first anchor');
+
+    expect(markdownText.note).toContain('stable note anchors derived from note names');
+    expect(markdownText.note).toContain('reference links to first occurrence anchors');
+    expect(markdownText.note).toContain('deterministic traversal order');
+
+    expect(circular.note).toContain('expands each node once');
+    expect(circular.note).toContain('`*(cycle back to <node>)*`');
+    expect(circular.note).toContain('short deterministic adjacency summary');
+    expect(circular.note).toContain('`A -> B (labels)`');
+  });
 });
