@@ -72,6 +72,7 @@ describe('validation entrypoint refactor', () => {
 
     expect(rootChildren).toContain('action.list.names');
     expect(rootChildren).toContain('action.lint.names');
+    expect(rootChildren).toContain('action.lint.orphans');
   });
 
   test('uses validate.app.data consistently across command flows', () => {
@@ -391,5 +392,62 @@ describe('validation entrypoint refactor', () => {
     expect(lintPolicy.note).toContain('`regex`=user-provided `--pattern`');
     expect(lintNotes.note).toContain('`NAME_STYLE_VIOLATION`');
     expect(lintRelationships.note).toContain('`NAME_STYLE_VIOLATION`');
+  });
+
+  test('lint orphans command resolves contextual orphan query and emits diagnostics', () => {
+    const indexed = buildFlow();
+
+    expect(directChildren(indexed, 'action.lint.orphans')).toEqual([
+      'load.app.data',
+      'validate.app.data',
+      'ordering.policy.resolve',
+      'ordering.apply.deterministic',
+      'lint.orphans.query.resolve',
+      'orphans.query.find',
+      'lint.orphans.emit',
+      'diagnostics.emit.structured',
+    ]);
+
+    const lintOrphans = calls.find((call) => call.name === 'action.lint.orphans');
+    const queryResolve = calls.find(
+      (call) => call.name === 'lint.orphans.query.resolve',
+    );
+    const queryFind = calls.find((call) => call.name === 'orphans.query.find');
+    const orphanEmit = calls.find((call) => call.name === 'lint.orphans.emit');
+
+    if (!lintOrphans || !queryResolve || !queryFind || !orphanEmit) {
+      throw new Error('Expected lint orphans calls');
+    }
+
+    expect(lintOrphans.note).toContain('`--subject-label`');
+    expect(lintOrphans.note).toContain('`--direction in|out|either`');
+    expect(queryFind.note).toContain('zero matches are contextual orphans');
+    expect(orphanEmit.note).toContain('`ORPHAN_QUERY_MISSING_LINK`');
+    expect(orphanEmit.note).toContain('`subjectLabel`');
+    expect(orphanEmit.note).toContain('`edgeLabel`');
+    expect(orphanEmit.note).toContain('`counterpartLabel`');
+  });
+
+  test('h3 section supports contextual orphan report rendering', () => {
+    const indexed = buildFlow();
+
+    expect(directChildren(indexed, 'render.section.orphans')).toEqual([
+      'args.orphan.query.resolve',
+      'orphans.query.find',
+      'orphans.render.rows',
+    ]);
+
+    const h3Children = directChildren(indexed, 'action.generate.markdown.section.h3');
+    expect(h3Children).toContain('render.section.orphans');
+
+    const orphanSection = calls.find((call) => call.name === 'render.section.orphans');
+    const orphanRows = calls.find((call) => call.name === 'orphans.render.rows');
+
+    if (!orphanSection || !orphanRows) {
+      throw new Error('Expected orphan section render calls');
+    }
+
+    expect(orphanSection.note).toContain('deterministic orphan list/table');
+    expect(orphanRows.note).toContain('`name`, `title`, and `labels`');
   });
 });

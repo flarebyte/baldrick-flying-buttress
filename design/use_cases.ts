@@ -82,6 +82,21 @@ export const useCases: Record<string, UseCase> = {
     title: 'Render names as table or JSON',
     note: 'Default output is human-friendly table; JSON is opt-in and returns `{ notes: [], relationships: [] }`.',
   },
+  'cli.orphans.query.contextual': {
+    name: 'cli.orphans.query.contextual',
+    title: 'Define contextual orphan query',
+    note: 'A subject note (filtered by subject label) is orphan when it has zero matching connections under query filters: relationship label, counterpart note label, and direction in|out|either.',
+  },
+  'cli.orphans.lint': {
+    name: 'cli.orphans.lint',
+    title: 'Lint contextual orphan queries',
+    note: 'The CLI exposes `flyb lint orphans` to emit structured diagnostics (`ORPHAN_QUERY_MISSING_LINK`) for notes missing required contextual links, without requiring a label taxonomy.',
+  },
+  'cli.orphans.report.section': {
+    name: 'cli.orphans.report.section',
+    title: 'Render contextual orphan report section',
+    note: 'H3 section arguments can render a deterministic orphan list/table using orphan query filters (`orphan-subject-label`, `orphan-edge-label`, `orphan-counterpart-label`, `orphan-direction`).',
+  },
   'cli.export.json.graph': {
     name: 'cli.export.json.graph',
     title: 'Export notes and relationships as JSON',

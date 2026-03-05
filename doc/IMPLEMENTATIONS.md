@@ -18,6 +18,8 @@ This document summarizes suggested implementation choices.
 - Implement the CLI in Go [lang.go]
 - Implement lint names hygiene command [names.lint.command]
 - Implement list names inventory command [names.list.command]
+- Implement contextual orphan lint command [orphans.lint.command]
+- Implement contextual orphan report section renderer [orphans.report.section]
 - Guarantee deterministic ordering in generated outputs [output.ordering.deterministic]
 - Treat ordering policy as a testable contract [output.ordering.policy-contract]
 - Define a renderer plugin registry contract [renderer.registry.contract]
@@ -102,6 +104,16 @@ This document summarizes suggested implementation choices.
 
 - Description: Implement `flyb list names` with required `--prefix`, optional `--kind notes|relationships|all`, and `--format table|json` (default table); reuse validated app data and deterministic ordering before filtering/output.
 - Calls: action.list.names, load.app.data, validate.app.data, ordering.policy.resolve, ordering.apply.deterministic, names.filter.prefix, names.filter.kind, names.output.table, names.output.json
+
+## Implement contextual orphan lint command [orphans.lint.command]
+
+- Description: Implement `flyb lint orphans` using orphan-query filters (`subject-label`, optional edge/counterpart labels, direction) and emit deterministic `ORPHAN_QUERY_MISSING_LINK` diagnostics with stable locations/context.
+- Calls: action.lint.orphans, load.app.data, validate.app.data, ordering.policy.resolve, ordering.apply.deterministic, lint.orphans.query.resolve, orphans.query.find, lint.orphans.emit, diagnostics.emit.structured
+
+## Implement contextual orphan report section renderer [orphans.report.section]
+
+- Description: Implement H3 orphan section rendering using orphan-query arguments and deterministic row/table output (`name`, `title`, `labels`) so report sections and lint command evaluate the same orphan set.
+- Calls: render.section.orphans, args.orphan.query.resolve, orphans.query.find, orphans.render.rows, ordering.apply.deterministic
 
 ## Guarantee deterministic ordering in generated outputs [output.ordering.deterministic]
 

@@ -85,7 +85,11 @@
   ],
   "arguments": [
     "graph-renderer=mermaid",
-    "cycle-policy=allow"
+    "cycle-policy=allow",
+    "orphan-subject-label=ingredient",
+    "orphan-edge-label=uses",
+    "orphan-counterpart-label=recipe",
+    "orphan-direction=either"
   ]
 }
 ```
@@ -135,7 +139,11 @@
       ],
       "arguments": [
         "graph-renderer=mermaid",
-        "cycle-policy=allow"
+        "cycle-policy=allow",
+        "orphan-subject-label=ingredient",
+        "orphan-edge-label=uses",
+        "orphan-counterpart-label=recipe",
+        "orphan-direction=either"
       ]
     }
   ]
@@ -191,7 +199,11 @@
           ],
           "arguments": [
             "graph-renderer=mermaid",
-            "cycle-policy=allow"
+            "cycle-policy=allow",
+            "orphan-subject-label=ingredient",
+            "orphan-edge-label=uses",
+            "orphan-counterpart-label=recipe",
+            "orphan-direction=either"
           ]
         }
       ]
@@ -264,6 +276,40 @@
         "renderer"
       ],
       "defaultValue": true
+    },
+    {
+      "name": "orphan-subject-label",
+      "valueType": "string",
+      "scopes": [
+        "h3-section"
+      ]
+    },
+    {
+      "name": "orphan-edge-label",
+      "valueType": "string",
+      "scopes": [
+        "h3-section"
+      ]
+    },
+    {
+      "name": "orphan-counterpart-label",
+      "valueType": "string",
+      "scopes": [
+        "h3-section"
+      ]
+    },
+    {
+      "name": "orphan-direction",
+      "valueType": "enum",
+      "scopes": [
+        "h3-section"
+      ],
+      "defaultValue": "either",
+      "allowedValues": [
+        "in",
+        "out",
+        "either"
+      ]
     }
   ]
 }

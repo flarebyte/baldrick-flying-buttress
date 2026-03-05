@@ -74,6 +74,9 @@ export type Diagnostic = {
   };
   argumentName?: string;
   labelValue?: string;
+  subjectLabel?: string;
+  edgeLabel?: string;
+  counterpartLabel?: string;
 };
 
 export type GraphIntegrityPolicy = {
@@ -115,7 +118,14 @@ const sectionGraphRendering: H3Section = {
   description: 'Render graph content based on graph shape and renderer arguments.',
   notes: [rootCall, useCase],
   relationships: [relRootCallToUseCase],
-  arguments: ['graph-renderer=mermaid', 'cycle-policy=allow'],
+  arguments: [
+    'graph-renderer=mermaid',
+    'cycle-policy=allow',
+    'orphan-subject-label=ingredient',
+    'orphan-edge-label=uses',
+    'orphan-counterpart-label=recipe',
+    'orphan-direction=either',
+  ],
 };
 
 const sectionFlowDesign: H2Section = {
@@ -169,6 +179,28 @@ const argumentRegistry: ArgumentRegistry = {
       valueType: 'boolean',
       scopes: ['renderer'],
       defaultValue: true,
+    },
+    {
+      name: 'orphan-subject-label',
+      valueType: 'string',
+      scopes: ['h3-section'],
+    },
+    {
+      name: 'orphan-edge-label',
+      valueType: 'string',
+      scopes: ['h3-section'],
+    },
+    {
+      name: 'orphan-counterpart-label',
+      valueType: 'string',
+      scopes: ['h3-section'],
+    },
+    {
+      name: 'orphan-direction',
+      valueType: 'enum',
+      scopes: ['h3-section'],
+      defaultValue: 'either',
+      allowedValues: ['in', 'out', 'either'],
     },
   ],
 };

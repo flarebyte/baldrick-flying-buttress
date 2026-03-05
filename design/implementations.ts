@@ -59,6 +59,36 @@ export const implementations: Record<string, ImplementationConsideration> = {
       'diagnostics.emit.structured',
     ],
   },
+  'orphans.lint.command': {
+    name: 'orphans.lint.command',
+    title: 'Implement contextual orphan lint command',
+    description:
+      'Implement `flyb lint orphans` using orphan-query filters (`subject-label`, optional edge/counterpart labels, direction) and emit deterministic `ORPHAN_QUERY_MISSING_LINK` diagnostics with stable locations/context.',
+    calls: [
+      'action.lint.orphans',
+      'load.app.data',
+      'validate.app.data',
+      'ordering.policy.resolve',
+      'ordering.apply.deterministic',
+      'lint.orphans.query.resolve',
+      'orphans.query.find',
+      'lint.orphans.emit',
+      'diagnostics.emit.structured',
+    ],
+  },
+  'orphans.report.section': {
+    name: 'orphans.report.section',
+    title: 'Implement contextual orphan report section renderer',
+    description:
+      'Implement H3 orphan section rendering using orphan-query arguments and deterministic row/table output (`name`, `title`, `labels`) so report sections and lint command evaluate the same orphan set.',
+    calls: [
+      'render.section.orphans',
+      'args.orphan.query.resolve',
+      'orphans.query.find',
+      'orphans.render.rows',
+      'ordering.apply.deterministic',
+    ],
+  },
   'renderer.registry.contract': {
     name: 'renderer.registry.contract',
     title: 'Define a renderer plugin registry contract',

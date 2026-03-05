@@ -166,6 +166,9 @@ export type Diagnostic = {
   };
   argumentName?: string;
   labelValue?: string;
+  subjectLabel?: string;
+  edgeLabel?: string;
+  counterpartLabel?: string;
 };
 
 export type GraphIntegrityPolicy = {

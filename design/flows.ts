@@ -19,6 +19,9 @@ const uc = {
   namesStylePolicy: useCases['cli.names.style-policy'].name,
   namesPrefixFilter: useCases['cli.names.prefix-filter'].name,
   namesOutputFormats: useCases['cli.names.output-formats'].name,
+  orphansQueryContextual: useCases['cli.orphans.query.contextual'].name,
+  orphansLint: useCases['cli.orphans.lint'].name,
+  orphansReportSection: useCases['cli.orphans.report.section'].name,
   exportJsonGraph: useCases['cli.export.json.graph'].name,
   reportSubgraphByLabel: useCases['cli.report.subgraph.by-label'].name,
   sectionH3CyclePolicy: useCases['cli.section.h3.cycle-policy'].name,
@@ -62,6 +65,7 @@ export const cliRoot = (context: FlowContext) => {
   generateJsonAction(incrContext(context));
   validateAction(incrContext(context));
   lintNamesAction(incrContext(context));
+  lintOrphansAction(incrContext(context));
 };
 
 export const listReportsAction = (context: FlowContext) => {
@@ -175,6 +179,24 @@ export const renderGraphSection = (context: FlowContext) => {
   detectGraphShape(incrContext(context));
   renderGraphTreeOrDag(incrContext(context));
   renderGraphCircular(incrContext(context));
+};
+
+export const renderOrphanSection = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'render.section.orphans',
+    title: 'Render section as contextual orphans',
+    note: 'Resolve orphan query arguments and emit deterministic orphan list/table rows (`name`, `title`, `labels`) for subject notes missing required contextual links.',
+    level: context.level,
+    useCases: [
+      uc.orphansReportSection,
+      uc.orphansQueryContextual,
+      uc.outputDeterministicOrdering,
+    ],
+  };
+  calls.push(call);
+  resolveOrphanQueryArguments(incrContext(context));
+  findContextualOrphans(incrContext(context));
+  renderOrphanRows(incrContext(context));
 };
 export const renderSectionWithFile = (context: FlowContext) => {
   const call: ComponentCall = {
@@ -408,6 +430,7 @@ export const generateSingleH3Section = (context: FlowContext) => {
   validateRenderArguments(incrContext(context));
   coerceRenderArguments(incrContext(context));
   selectSubGraph(incrContext(context));
+  renderOrphanSection(incrContext(context));
   renderGraphSection(incrContext(context));
   renderPlainSection(incrContext(context));
   renderSectionWithFile(incrContext(context));
@@ -511,6 +534,32 @@ export const validateAction = (context: FlowContext) => {
   calls.push(call);
   loadAppData(incrContext(context));
   validateAppData(incrContext(context));
+  emitDiagnostics(incrContext(context));
+};
+
+export const lintOrphansAction = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'action.lint.orphans',
+    title: 'Lint contextual orphans',
+    note: 'Run orphan-query lint checks with required `--subject-label`, optional `--edge-label`, optional `--counterpart-label`, optional `--direction in|out|either` (default `either`), and configurable `--severity warning|error` (default warning).',
+    level: context.level,
+    useCases: [
+      uc.orphansLint,
+      uc.orphansQueryContextual,
+      uc.diagnosticsModel,
+      uc.diagnosticsValidation,
+      uc.outputDeterministicOrdering,
+      uc.outputDeterministicOrderingPolicy,
+    ],
+  };
+  calls.push(call);
+  loadAppData(incrContext(context));
+  validateAppData(incrContext(context));
+  resolveOrderingPolicy(incrContext(context));
+  applyDeterministicOrdering(incrContext(context));
+  resolveOrphanQueryFromCli(incrContext(context));
+  findContextualOrphans(incrContext(context));
+  lintContextualOrphans(incrContext(context));
   emitDiagnostics(incrContext(context));
 };
 
@@ -645,7 +694,7 @@ export const validateLabelReferences = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'labels.reference.validate',
     title: 'Validate label references',
-    note: 'Validate referenced labels used by config elements (for example graph.select label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.',
+    note: 'Validate referenced labels used by config elements (for example graph.select and orphan-query label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.',
     level: context.level,
     useCases: [
       uc.reportSubgraphByLabel,
@@ -661,7 +710,7 @@ export const collectValidationDiagnostics = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'diagnostics.collect.validation',
     title: 'Collect validation diagnostics',
-    note: 'Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`).',
+    note: 'Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`, `subjectLabel`, `edgeLabel`, `counterpartLabel`).',
     level: context.level,
     useCases: [uc.diagnosticsModel, uc.diagnosticsValidation],
   };
@@ -833,6 +882,71 @@ export const resolveNameStylePolicy = (context: FlowContext) => {
     note: 'Resolve style matcher as case-sensitive policy: `dot`=`^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$`, `snake`=`^[a-z][a-z0-9_]*$`, `regex`=user-provided `--pattern`.',
     level: context.level,
     useCases: [uc.namesLint, uc.namesStylePolicy],
+  };
+  calls.push(call);
+};
+
+export const resolveOrphanQueryArguments = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'args.orphan.query.resolve',
+    title: 'Resolve orphan query arguments from H3 section',
+    note: 'Resolve `orphan-subject-label` (required for orphan mode), optional `orphan-edge-label`, optional `orphan-counterpart-label`, and `orphan-direction in|out|either` (default `either`).',
+    level: context.level,
+    useCases: [
+      uc.orphansReportSection,
+      uc.orphansQueryContextual,
+      uc.argumentsScopeResolution,
+      uc.argumentsRuntimeValidation,
+    ],
+  };
+  calls.push(call);
+};
+
+export const resolveOrphanQueryFromCli = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'lint.orphans.query.resolve',
+    title: 'Resolve orphan query from CLI flags',
+    note: 'Resolve lint flags into orphan query context: `--subject-label` required, `--edge-label` optional, `--counterpart-label` optional, `--direction` default `either`.',
+    level: context.level,
+    useCases: [uc.orphansLint, uc.orphansQueryContextual],
+  };
+  calls.push(call);
+};
+
+export const findContextualOrphans = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'orphans.query.find',
+    title: 'Find contextual orphans',
+    note: 'For each subject note, require at least one matching relationship under query filters (edge label, counterpart label, direction). Notes with zero matches are contextual orphans.',
+    level: context.level,
+    useCases: [
+      uc.orphansQueryContextual,
+      uc.orphansReportSection,
+      uc.orphansLint,
+      uc.outputDeterministicOrdering,
+    ],
+  };
+  calls.push(call);
+};
+
+export const renderOrphanRows = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'orphans.render.rows',
+    title: 'Render orphan rows',
+    note: 'Render deterministic orphan output rows/table with `name`, `title`, and `labels`.',
+    level: context.level,
+    useCases: [uc.orphansReportSection, uc.outputDeterministicOrdering],
+  };
+  calls.push(call);
+};
+
+export const lintContextualOrphans = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'lint.orphans.emit',
+    title: 'Emit contextual orphan diagnostics',
+    note: 'Emit `ORPHAN_QUERY_MISSING_LINK` diagnostics for each orphan note with canonical config/CLI context location and human-readable fields (`noteName`, `subjectLabel`, `edgeLabel`, `counterpartLabel`).',
+    level: context.level,
+    useCases: [uc.orphansLint, uc.diagnosticsValidation, uc.diagnosticsModel],
   };
   calls.push(call);
 };

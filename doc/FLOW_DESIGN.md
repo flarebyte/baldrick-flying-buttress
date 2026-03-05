@@ -22,7 +22,7 @@ flyb CLI root command [cli.root]
       Collect dataset labels [labels.dataset.collect]
         - note: Build authoritative labelSet as the union of labels from note.labels and relationship.labels without enforcing a taxonomy.
       Validate label references [labels.reference.validate]
-        - note: Validate referenced labels used by config elements (for example graph.select label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.
+        - note: Validate referenced labels used by config elements (for example graph.select and orphan-query label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.
       Resolve graph integrity policy [graph.integrity.policy.resolve]
         - note: Resolve integrity policy for missing nodes, orphans, duplicates, unknown label references, and cross-report references.
       Validate graph integrity [graph.integrity.validate]
@@ -36,7 +36,7 @@ flyb CLI root command [cli.root]
         Check cross-report references [graph.integrity.check.cross-report-references]
           - note: Validate whether note/edge references across report boundaries are allowed by policy.
       Collect validation diagnostics [diagnostics.collect.validation]
-        - note: Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`).
+        - note: Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`, `subjectLabel`, `edgeLabel`, `counterpartLabel`).
       Normalize validated application model [app.model.normalize]
         - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
     List reports from ValidatedApp [list.reports.output]
@@ -81,6 +81,14 @@ flyb CLI root command [cli.root]
           - note: Coerce validated values to target types (string[], boolean, enum, number).
         Extract subgraph using labels [graph.select]
           - note: Filter notes and relationships by labels and optional starting node; label references are pre-validated against dataset labels (union of note.labels and relationship.labels).
+        Render section as contextual orphans [render.section.orphans]
+          - note: Resolve orphan query arguments and emit deterministic orphan list/table rows (`name`, `title`, `labels`) for subject notes missing required contextual links.
+          Resolve orphan query arguments from H3 section [args.orphan.query.resolve]
+            - note: Resolve `orphan-subject-label` (required for orphan mode), optional `orphan-edge-label`, optional `orphan-counterpart-label`, and `orphan-direction in|out|either` (default `either`).
+          Find contextual orphans [orphans.query.find]
+            - note: For each subject note, require at least one matching relationship under query filters (edge label, counterpart label, direction). Notes with zero matches are contextual orphans.
+          Render orphan rows [orphans.render.rows]
+            - note: Render deterministic orphan output rows/table with `name`, `title`, and `labels`.
         Render section as a graph [render.section.graph]
           - note: Resolve cycle policy and graph shape, then render with selected renderer(s); renderer/runtime diagnostics here must not duplicate graph-integrity diagnostics.
           Resolve renderer/plugin registry [renderer.registry.resolve]
@@ -163,6 +171,24 @@ flyb CLI root command [cli.root]
       - note: Check relationship `from` and `to` endpoint names against resolved style; emit `NAME_STYLE_VIOLATION` diagnostics with canonical config location and relationship context for each violation.
     Emit structured diagnostics [diagnostics.emit.structured]
       - note: Emit diagnostics with code, severity, source, message, canonical machine-readable `location`, and optional human-readable context fields.
+  Lint contextual orphans [action.lint.orphans]
+    - note: Run orphan-query lint checks with required `--subject-label`, optional `--edge-label`, optional `--counterpart-label`, optional `--direction in|out|either` (default `either`), and configurable `--severity warning|error` (default warning).
+    Load CUE application data [load.app.data]
+      - ref: see first occurrence above for full subtree
+    Validate CUE application data [validate.app.data]
+      - ref: see first occurrence above for full subtree
+    Resolve deterministic ordering policy [ordering.policy.resolve]
+      - ref: see first occurrence above for full subtree
+    Apply deterministic ordering [ordering.apply.deterministic]
+      - ref: see first occurrence above for full subtree
+    Resolve orphan query from CLI flags [lint.orphans.query.resolve]
+      - note: Resolve lint flags into orphan query context: `--subject-label` required, `--edge-label` optional, `--counterpart-label` optional, `--direction` default `either`.
+    Find contextual orphans [orphans.query.find]
+      - note: For each subject note, require at least one matching relationship under query filters (edge label, counterpart label, direction). Notes with zero matches are contextual orphans.
+    Emit contextual orphan diagnostics [lint.orphans.emit]
+      - note: Emit `ORPHAN_QUERY_MISSING_LINK` diagnostics for each orphan note with canonical config/CLI context location and human-readable fields (`noteName`, `subjectLabel`, `edgeLabel`, `counterpartLabel`).
+    Emit structured diagnostics [diagnostics.emit.structured]
+      - note: Emit diagnostics with code, severity, source, message, canonical machine-readable `location`, and optional human-readable context fields.
 ```
 
 ## Validation Contract
@@ -176,7 +202,7 @@ flyb CLI root command [cli.root]
   - `diagnostics: Diagnostic[]` always present (empty when no issues)
 - Generation block rule: any `error` severity diagnostic from `validate.app.data` blocks generation; warnings remain non-blocking by default but are still emitted consistently.
 - Label reference rule: labels on notes/relationships are free-form definitions; only label references are validated against dataset `labelSet` and unknown references emit `LABEL_REF_UNKNOWN` with default `warning` severity.
-- Diagnostic location contract: `location` is the canonical machine-readable index path (Report -> H2 -> H3 -> notes/relationships -> arguments); optional context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`) provide human-readable debugging context.
+- Diagnostic location contract: `location` is the canonical machine-readable index path (Report -> H2 -> H3 -> notes/relationships -> arguments); optional context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`, `subjectLabel`, `edgeLabel`, `counterpartLabel`) provide human-readable debugging context.
 
 ## Refactor Notes (Pseudo-diff)
 
@@ -213,6 +239,9 @@ Supported use cases:
   - Render note title and markdown description — Each note includes a concise title with free-form markdown content.
   - Keep CUE config compact with argument-driven rendering options — Prefer small composable argument lists over proliferating specialized configuration fields.
   - Coerce free-form argument values into typed values — Convert string-like argument inputs into validated typed values before rendering.
+  - Render contextual orphan report section — H3 section arguments can render a deterministic orphan list/table using orphan query filters (`orphan-subject-label`, `orphan-edge-label`, `orphan-counterpart-label`, `orphan-direction`).
+  - Define contextual orphan query — A subject note (filtered by subject label) is orphan when it has zero matching connections under query filters: relationship label, counterpart note label, and direction in|out|either.
+  - Lint contextual orphan queries — The CLI exposes `flyb lint orphans` to emit structured diagnostics (`ORPHAN_QUERY_MISSING_LINK`) for notes missing required contextual links, without requiring a label taxonomy.
   - Allow each H3 section to define cycle policy — H3Section arguments can declare whether cycles are disallowed or allowed.
   - Render graph output based on graph shape — Renderer behavior adapts to tree, DAG, and cyclic graph structures.
   - Register renderers and plugins in a capability registry — A renderer registry maps renderer names to capabilities, supported arguments, and graph-shape compatibility, and defines defaults used by renderer-scoped argument resolution.
