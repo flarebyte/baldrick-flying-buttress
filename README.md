@@ -2,6 +2,8 @@
 
 **Divert the weight of design away from the code with a flying buttress.**
 
+![Flwying buttress](./baldrick-flying-buttress-hero.jpg)
+
 `baldrick-flying-buttress` (**flyb**) is a CLI that turns **structured design notes and relationships** into **living architecture documentation**.
 
 Instead of writing large design documents that quickly become outdated, flyb lets you describe your system as **small connected notes**. From those notes, the CLI generates **deterministic Markdown reports and diagrams** that stay consistent with the model.
