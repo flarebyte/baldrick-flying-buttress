@@ -141,7 +141,7 @@ const argumentRegistry: ArgumentRegistry = {
       valueType: 'enum',
       scopes: ['h3-section'],
       defaultValue: 'disallow',
-      allowedValues: ['disallow', 'allow', 'collapse'],
+      allowedValues: ['disallow', 'allow'],
     },
     {
       name: 'show-legend',

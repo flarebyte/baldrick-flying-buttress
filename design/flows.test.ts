@@ -258,4 +258,24 @@ describe('validation entrypoint refactor', () => {
     expect(labelRefValidation.note).toContain('default severity `warning`');
     expect(validationPipeline).not.toContain('graph.integrity.check.unknown-labels');
   });
+
+  test('cycle policy supports only disallow and allow with explicit behavior', () => {
+    buildFlow();
+
+    const cyclePolicy = calls.find((call) => call.name === 'graph.policy.cycle');
+    const shapeDetect = calls.find((call) => call.name === 'graph.shape.detect');
+    const renderCircular = calls.find(
+      (call) => call.name === 'render.graph.circular',
+    );
+
+    if (!cyclePolicy || !shapeDetect || !renderCircular) {
+      throw new Error('Expected cycle policy and graph shape/render calls');
+    }
+
+    expect(cyclePolicy.note).toContain('`disallow`');
+    expect(cyclePolicy.note).toContain('`allow`');
+    expect(shapeDetect.note).toContain('tree, DAG, or cyclic');
+    expect(shapeDetect.note).toContain('prevent graph rendering');
+    expect(renderCircular.note).toContain('cycle-policy is `allow`');
+  });
 });

@@ -232,8 +232,7 @@
       "defaultValue": "disallow",
       "allowedValues": [
         "disallow",
-        "allow",
-        "collapse"
+        "allow"
       ]
     },
     {

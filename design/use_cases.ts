@@ -70,7 +70,7 @@ export const useCases: Record<string, UseCase> = {
   'cli.section.h3.cycle-policy': {
     name: 'cli.section.h3.cycle-policy',
     title: 'Allow each H3 section to define cycle policy',
-    note: 'H3Section arguments can declare whether cycles are disallowed, allowed, or collapsed.',
+    note: 'H3Section arguments can declare whether cycles are disallowed or allowed.',
   },
   'cli.report.graph.shape-aware-render': {
     name: 'cli.report.graph.shape-aware-render',

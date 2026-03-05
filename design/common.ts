@@ -338,7 +338,7 @@ export const toBulletPoints = (lines: string[]) =>
 
 /**
  * Convert a free-form title/name into a dash-lower slug suitable for stickie names and filenames.
- * Rules: lowercase, replace non [a-z0-9] with '-', collapse repeats, trim edges.
+ * Rules: lowercase, replace non [a-z0-9] with '-', merge repeated separators, trim edges.
  */
 export const toStickieName = (s: string): string =>
   s

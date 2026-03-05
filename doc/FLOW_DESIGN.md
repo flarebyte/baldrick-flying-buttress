@@ -100,9 +100,9 @@ flyb CLI root command [cli.root]
           Select renderer plugin from arguments [renderer.plugin.select]
             - note: Choose renderer by resolved typed renderer-scoped arguments with deterministic fallback when unspecified, then pass one resolved renderer argument set to the selected plugin.
           Resolve H3Section cycle policy argument [graph.policy.cycle]
-            - note: Use section argument to disallow, allow, or collapse cycles.
+            - note: Resolve section cycle policy (`disallow` or `allow`): `disallow` requires cycle detection error diagnostics and blocks section graph rendering; `allow` permits cyclic rendering.
           Detect graph shape (tree, DAG, or cyclic) [graph.shape.detect]
-            - note: Classify graph structure before selecting rendering strategy; emits renderer/runtime warnings only when applicable.
+            - note: Classify selected graph as tree, DAG, or cyclic before renderer selection; if shape is cyclic and cycle-policy is `disallow`, emit error diagnostic and prevent graph rendering for that section.
           Render tree or DAG graph [render.graph.tree-or-dag]
             - note: Prefer hierarchical markdown text; Mermaid can be emitted as an additional diagram.
             Render graph as markdown text [render.graph.markdown.text]
@@ -110,7 +110,7 @@ flyb CLI root command [cli.root]
             Render graph as Mermaid [render.graph.mermaid]
               - note: Emit Mermaid syntax for visual rendering in markdown consumers.
           Render cyclic graph [render.graph.circular]
-            - note: Prefer Mermaid for cycle readability, with markdown text summary as fallback.
+            - note: Render only when cycle-policy is `allow`; prefer Mermaid for deterministic cycle readability, with markdown text summary fallback.
             Render graph as Mermaid [render.graph.mermaid]
               - note: Emit Mermaid syntax for visual rendering in markdown consumers.
             Render graph as markdown text [render.graph.markdown.text]
@@ -254,7 +254,7 @@ Supported use cases:
   - Define an explicit ordering policy — Ordering policy is part of runtime behavior and contractually defines comparators: notes (primaryLabel, name), relationships (from, to, labelsSortedJoined), sections (case-insensitive title, originalIndex), arguments (name).
   - Keep CUE config compact with argument-driven rendering options — Prefer small composable argument lists over proliferating specialized configuration fields.
   - Coerce free-form argument values into typed values — Convert string-like argument inputs into validated typed values before rendering.
-  - Allow each H3 section to define cycle policy — H3Section arguments can declare whether cycles are disallowed, allowed, or collapsed.
+  - Allow each H3 section to define cycle policy — H3Section arguments can declare whether cycles are disallowed or allowed.
   - Render graph output based on graph shape — Renderer behavior adapts to tree, DAG, and cyclic graph structures.
   - Register renderers and plugins in a capability registry — A renderer registry maps renderer names to capabilities, supported arguments, and graph-shape compatibility, and defines defaults used by renderer-scoped argument resolution.
   - Select renderer plugin from arguments at runtime — Renderer selection uses one resolved typed renderer argument set sourced from H3Section and note arguments with deterministic precedence and fallback defaults.

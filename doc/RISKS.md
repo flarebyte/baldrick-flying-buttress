@@ -24,7 +24,7 @@ This document summarizes key risks and mitigations.
 ## Circular dependencies in note relationships [graph.circular-dependency]
 
 - Description: Tree or DAG-like relationship graphs are usually straightforward, but circular dependencies can break assumptions in traversal, filtering, and report assembly.
-- Mitigation: Add explicit cycle detection and policy controls (reject, warn, or collapse cycles), and test traversal logic with cyclic graph fixtures.
+- Mitigation: Add explicit cycle detection and policy controls (`disallow` to emit error and skip section graph rendering, `allow` to render cyclic graphs), and test traversal logic with cyclic graph fixtures.
 - Calls: graph.select, render.section.graph, action.generate.markdown.section.h3, action.validate
 
 ## Single large CUE file becomes hard to maintain [maintenance.single-cue-file-size]

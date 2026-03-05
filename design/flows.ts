@@ -224,7 +224,7 @@ export const resolveH3GraphCyclePolicy = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'graph.policy.cycle',
     title: 'Resolve H3Section cycle policy argument',
-    note: 'Use section argument to disallow, allow, or collapse cycles.',
+    note: 'Resolve section cycle policy (`disallow` or `allow`): `disallow` requires cycle detection error diagnostics and blocks section graph rendering; `allow` permits cyclic rendering.',
     level: context.level,
     useCases: [uc.sectionH3CyclePolicy, uc.argumentsScopeResolution],
   };
@@ -235,7 +235,7 @@ export const detectGraphShape = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'graph.shape.detect',
     title: 'Detect graph shape (tree, DAG, or cyclic)',
-    note: 'Classify graph structure before selecting rendering strategy; emits renderer/runtime warnings only when applicable.',
+    note: 'Classify selected graph as tree, DAG, or cyclic before renderer selection; if shape is cyclic and cycle-policy is `disallow`, emit error diagnostic and prevent graph rendering for that section.',
     level: context.level,
     useCases: [uc.reportGraphShapeAwareRender, uc.sectionH3CyclePolicy],
   };
@@ -301,7 +301,7 @@ export const renderGraphCircular = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'render.graph.circular',
     title: 'Render cyclic graph',
-    note: 'Prefer Mermaid for cycle readability, with markdown text summary as fallback.',
+    note: 'Render only when cycle-policy is `allow`; prefer Mermaid for deterministic cycle readability, with markdown text summary fallback.',
     level: context.level,
     useCases: [
       uc.sectionH3CyclePolicy,

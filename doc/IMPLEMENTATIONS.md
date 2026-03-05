@@ -108,7 +108,7 @@ This document summarizes suggested implementation choices.
 
 ## Use deterministic renderer selection and fallback policy [renderer.selection.fallback-policy]
 
-- Description: Resolve renderer from renderer-scoped arguments sourced from H3Section and notes first, then apply stable defaults by graph shape (for example Mermaid-first for cycles, markdown-first for tree/DAG).
+- Description: Resolve renderer from renderer-scoped arguments sourced from H3Section and notes first, then apply stable defaults by graph shape (Mermaid-first for cyclic graphs, markdown-first for tree/DAG); if cycle-policy is `disallow` and cycles are detected, emit an error diagnostic and skip graph rendering for that section.
 - Calls: renderer.plugin.select, graph.shape.detect, render.graph.tree-or-dag, render.graph.circular
 
 ## Use early returns and guard clauses for errors [style.errors.guard-clauses]

@@ -42,7 +42,7 @@ export const risks: Record<string, Risk> = {
     description:
       'Tree or DAG-like relationship graphs are usually straightforward, but circular dependencies can break assumptions in traversal, filtering, and report assembly.',
     mitigation:
-      'Add explicit cycle detection and policy controls (reject, warn, or collapse cycles), and test traversal logic with cyclic graph fixtures.',
+      'Add explicit cycle detection and policy controls (`disallow` to emit error and skip section graph rendering, `allow` to render cyclic graphs), and test traversal logic with cyclic graph fixtures.',
     calls: [
       'graph.select',
       'render.section.graph',

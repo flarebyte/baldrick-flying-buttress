@@ -39,7 +39,7 @@ export const implementations: Record<string, ImplementationConsideration> = {
     name: 'renderer.selection.fallback-policy',
     title: 'Use deterministic renderer selection and fallback policy',
     description:
-      'Resolve renderer from renderer-scoped arguments sourced from H3Section and notes first, then apply stable defaults by graph shape (for example Mermaid-first for cycles, markdown-first for tree/DAG).',
+      'Resolve renderer from renderer-scoped arguments sourced from H3Section and notes first, then apply stable defaults by graph shape (Mermaid-first for cyclic graphs, markdown-first for tree/DAG); if cycle-policy is `disallow` and cycles are detected, emit an error diagnostic and skip graph rendering for that section.',
     calls: [
       'renderer.plugin.select',
       'graph.shape.detect',
