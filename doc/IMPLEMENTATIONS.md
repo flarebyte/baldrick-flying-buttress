@@ -93,12 +93,12 @@ This document summarizes suggested implementation choices.
 
 ## Guarantee deterministic ordering in generated outputs [output.ordering.deterministic]
 
-- Description: Apply explicit stable sorting for notes, relationships, sections, and arguments so output remains reproducible across runs and machines.
+- Description: Apply explicit stable sorting for notes, relationships, sections, and arguments using concrete comparators (notes: primaryLabel/name, relationships: from/to/labelsSortedJoined, sections: case-insensitive title plus originalIndex, arguments: name) so output remains reproducible across runs and machines.
 - Calls: ordering.policy.resolve, ordering.apply.deterministic, action.generate.markdown.sections, action.generate.markdown.section.h3
 
 ## Treat ordering policy as a testable contract [output.ordering.policy-contract]
 
-- Description: Define ordering rules and tie-breakers as a versioned policy and verify them with golden-file tests.
+- Description: Define ordering rules and tie-breakers as a versioned policy (including label normalization and relationship label joining rules) and verify them with golden-file tests.
 - Calls: ordering.policy.resolve, ordering.apply.deterministic, action.generate.markdown
 
 ## Define a renderer plugin registry contract [renderer.registry.contract]

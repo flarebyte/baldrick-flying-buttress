@@ -205,4 +205,27 @@ describe('validation entrypoint refactor', () => {
     expect(rendererResolve.note).toContain('typed validated renderer argument set');
     expect(pluginSelect.note).toContain('pass one resolved renderer argument set');
   });
+
+  test('ordering policy defines explicit comparators and tie-breakers', () => {
+    buildFlow();
+
+    const resolveOrdering = calls.find(
+      (call) => call.name === 'ordering.policy.resolve',
+    );
+    const applyOrdering = calls.find(
+      (call) => call.name === 'ordering.apply.deterministic',
+    );
+
+    if (!resolveOrdering || !applyOrdering) {
+      throw new Error('Expected ordering policy calls to exist');
+    }
+
+    expect(resolveOrdering.note).toContain('(primaryLabel, name)');
+    expect(resolveOrdering.note).toContain('(from, to, labelsSortedJoined)');
+    expect(resolveOrdering.note).toContain('joined with `|`');
+    expect(resolveOrdering.note).toContain('(lowercase(title), originalIndex)');
+    expect(resolveOrdering.note).toContain('arguments by argument name');
+    expect(applyOrdering.note).toContain('stable tie-breakers only');
+    expect(applyOrdering.note).toContain('without runtime randomness');
+  });
 });

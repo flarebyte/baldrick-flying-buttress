@@ -49,9 +49,13 @@ export type ArgumentRegistry = {
 };
 
 export type OrderingPolicy = {
+  // Notes: (primaryLabel, name), where primaryLabel is smallest label lexicographically.
   notes: 'by-name' | 'by-title' | 'by-label-then-name' | 'source-order';
+  // Relationships: (from, to, labelsSortedJoined); labelsSortedJoined uses sorted labels joined by `|`.
   relationships: 'by-name' | 'by-title' | 'by-label-then-name' | 'source-order';
+  // Sections: (lowercase(title), originalIndex).
   sections: 'by-name' | 'by-title' | 'by-label-then-name' | 'source-order';
+  // Arguments: argument key/name.
   arguments: 'by-name' | 'by-title' | 'by-label-then-name' | 'source-order';
 };
 

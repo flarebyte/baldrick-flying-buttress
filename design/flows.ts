@@ -680,7 +680,7 @@ export const resolveOrderingPolicy = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'ordering.policy.resolve',
     title: 'Resolve deterministic ordering policy',
-    note: 'Resolve stable ordering rules for notes, relationships, sections, and arguments.',
+    note: 'Resolve explicit comparators: notes by (primaryLabel, name) where primaryLabel is the lexicographically smallest label; relationships by (from, to, labelsSortedJoined) where labelsSortedJoined is labels sorted lexicographically then joined with `|`; sections by (lowercase(title), originalIndex) for stable tie-breaks; arguments by argument name.',
     level: context.level,
     useCases: [uc.outputDeterministicOrderingPolicy],
   };
@@ -691,7 +691,7 @@ export const applyDeterministicOrdering = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'ordering.apply.deterministic',
     title: 'Apply deterministic ordering',
-    note: 'Sort entities and edges with stable tie-breakers before rendering output.',
+    note: 'Apply resolved comparators exactly and use stable tie-breakers only (including section originalIndex), yielding reproducible output without runtime randomness.',
     level: context.level,
     useCases: [
       uc.outputDeterministicOrdering,

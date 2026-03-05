@@ -74,7 +74,7 @@ flyb CLI root command [cli.root]
     Generate markdown sections [action.generate.markdown.sections]
       - note: Build H3 sections from note subsets and renderers with deterministic ordering.
       Resolve deterministic ordering policy [ordering.policy.resolve]
-        - note: Resolve stable ordering rules for notes, relationships, sections, and arguments.
+        - note: Resolve explicit comparators: notes by (primaryLabel, name) where primaryLabel is the lexicographically smallest label; relationships by (from, to, labelsSortedJoined) where labelsSortedJoined is labels sorted lexicographically then joined with `|`; sections by (lowercase(title), originalIndex) for stable tie-breaks; arguments by argument name.
       Generate a single H3 section [action.generate.markdown.section.h3]
         - note: Compose subgraph, plain content, and file-backed content with section-level arguments.
         Resolve H3Section free-form arguments [args.h3.resolve]
@@ -132,7 +132,7 @@ flyb CLI root command [cli.root]
           Render section with code or Mermaid snippet [render.section.file.code]
             - note: Preserve fenced-block formatting for code and Mermaid content.
         Apply deterministic ordering [ordering.apply.deterministic]
-          - note: Sort entities and edges with stable tie-breakers before rendering output.
+          - note: Apply resolved comparators exactly and use stable tie-breakers only (including section originalIndex), yielding reproducible output without runtime randomness.
   Generate JSON graph export [action.generate.json]
     - note: Export notes and relationships in machine-readable JSON format.
     Load CUE application data [load.app.data]
@@ -240,8 +240,8 @@ Supported use cases:
   - Validate graph integrity using policy rules — Integrity checks should emit structured diagnostics tied to offending notes, relationships, and config locations.
   - Resolve arguments by scope — Apply argument rules by scope (h3-section, note, renderer); for renderer scope, collect from H3Section and note arguments and apply precedence (`note` > `h3-section` > registry default).
   - Render note title and markdown description — Each note includes a concise title with free-form markdown content.
-  - Guarantee deterministic output ordering — Sort notes, relationships, sections, and arguments with stable rules so repeated runs produce identical output.
-  - Define an explicit ordering policy — Ordering policy is part of runtime behavior and can be documented/tested as a contract.
+  - Guarantee deterministic output ordering — Sort notes, relationships, sections, and arguments with explicit comparators and tie-breakers so repeated runs produce identical output.
+  - Define an explicit ordering policy — Ordering policy is part of runtime behavior and contractually defines comparators: notes (primaryLabel, name), relationships (from, to, labelsSortedJoined), sections (case-insensitive title, originalIndex), arguments (name).
   - Build a report from a relationship-label subgraph — Report generation can include only edges matching selected labels.
   - Keep CUE config compact with argument-driven rendering options — Prefer small composable argument lists over proliferating specialized configuration fields.
   - Coerce free-form argument values into typed values — Convert string-like argument inputs into validated typed values before rendering.

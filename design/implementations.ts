@@ -51,7 +51,7 @@ export const implementations: Record<string, ImplementationConsideration> = {
     name: 'output.ordering.deterministic',
     title: 'Guarantee deterministic ordering in generated outputs',
     description:
-      'Apply explicit stable sorting for notes, relationships, sections, and arguments so output remains reproducible across runs and machines.',
+      'Apply explicit stable sorting for notes, relationships, sections, and arguments using concrete comparators (notes: primaryLabel/name, relationships: from/to/labelsSortedJoined, sections: case-insensitive title plus originalIndex, arguments: name) so output remains reproducible across runs and machines.',
     calls: [
       'ordering.policy.resolve',
       'ordering.apply.deterministic',
@@ -63,7 +63,7 @@ export const implementations: Record<string, ImplementationConsideration> = {
     name: 'output.ordering.policy-contract',
     title: 'Treat ordering policy as a testable contract',
     description:
-      'Define ordering rules and tie-breakers as a versioned policy and verify them with golden-file tests.',
+      'Define ordering rules and tie-breakers as a versioned policy (including label normalization and relationship label joining rules) and verify them with golden-file tests.',
     calls: [
       'ordering.policy.resolve',
       'ordering.apply.deterministic',

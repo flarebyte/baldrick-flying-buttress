@@ -100,12 +100,12 @@ export const useCases: Record<string, UseCase> = {
   'cli.output.deterministic-ordering': {
     name: 'cli.output.deterministic-ordering',
     title: 'Guarantee deterministic output ordering',
-    note: 'Sort notes, relationships, sections, and arguments with stable rules so repeated runs produce identical output.',
+    note: 'Sort notes, relationships, sections, and arguments with explicit comparators and tie-breakers so repeated runs produce identical output.',
   },
   'cli.output.deterministic-ordering.policy': {
     name: 'cli.output.deterministic-ordering.policy',
     title: 'Define an explicit ordering policy',
-    note: 'Ordering policy is part of runtime behavior and can be documented/tested as a contract.',
+    note: 'Ordering policy is part of runtime behavior and contractually defines comparators: notes (primaryLabel, name), relationships (from, to, labelsSortedJoined), sections (case-insensitive title, originalIndex), arguments (name).',
   },
   'cli.diagnostics.model': {
     name: 'cli.diagnostics.model',

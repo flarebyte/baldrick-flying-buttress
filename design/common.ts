@@ -125,9 +125,19 @@ export type OrderingStrategy =
   | 'source-order';
 
 export type OrderingPolicy = {
+  // Comparator contract for `by-label-then-name`:
+  // primaryLabel = lexicographically smallest label in `labels` (or empty string if no labels),
+  // then compare by note `name`.
   notes: OrderingStrategy;
+  // Comparator contract for `by-name` on relationships:
+  // compare by (`from`, `to`, labelsSortedJoined), where labelsSortedJoined is
+  // relationship labels sorted lexicographically and joined with a stable separator (`|`).
   relationships: OrderingStrategy;
+  // Comparator contract for `by-title`:
+  // compare lowercase `title`, then original index as stable tie-breaker.
   sections: OrderingStrategy;
+  // Comparator contract for `by-name`:
+  // compare by argument key/name.
   arguments: OrderingStrategy;
 };
 
