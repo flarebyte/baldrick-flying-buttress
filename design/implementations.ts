@@ -74,7 +74,7 @@ export const implementations: Record<string, ImplementationConsideration> = {
     name: 'diagnostics.structured-model',
     title: 'Use a structured diagnostics model',
     description:
-      'Standardize diagnostics with code, severity, source, message, and location to support CLI UX, CI checks, and future editor integrations.',
+      'Standardize diagnostics with code, severity, source, message, canonical machine-readable location, and optional human-readable context fields to support CLI UX, CI checks, and future editor integrations.',
     calls: [
       'validate.app.data',
       'args.validate.runtime',
@@ -85,7 +85,7 @@ export const implementations: Record<string, ImplementationConsideration> = {
     name: 'diagnostics.validation-location',
     title: 'Attach validation diagnostics to precise config locations',
     description:
-      'Include CUE path, related note/relationship, and argument key in diagnostics so users can quickly fix invalid configuration.',
+      'Include canonical index-based CUE path plus related report/section titles and note/relationship/argument identifiers in diagnostics so users can quickly fix invalid configuration.',
     calls: [
       'validate.app.data',
       'action.validate',

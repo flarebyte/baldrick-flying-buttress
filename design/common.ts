@@ -149,8 +149,12 @@ export type Diagnostic = {
   severity: DiagnosticSeverity;
   // Logical component/call that produced this diagnostic
   source: string;
-  // Optional location inside user config, e.g. "reports[0].sections[1].arguments[2]"
+  // Canonical machine-readable location inside user config, e.g.
+  // "reports[0].sections[0].sections[0].notes[2].arguments[1]"
   location?: string;
+  // Optional human-readable context (does not replace canonical `location`)
+  reportTitle?: string;
+  sectionTitle?: string;
   // Optional entity linkage
   noteName?: string;
   relationship?: {

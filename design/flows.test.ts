@@ -165,14 +165,22 @@ describe('validation entrypoint refactor', () => {
       severity: string;
       source: string;
       location?: string;
+      reportTitle?: string;
+      sectionTitle?: string;
+      argumentName?: string;
       labelValue?: string;
     };
 
     expect(diagnostic.code).toBe('LABEL_REF_UNKNOWN');
     expect(diagnostic.severity).toBe('warning');
     expect(diagnostic.source).toBe('labels.reference.validate');
-    expect(diagnostic.location).toBe('reports[0].sections[0].arguments[1]');
-    expect(diagnostic.location).toMatch(/^reports\[\d+\]\.sections\[\d+\]\.arguments\[\d+\]$/);
+    expect(diagnostic.location).toBe('reports[0].sections[0].sections[0].arguments[1]');
+    expect(diagnostic.location).toMatch(
+      /^reports\[\d+\]\.sections\[\d+\]\.sections\[\d+\]\.arguments\[\d+\]$/,
+    );
+    expect(diagnostic.reportTitle).toBe('Flow Design Overview');
+    expect(diagnostic.sectionTitle).toBe('Graph rendering strategy');
+    expect(diagnostic.argumentName).toBe('select-labels');
     expect(diagnostic.labelValue).toBe('unknown-tag');
   });
 

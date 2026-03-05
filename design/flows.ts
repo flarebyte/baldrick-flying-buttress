@@ -599,7 +599,7 @@ export const collectValidationDiagnostics = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'diagnostics.collect.validation',
     title: 'Collect validation diagnostics',
-    note: 'Collect stable diagnostic codes, severities, sources, and precise config locations.',
+    note: 'Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`).',
     level: context.level,
     useCases: [uc.diagnosticsModel, uc.diagnosticsValidation],
   };
@@ -722,7 +722,7 @@ export const emitDiagnostics = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'diagnostics.emit.structured',
     title: 'Emit structured diagnostics',
-    note: 'Emit diagnostics with code, severity, source, message, and optional location.',
+    note: 'Emit diagnostics with code, severity, source, message, canonical machine-readable `location`, and optional human-readable context fields.',
     level: context.level,
     useCases: [uc.diagnosticsModel, uc.diagnosticsValidation],
   };

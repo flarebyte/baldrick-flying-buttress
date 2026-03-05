@@ -68,12 +68,12 @@ This document summarizes suggested implementation choices.
 
 ## Use a structured diagnostics model [diagnostics.structured-model]
 
-- Description: Standardize diagnostics with code, severity, source, message, and location to support CLI UX, CI checks, and future editor integrations.
+- Description: Standardize diagnostics with code, severity, source, message, canonical machine-readable location, and optional human-readable context fields to support CLI UX, CI checks, and future editor integrations.
 - Calls: validate.app.data, args.validate.runtime, diagnostics.emit.structured
 
 ## Attach validation diagnostics to precise config locations [diagnostics.validation-location]
 
-- Description: Include CUE path, related note/relationship, and argument key in diagnostics so users can quickly fix invalid configuration.
+- Description: Include canonical index-based CUE path plus related report/section titles and note/relationship/argument identifiers in diagnostics so users can quickly fix invalid configuration.
 - Calls: validate.app.data, action.validate, diagnostics.emit.structured
 
 ## Define a graph integrity policy model [graph.integrity.policy-model]

@@ -44,6 +44,9 @@ export const generateFlowDesignReport = async () => {
   await appendToReport(
     '- Label reference rule: labels on notes/relationships are free-form definitions; only label references are validated against dataset `labelSet` and unknown references emit `LABEL_REF_UNKNOWN` with default `warning` severity.',
   );
+  await appendToReport(
+    '- Diagnostic location contract: `location` is the canonical machine-readable index path (Report -> H2 -> H3 -> notes/relationships -> arguments); optional context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`) provide human-readable debugging context.',
+  );
   await appendToReport('');
   await appendToReport('## Refactor Notes (Pseudo-diff)\n');
   await appendToReport(

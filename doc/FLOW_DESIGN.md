@@ -36,7 +36,7 @@ flyb CLI root command [cli.root]
         Check cross-report references [graph.integrity.check.cross-report-references]
           - note: Validate whether note/edge references across report boundaries are allowed by policy.
       Collect validation diagnostics [diagnostics.collect.validation]
-        - note: Collect stable diagnostic codes, severities, sources, and precise config locations.
+        - note: Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`).
       Normalize validated application model [app.model.normalize]
         - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
     List reports from ValidatedApp [list.reports.output]
@@ -72,7 +72,7 @@ flyb CLI root command [cli.root]
         Check cross-report references [graph.integrity.check.cross-report-references]
           - note: Validate whether note/edge references across report boundaries are allowed by policy.
       Collect validation diagnostics [diagnostics.collect.validation]
-        - note: Collect stable diagnostic codes, severities, sources, and precise config locations.
+        - note: Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`).
       Normalize validated application model [app.model.normalize]
         - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
     Generate markdown sections [action.generate.markdown.sections]
@@ -168,7 +168,7 @@ flyb CLI root command [cli.root]
         Check cross-report references [graph.integrity.check.cross-report-references]
           - note: Validate whether note/edge references across report boundaries are allowed by policy.
       Collect validation diagnostics [diagnostics.collect.validation]
-        - note: Collect stable diagnostic codes, severities, sources, and precise config locations.
+        - note: Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`).
       Normalize validated application model [app.model.normalize]
         - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
     Export validated graph as JSON [export.graph.json]
@@ -204,11 +204,11 @@ flyb CLI root command [cli.root]
         Check cross-report references [graph.integrity.check.cross-report-references]
           - note: Validate whether note/edge references across report boundaries are allowed by policy.
       Collect validation diagnostics [diagnostics.collect.validation]
-        - note: Collect stable diagnostic codes, severities, sources, and precise config locations.
+        - note: Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`).
       Normalize validated application model [app.model.normalize]
         - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
     Emit structured diagnostics [diagnostics.emit.structured]
-      - note: Emit diagnostics with code, severity, source, message, and optional location.
+      - note: Emit diagnostics with code, severity, source, message, canonical machine-readable `location`, and optional human-readable context fields.
 ```
 
 ## Validation Contract
@@ -222,6 +222,7 @@ flyb CLI root command [cli.root]
   - `diagnostics: Diagnostic[]` always present (empty when no issues)
 - Generation block rule: any `error` severity diagnostic from `validate.app.data` blocks generation; warnings remain non-blocking by default but are still emitted consistently.
 - Label reference rule: labels on notes/relationships are free-form definitions; only label references are validated against dataset `labelSet` and unknown references emit `LABEL_REF_UNKNOWN` with default `warning` severity.
+- Diagnostic location contract: `location` is the canonical machine-readable index path (Report -> H2 -> H3 -> notes/relationships -> arguments); optional context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`) provide human-readable debugging context.
 
 ## Refactor Notes (Pseudo-diff)
 
@@ -240,8 +241,8 @@ Supported use cases:
   - Declare multiple markdown reports in one config — A single config can drive generation of multiple report files.
   - Export notes and relationships as JSON — JSON export supports machine-readable graph processing.
   - Define labeled relationships between notes in config — CUE can be used as the source format for flexible configuration; labels on notes and relationships remain free-form.
-  - Emit structured diagnostics — Diagnostics include code, severity, message, source, and optional location context.
-  - Report validation diagnostics with locations — Validation errors and warnings should point to config paths and offending argument or relationship names.
+  - Emit structured diagnostics — Diagnostics include code, severity, message, source, canonical machine-readable `location`, and additional human-readable context fields.
+  - Report validation diagnostics with locations — Validation errors and warnings should include canonical index-based config paths plus readable identifiers (report title, section title, note/relationship/argument names).
   - Define an argument registry schema — Registry entries define argument key, type, default, allowed values, and valid scopes (`h3-section`, `note`, `renderer`).
   - Validate free-form arguments at runtime — Validate against a known argument registry and fail with clear errors on unknown keys or invalid values.
   - Accept free-form arguments on H3Section and Note — Arguments behave like CLI flags (for example `format-csv=md`) and can carry string, string[], boolean, and similar values.

@@ -110,12 +110,12 @@ export const useCases: Record<string, UseCase> = {
   'cli.diagnostics.model': {
     name: 'cli.diagnostics.model',
     title: 'Emit structured diagnostics',
-    note: 'Diagnostics include code, severity, message, source, and optional location context.',
+    note: 'Diagnostics include code, severity, message, source, canonical machine-readable `location`, and additional human-readable context fields.',
   },
   'cli.diagnostics.validation': {
     name: 'cli.diagnostics.validation',
     title: 'Report validation diagnostics with locations',
-    note: 'Validation errors and warnings should point to config paths and offending argument or relationship names.',
+    note: 'Validation errors and warnings should include canonical index-based config paths plus readable identifiers (report title, section title, note/relationship/argument names).',
   },
   'cli.graph.integrity.policy': {
     name: 'cli.graph.integrity.policy',

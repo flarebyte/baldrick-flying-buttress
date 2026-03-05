@@ -65,7 +65,13 @@ export type Diagnostic = {
   source: string;
   message: string;
   location?: string;
+  reportTitle?: string;
+  sectionTitle?: string;
   noteName?: string;
+  relationship?: {
+    from: string;
+    to: string;
+  };
   argumentName?: string;
   labelValue?: string;
 };
@@ -180,7 +186,9 @@ const validationDiagnostic: Diagnostic = {
   source: 'labels.reference.validate',
   message:
     'Label reference `unknown-tag` is not present in dataset labels (note.labels and relationship.labels union).',
-  location: 'reports[0].sections[0].arguments[1]',
+  location: 'reports[0].sections[0].sections[0].arguments[1]',
+  reportTitle: 'Flow Design Overview',
+  sectionTitle: 'Graph rendering strategy',
   argumentName: 'select-labels',
   labelValue: 'unknown-tag',
 };
