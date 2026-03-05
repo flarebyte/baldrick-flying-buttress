@@ -115,7 +115,8 @@ const relRootCallToUseCase: Relationship = {
 
 const sectionGraphRendering: H3Section = {
   title: 'Graph rendering strategy',
-  description: 'Render graph content based on graph shape and renderer arguments.',
+  description:
+    'Render graph content based on graph shape and renderer arguments.',
   notes: [rootCall, useCase],
   relationships: [relRootCallToUseCase],
   arguments: [
@@ -244,7 +245,11 @@ export const exampleRelationship = JSON.stringify(
 export const exampleH3Section = JSON.stringify(sectionGraphRendering, null, 2);
 export const exampleH2Section = JSON.stringify(sectionFlowDesign, null, 2);
 export const exampleReport = JSON.stringify(flowDesignReport, null, 2);
-export const exampleArgumentRegistry = JSON.stringify(argumentRegistry, null, 2);
+export const exampleArgumentRegistry = JSON.stringify(
+  argumentRegistry,
+  null,
+  2,
+);
 export const exampleOrderingPolicy = JSON.stringify(orderingPolicy, null, 2);
 export const exampleDiagnostic = JSON.stringify(validationDiagnostic, null, 2);
 export const exampleGraphIntegrityPolicy = JSON.stringify(

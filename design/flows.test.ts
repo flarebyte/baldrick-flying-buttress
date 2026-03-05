@@ -20,7 +20,10 @@ const buildFlow = () => {
 
   for (let i = 0; i < calls.length; i += 1) {
     const call = calls[i];
-    while (stack.length > 0 && calls[stack[stack.length - 1]].level >= call.level) {
+    while (
+      stack.length > 0 &&
+      calls[stack[stack.length - 1]].level >= call.level
+    ) {
       stack.pop();
     }
 
@@ -40,7 +43,9 @@ const buildFlow = () => {
 };
 
 const directChildren = (indexed: IndexedCall[], parentName: string) =>
-  indexed.filter((item) => item.parentName === parentName).map((item) => item.name);
+  indexed
+    .filter((item) => item.parentName === parentName)
+    .map((item) => item.name);
 
 const firstChildByName = (
   indexed: IndexedCall[],
@@ -127,7 +132,9 @@ describe('validation entrypoint refactor', () => {
     );
 
     if (!generateValidation || !validateValidation) {
-      throw new Error('Expected validate.app.data under generate markdown and validate');
+      throw new Error(
+        'Expected validate.app.data under generate markdown and validate',
+      );
     }
 
     const generatePipeline = subtreeNames(indexed, generateValidation.index);
@@ -183,7 +190,9 @@ describe('validation entrypoint refactor', () => {
     expect(diagnostic.code).toBe('LABEL_REF_UNKNOWN');
     expect(diagnostic.severity).toBe('warning');
     expect(diagnostic.source).toBe('labels.reference.validate');
-    expect(diagnostic.location).toBe('reports[0].sections[0].sections[0].arguments[1]');
+    expect(diagnostic.location).toBe(
+      'reports[0].sections[0].sections[0].arguments[1]',
+    );
     expect(diagnostic.location).toMatch(
       /^reports\[\d+\]\.sections\[\d+\]\.sections\[\d+\]\.arguments\[\d+\]$/,
     );
@@ -222,8 +231,12 @@ describe('validation entrypoint refactor', () => {
     expect(h3Resolve.note).toContain('renderer-scoped resolution');
     expect(noteResolve.note).toContain('higher precedence');
     expect(rendererResolve.note).toContain('`note` overrides `h3-section`');
-    expect(rendererResolve.note).toContain('typed validated renderer argument set');
-    expect(pluginSelect.note).toContain('pass one resolved renderer argument set');
+    expect(rendererResolve.note).toContain(
+      'typed validated renderer argument set',
+    );
+    expect(pluginSelect.note).toContain(
+      'pass one resolved renderer argument set',
+    );
   });
 
   test('ordering policy defines explicit comparators and tie-breakers', () => {
@@ -252,7 +265,9 @@ describe('validation entrypoint refactor', () => {
   test('label references are validated against dataset labels in validate.app.data', () => {
     const indexed = buildFlow();
 
-    const validateApp = indexed.find((item) => item.name === 'validate.app.data');
+    const validateApp = indexed.find(
+      (item) => item.name === 'validate.app.data',
+    );
     if (!validateApp) {
       throw new Error('Expected validate.app.data');
     }
@@ -270,17 +285,25 @@ describe('validation entrypoint refactor', () => {
       throw new Error('Expected graph.select and labels.reference.validate');
     }
 
-    expect(selectSubgraph.note).toContain('pre-validated against dataset labels');
+    expect(selectSubgraph.note).toContain(
+      'pre-validated against dataset labels',
+    );
     expect(labelRefValidation.note).toContain('`LABEL_REF_UNKNOWN`');
     expect(labelRefValidation.note).toContain('default severity `warning`');
-    expect(validationPipeline).not.toContain('graph.integrity.check.unknown-labels');
+    expect(validationPipeline).not.toContain(
+      'graph.integrity.check.unknown-labels',
+    );
   });
 
   test('cycle policy supports only disallow and allow with explicit behavior', () => {
     buildFlow();
 
-    const cyclePolicy = calls.find((call) => call.name === 'graph.policy.cycle');
-    const shapeDetect = calls.find((call) => call.name === 'graph.shape.detect');
+    const cyclePolicy = calls.find(
+      (call) => call.name === 'graph.policy.cycle',
+    );
+    const shapeDetect = calls.find(
+      (call) => call.name === 'graph.shape.detect',
+    );
     const renderCircular = calls.find(
       (call) => call.name === 'render.graph.circular',
     );
@@ -299,7 +322,9 @@ describe('validation entrypoint refactor', () => {
   test('csv filter arguments are explicitly defined and documented', () => {
     buildFlow();
 
-    const csvRender = calls.find((call) => call.name === 'render.section.file.csv');
+    const csvRender = calls.find(
+      (call) => call.name === 'render.section.file.csv',
+    );
     const csvFilter = calls.find((call) => call.name === 'file.csv.filter');
 
     if (!csvRender || !csvFilter) {
@@ -317,8 +342,12 @@ describe('validation entrypoint refactor', () => {
       arguments: Array<{ name: string; scopes: string[] }>;
     };
 
-    const includeArg = registry.arguments.find((arg) => arg.name === 'csv-include');
-    const excludeArg = registry.arguments.find((arg) => arg.name === 'csv-exclude');
+    const includeArg = registry.arguments.find(
+      (arg) => arg.name === 'csv-include',
+    );
+    const excludeArg = registry.arguments.find(
+      (arg) => arg.name === 'csv-exclude',
+    );
 
     expect(includeArg).toBeDefined();
     expect(excludeArg).toBeDefined();
@@ -341,8 +370,12 @@ describe('validation entrypoint refactor', () => {
     ]);
 
     const listNames = calls.find((call) => call.name === 'action.list.names');
-    const prefixFilter = calls.find((call) => call.name === 'names.filter.prefix');
-    const tableOutput = calls.find((call) => call.name === 'names.output.table');
+    const prefixFilter = calls.find(
+      (call) => call.name === 'names.filter.prefix',
+    );
+    const tableOutput = calls.find(
+      (call) => call.name === 'names.output.table',
+    );
     const jsonOutput = calls.find((call) => call.name === 'names.output.json');
 
     if (!listNames || !prefixFilter || !tableOutput || !jsonOutput) {
@@ -387,7 +420,9 @@ describe('validation entrypoint refactor', () => {
 
     expect(lintAction.note).toContain('--style dot|snake|regex');
     expect(lintAction.note).toContain('--severity warning|error');
-    expect(lintPolicy.note).toContain('`dot`=`^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$`');
+    expect(lintPolicy.note).toContain(
+      '`dot`=`^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$`',
+    );
     expect(lintPolicy.note).toContain('`snake`=`^[a-z][a-z0-9_]*$`');
     expect(lintPolicy.note).toContain('`regex`=user-provided `--pattern`');
     expect(lintNotes.note).toContain('`NAME_STYLE_VIOLATION`');
@@ -408,7 +443,9 @@ describe('validation entrypoint refactor', () => {
       'diagnostics.emit.structured',
     ]);
 
-    const lintOrphans = calls.find((call) => call.name === 'action.lint.orphans');
+    const lintOrphans = calls.find(
+      (call) => call.name === 'action.lint.orphans',
+    );
     const queryResolve = calls.find(
       (call) => call.name === 'lint.orphans.query.resolve',
     );
@@ -437,11 +474,18 @@ describe('validation entrypoint refactor', () => {
       'orphans.render.rows',
     ]);
 
-    const h3Children = directChildren(indexed, 'action.generate.markdown.section.h3');
+    const h3Children = directChildren(
+      indexed,
+      'action.generate.markdown.section.h3',
+    );
     expect(h3Children).toContain('render.section.orphans');
 
-    const orphanSection = calls.find((call) => call.name === 'render.section.orphans');
-    const orphanRows = calls.find((call) => call.name === 'orphans.render.rows');
+    const orphanSection = calls.find(
+      (call) => call.name === 'render.section.orphans',
+    );
+    const orphanRows = calls.find(
+      (call) => call.name === 'orphans.render.rows',
+    );
 
     if (!orphanSection || !orphanRows) {
       throw new Error('Expected orphan section render calls');
@@ -454,23 +498,33 @@ describe('validation entrypoint refactor', () => {
   test('markdown graph renderer defines deterministic tree, dag, and cyclic rules', () => {
     buildFlow();
 
-    const treeOrDag = calls.find((call) => call.name === 'render.graph.tree-or-dag');
+    const treeOrDag = calls.find(
+      (call) => call.name === 'render.graph.tree-or-dag',
+    );
     const markdownText = calls.find(
       (call) => call.name === 'render.graph.markdown.text',
     );
-    const circular = calls.find((call) => call.name === 'render.graph.circular');
+    const circular = calls.find(
+      (call) => call.name === 'render.graph.circular',
+    );
 
     if (!treeOrDag || !markdownText || !circular) {
       throw new Error('Expected markdown graph rendering calls');
     }
 
-    expect(treeOrDag.note).toContain('Tree: render full hierarchy as nested markdown lists');
+    expect(treeOrDag.note).toContain(
+      'Tree: render full hierarchy as nested markdown lists',
+    );
     expect(treeOrDag.note).toContain('stable DFS by ordering policy');
     expect(treeOrDag.note).toContain('children<=3 and depth<=2');
     expect(treeOrDag.note).toContain('reference linking to first anchor');
 
-    expect(markdownText.note).toContain('stable note anchors derived from note names');
-    expect(markdownText.note).toContain('reference links to first occurrence anchors');
+    expect(markdownText.note).toContain(
+      'stable note anchors derived from note names',
+    );
+    expect(markdownText.note).toContain(
+      'reference links to first occurrence anchors',
+    );
     expect(markdownText.note).toContain('deterministic traversal order');
 
     expect(circular.note).toContain('expands each node once');

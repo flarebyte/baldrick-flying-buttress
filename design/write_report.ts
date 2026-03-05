@@ -28,7 +28,9 @@ export const generateFlowDesignReport = async () => {
     '- Guarantees: schema/structure validation, argument registry validation, configured free-form argument validation, dataset-based label-reference validation, graph integrity checks, and structured diagnostics collection with stable codes/severities/sources/locations.',
   );
   await appendToReport('- Return shape: `ValidatedApp` containing:');
-  await appendToReport('  - normalized `notes`, `relationships`, and `reports`');
+  await appendToReport(
+    '  - normalized `notes`, `relationships`, and `reports`',
+  );
   await appendToReport(
     '  - resolved `graphIntegrityPolicy` and `argumentRegistry`',
   );
@@ -55,9 +57,7 @@ export const generateFlowDesignReport = async () => {
   await appendToReport(
     '- `validate.app.data` now invokes: `validate.cue.schema`, `args.registry.resolve`, `args.registry.validate`, `args.validate.config`, `labels.dataset.collect`, `labels.reference.validate`, `graph.integrity.policy.resolve`, `graph.integrity.validate`, `diagnostics.collect.validation`, `app.model.normalize`.',
   );
-  await appendToReport(
-    '- Updated command flows to consume `ValidatedApp`:',
-  );
+  await appendToReport('- Updated command flows to consume `ValidatedApp`:');
   await appendToReport(
     '  - `action.generate.markdown`: `load.app.data -> validate.app.data -> action.generate.markdown.sections`',
   );
