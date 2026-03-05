@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { calls } from './calls.ts';
-import { exampleDiagnostic } from './examples.ts';
+import { exampleArgumentRegistry, exampleDiagnostic } from './examples.ts';
 import { cliRoot } from './flows.ts';
 
 type IndexedCall = {
@@ -277,5 +277,35 @@ describe('validation entrypoint refactor', () => {
     expect(shapeDetect.note).toContain('tree, DAG, or cyclic');
     expect(shapeDetect.note).toContain('prevent graph rendering');
     expect(renderCircular.note).toContain('cycle-policy is `allow`');
+  });
+
+  test('csv filter arguments are explicitly defined and documented', () => {
+    buildFlow();
+
+    const csvRender = calls.find((call) => call.name === 'render.section.file.csv');
+    const csvFilter = calls.find((call) => call.name === 'file.csv.filter');
+
+    if (!csvRender || !csvFilter) {
+      throw new Error('Expected CSV render and filter calls');
+    }
+
+    expect(csvRender.note).toContain('`csv-include` / `csv-exclude`');
+    expect(csvRender.note).toContain('`column:value`');
+    expect(csvFilter.note).toContain('`csv-include=column:value`');
+    expect(csvFilter.note).toContain('`csv-exclude=column:value`');
+    expect(csvFilter.note).toContain('exact-match');
+    expect(csvFilter.note).toContain('multiple filters are allowed');
+
+    const registry = JSON.parse(exampleArgumentRegistry) as {
+      arguments: Array<{ name: string; scopes: string[] }>;
+    };
+
+    const includeArg = registry.arguments.find((arg) => arg.name === 'csv-include');
+    const excludeArg = registry.arguments.find((arg) => arg.name === 'csv-exclude');
+
+    expect(includeArg).toBeDefined();
+    expect(excludeArg).toBeDefined();
+    expect(includeArg?.scopes).toEqual(['note']);
+    expect(excludeArg?.scopes).toEqual(['note']);
   });
 });

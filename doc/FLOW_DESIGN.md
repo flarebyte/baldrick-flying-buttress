@@ -128,9 +128,9 @@ flyb CLI root command [cli.root]
           Coerce arguments to typed values [args.coerce.typed]
             - note: Coerce validated values to target types (string[], boolean, enum, number).
           Render section with CSV file [render.section.file.csv]
-            - note: Render as a markdown table or raw CSV code block (for example `format-csv=md`).
+            - note: Render as a markdown table or raw CSV code block (for example `format-csv=md`) and apply note-scoped CSV filters (`csv-include` / `csv-exclude`) using `column:value` exact-match rules.
             Filter CSV rows by column [file.csv.filter]
-              - note: Apply include/exclude filters before rendering CSV output.
+              - note: Apply exact-match include/exclude filters before rendering CSV output: `csv-include=column:value` keeps matching rows, `csv-exclude=column:value` removes matching rows, and multiple filters are allowed.
           Render section with media file [render.section.file.media]
             - note: Embed image previews for supported media types.
           Render section with code or Mermaid snippet [render.section.file.code]
@@ -264,7 +264,7 @@ Supported use cases:
   - Convert note links to markdown links — URL links are rendered with link text in markdown output.
   - Reference a file from a note — Referenced files can be embedded in generated markdown output.
   - Embed CSV content from a referenced file — CSV input can render as a markdown table or as raw CSV.
-  - Filter embedded CSV rows by column — Column filters reduce CSV output to the relevant subset.
+  - Filter embedded CSV rows by column — Column filters reduce CSV output to the relevant subset using `csv-include=column:value` and `csv-exclude=column:value` exact-match arguments.
   - Preview referenced image files in markdown — Image references render as embedded previews in reports.
 
 

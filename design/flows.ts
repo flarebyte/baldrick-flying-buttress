@@ -170,7 +170,7 @@ export const renderSectionWithCsvFile = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'render.section.file.csv',
     title: 'Render section with CSV file',
-    note: 'Render as a markdown table or raw CSV code block (for example `format-csv=md`).',
+    note: 'Render as a markdown table or raw CSV code block (for example `format-csv=md`) and apply note-scoped CSV filters (`csv-include` / `csv-exclude`) using `column:value` exact-match rules.',
     level: context.level,
     useCases: [
       uc.noteFilepathReference,
@@ -202,7 +202,7 @@ export const filterCsvFile = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'file.csv.filter',
     title: 'Filter CSV rows by column',
-    note: 'Apply include/exclude filters before rendering CSV output.',
+    note: 'Apply exact-match include/exclude filters before rendering CSV output: `csv-include=column:value` keeps matching rows, `csv-exclude=column:value` removes matching rows, and multiple filters are allowed.',
     level: context.level,
     useCases: [uc.noteCsvFilterColumn, uc.argumentsFreeForm],
   };

@@ -12,7 +12,9 @@
   ],
   "arguments": [
     "command=list",
-    "format=markdown"
+    "format=markdown",
+    "csv-include=status:open",
+    "csv-exclude=owner:bot"
   ]
 }
 ```
@@ -58,7 +60,9 @@
       ],
       "arguments": [
         "command=list",
-        "format=markdown"
+        "format=markdown",
+        "csv-include=status:open",
+        "csv-exclude=owner:bot"
       ]
     },
     {
@@ -106,7 +110,9 @@
           ],
           "arguments": [
             "command=list",
-            "format=markdown"
+            "format=markdown",
+            "csv-include=status:open",
+            "csv-exclude=owner:bot"
           ]
         },
         {
@@ -160,7 +166,9 @@
               ],
               "arguments": [
                 "command=list",
-                "format=markdown"
+                "format=markdown",
+                "csv-include=status:open",
+                "csv-exclude=owner:bot"
               ]
             },
             {
@@ -208,6 +216,20 @@
       "allowedValues": [
         "md",
         "csv"
+      ]
+    },
+    {
+      "name": "csv-include",
+      "valueType": "string[]",
+      "scopes": [
+        "note"
+      ]
+    },
+    {
+      "name": "csv-exclude",
+      "valueType": "string[]",
+      "scopes": [
+        "note"
       ]
     },
     {

@@ -25,7 +25,7 @@ export const useCases: Record<string, UseCase> = {
   'cli.note.csv.filter-column': {
     name: 'cli.note.csv.filter-column',
     title: 'Filter embedded CSV rows by column',
-    note: 'Column filters reduce CSV output to the relevant subset.',
+    note: 'Column filters reduce CSV output to the relevant subset using `csv-include=column:value` and `csv-exclude=column:value` exact-match arguments.',
   },
   'cli.note.image.preview': {
     name: 'cli.note.image.preview',

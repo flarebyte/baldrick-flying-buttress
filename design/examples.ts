@@ -90,7 +90,12 @@ const rootCall: Note = {
   title: 'flyb CLI root command',
   description: 'The CLI root command for report generation and validation.',
   labels: ['call'],
-  arguments: ['command=list', 'format=markdown'],
+  arguments: [
+    'command=list',
+    'format=markdown',
+    'csv-include=status:open',
+    'csv-exclude=owner:bot',
+  ],
 };
 
 const relRootCallToUseCase: Relationship = {
@@ -128,6 +133,16 @@ const argumentRegistry: ArgumentRegistry = {
       scopes: ['note'],
       defaultValue: 'md',
       allowedValues: ['md', 'csv'],
+    },
+    {
+      name: 'csv-include',
+      valueType: 'string[]',
+      scopes: ['note'],
+    },
+    {
+      name: 'csv-exclude',
+      valueType: 'string[]',
+      scopes: ['note'],
     },
     {
       name: 'graph-renderer',
