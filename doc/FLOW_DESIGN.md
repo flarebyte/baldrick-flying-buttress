@@ -44,37 +44,9 @@ flyb CLI root command [cli.root]
   List note and relationship names [action.list.names]
     - note: Print note and relationship identifiers for daily inventory with required `--prefix`, optional `--kind notes|relationships|all`, and `--format table|json` (default table).
     Load CUE application data [load.app.data]
-      - note: Read notes, relationships, and report definitions from config.
+      - ref: see first occurrence above for full subtree
     Validate CUE application data [validate.app.data]
-      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, dataset-based label reference validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
-      Validate CUE schema and structure [validate.cue.schema]
-        - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
-      Resolve argument registry schema [args.registry.resolve]
-        - note: Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.
-      Validate argument registry schema consistency [args.registry.validate]
-        - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
-      Validate configured free-form arguments [args.validate.config]
-        - note: Validate free-form arguments declared in config against registry definitions and scope rules.
-      Collect dataset labels [labels.dataset.collect]
-        - note: Build authoritative labelSet as the union of labels from note.labels and relationship.labels without enforcing a taxonomy.
-      Validate label references [labels.reference.validate]
-        - note: Validate referenced labels used by config elements (for example graph.select label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.
-      Resolve graph integrity policy [graph.integrity.policy.resolve]
-        - note: Resolve integrity policy for missing nodes, orphans, duplicates, unknown label references, and cross-report references.
-      Validate graph integrity [graph.integrity.validate]
-        - note: Run integrity checks and emit diagnostics according to resolved policy.
-        Check missing relationship nodes [graph.integrity.check.missing-nodes]
-          - note: Detect relationships that reference notes that do not exist.
-        Check orphan nodes [graph.integrity.check.orphans]
-          - note: Detect notes disconnected from report roots/sections.
-        Check duplicate note names [graph.integrity.check.duplicate-note-names]
-          - note: Detect duplicate note identifiers that can cause ambiguous references.
-        Check cross-report references [graph.integrity.check.cross-report-references]
-          - note: Validate whether note/edge references across report boundaries are allowed by policy.
-      Collect validation diagnostics [diagnostics.collect.validation]
-        - note: Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`).
-      Normalize validated application model [app.model.normalize]
-        - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
+      - ref: see first occurrence above for full subtree
     Resolve deterministic ordering policy [ordering.policy.resolve]
       - note: Resolve explicit comparators: notes by (primaryLabel, name) where primaryLabel is the lexicographically smallest label; relationships by (from, to, labelsSortedJoined) where labelsSortedJoined is labels sorted lexicographically then joined with `|`; sections by (lowercase(title), originalIndex) for stable tie-breaks; arguments by argument name.
     Apply deterministic ordering [ordering.apply.deterministic]
@@ -90,41 +62,13 @@ flyb CLI root command [cli.root]
   Generate markdown reports [action.generate.markdown]
     - note: Renders one or more markdown outputs from a single validated application model.
     Load CUE application data [load.app.data]
-      - note: Read notes, relationships, and report definitions from config.
+      - ref: see first occurrence above for full subtree
     Validate CUE application data [validate.app.data]
-      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, dataset-based label reference validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
-      Validate CUE schema and structure [validate.cue.schema]
-        - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
-      Resolve argument registry schema [args.registry.resolve]
-        - note: Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.
-      Validate argument registry schema consistency [args.registry.validate]
-        - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
-      Validate configured free-form arguments [args.validate.config]
-        - note: Validate free-form arguments declared in config against registry definitions and scope rules.
-      Collect dataset labels [labels.dataset.collect]
-        - note: Build authoritative labelSet as the union of labels from note.labels and relationship.labels without enforcing a taxonomy.
-      Validate label references [labels.reference.validate]
-        - note: Validate referenced labels used by config elements (for example graph.select label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.
-      Resolve graph integrity policy [graph.integrity.policy.resolve]
-        - note: Resolve integrity policy for missing nodes, orphans, duplicates, unknown label references, and cross-report references.
-      Validate graph integrity [graph.integrity.validate]
-        - note: Run integrity checks and emit diagnostics according to resolved policy.
-        Check missing relationship nodes [graph.integrity.check.missing-nodes]
-          - note: Detect relationships that reference notes that do not exist.
-        Check orphan nodes [graph.integrity.check.orphans]
-          - note: Detect notes disconnected from report roots/sections.
-        Check duplicate note names [graph.integrity.check.duplicate-note-names]
-          - note: Detect duplicate note identifiers that can cause ambiguous references.
-        Check cross-report references [graph.integrity.check.cross-report-references]
-          - note: Validate whether note/edge references across report boundaries are allowed by policy.
-      Collect validation diagnostics [diagnostics.collect.validation]
-        - note: Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`).
-      Normalize validated application model [app.model.normalize]
-        - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
+      - ref: see first occurrence above for full subtree
     Generate markdown sections [action.generate.markdown.sections]
       - note: Build H3 sections from note subsets and renderers with deterministic ordering.
       Resolve deterministic ordering policy [ordering.policy.resolve]
-        - note: Resolve explicit comparators: notes by (primaryLabel, name) where primaryLabel is the lexicographically smallest label; relationships by (from, to, labelsSortedJoined) where labelsSortedJoined is labels sorted lexicographically then joined with `|`; sections by (lowercase(title), originalIndex) for stable tie-breaks; arguments by argument name.
+        - ref: see first occurrence above for full subtree
       Generate a single H3 section [action.generate.markdown.section.h3]
         - note: Compose subgraph, plain content, and file-backed content with section-level arguments.
         Resolve H3Section free-form arguments [args.h3.resolve]
@@ -182,117 +126,33 @@ flyb CLI root command [cli.root]
           Render section with code or Mermaid snippet [render.section.file.code]
             - note: Preserve fenced-block formatting for code and Mermaid content.
         Apply deterministic ordering [ordering.apply.deterministic]
-          - note: Apply resolved comparators exactly and use stable tie-breakers only (including section originalIndex), yielding reproducible output without runtime randomness.
+          - ref: see first occurrence above for full subtree
   Generate JSON graph export [action.generate.json]
     - note: Export notes and relationships in machine-readable JSON format.
     Load CUE application data [load.app.data]
-      - note: Read notes, relationships, and report definitions from config.
+      - ref: see first occurrence above for full subtree
     Validate CUE application data [validate.app.data]
-      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, dataset-based label reference validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
-      Validate CUE schema and structure [validate.cue.schema]
-        - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
-      Resolve argument registry schema [args.registry.resolve]
-        - note: Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.
-      Validate argument registry schema consistency [args.registry.validate]
-        - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
-      Validate configured free-form arguments [args.validate.config]
-        - note: Validate free-form arguments declared in config against registry definitions and scope rules.
-      Collect dataset labels [labels.dataset.collect]
-        - note: Build authoritative labelSet as the union of labels from note.labels and relationship.labels without enforcing a taxonomy.
-      Validate label references [labels.reference.validate]
-        - note: Validate referenced labels used by config elements (for example graph.select label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.
-      Resolve graph integrity policy [graph.integrity.policy.resolve]
-        - note: Resolve integrity policy for missing nodes, orphans, duplicates, unknown label references, and cross-report references.
-      Validate graph integrity [graph.integrity.validate]
-        - note: Run integrity checks and emit diagnostics according to resolved policy.
-        Check missing relationship nodes [graph.integrity.check.missing-nodes]
-          - note: Detect relationships that reference notes that do not exist.
-        Check orphan nodes [graph.integrity.check.orphans]
-          - note: Detect notes disconnected from report roots/sections.
-        Check duplicate note names [graph.integrity.check.duplicate-note-names]
-          - note: Detect duplicate note identifiers that can cause ambiguous references.
-        Check cross-report references [graph.integrity.check.cross-report-references]
-          - note: Validate whether note/edge references across report boundaries are allowed by policy.
-      Collect validation diagnostics [diagnostics.collect.validation]
-        - note: Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`).
-      Normalize validated application model [app.model.normalize]
-        - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
+      - ref: see first occurrence above for full subtree
     Export validated graph as JSON [export.graph.json]
       - note: Export notes and relationships from ValidatedApp without re-running validation steps.
   Validate the CUE file [action.validate]
     - note: Run canonical application validation and emit the same diagnostics that gate generation.
     Load CUE application data [load.app.data]
-      - note: Read notes, relationships, and report definitions from config.
+      - ref: see first occurrence above for full subtree
     Validate CUE application data [validate.app.data]
-      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, dataset-based label reference validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
-      Validate CUE schema and structure [validate.cue.schema]
-        - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
-      Resolve argument registry schema [args.registry.resolve]
-        - note: Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.
-      Validate argument registry schema consistency [args.registry.validate]
-        - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
-      Validate configured free-form arguments [args.validate.config]
-        - note: Validate free-form arguments declared in config against registry definitions and scope rules.
-      Collect dataset labels [labels.dataset.collect]
-        - note: Build authoritative labelSet as the union of labels from note.labels and relationship.labels without enforcing a taxonomy.
-      Validate label references [labels.reference.validate]
-        - note: Validate referenced labels used by config elements (for example graph.select label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.
-      Resolve graph integrity policy [graph.integrity.policy.resolve]
-        - note: Resolve integrity policy for missing nodes, orphans, duplicates, unknown label references, and cross-report references.
-      Validate graph integrity [graph.integrity.validate]
-        - note: Run integrity checks and emit diagnostics according to resolved policy.
-        Check missing relationship nodes [graph.integrity.check.missing-nodes]
-          - note: Detect relationships that reference notes that do not exist.
-        Check orphan nodes [graph.integrity.check.orphans]
-          - note: Detect notes disconnected from report roots/sections.
-        Check duplicate note names [graph.integrity.check.duplicate-note-names]
-          - note: Detect duplicate note identifiers that can cause ambiguous references.
-        Check cross-report references [graph.integrity.check.cross-report-references]
-          - note: Validate whether note/edge references across report boundaries are allowed by policy.
-      Collect validation diagnostics [diagnostics.collect.validation]
-        - note: Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`).
-      Normalize validated application model [app.model.normalize]
-        - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
+      - ref: see first occurrence above for full subtree
     Emit structured diagnostics [diagnostics.emit.structured]
       - note: Emit diagnostics with code, severity, source, message, canonical machine-readable `location`, and optional human-readable context fields.
   Lint note and relationship names [action.lint.names]
     - note: Run naming-style hygiene checks with `--style dot|snake|regex` (default dot), optional `--pattern` for regex style, optional `--prefix` scope, and configurable `--severity warning|error` (default warning).
     Load CUE application data [load.app.data]
-      - note: Read notes, relationships, and report definitions from config.
+      - ref: see first occurrence above for full subtree
     Validate CUE application data [validate.app.data]
-      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, dataset-based label reference validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
-      Validate CUE schema and structure [validate.cue.schema]
-        - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
-      Resolve argument registry schema [args.registry.resolve]
-        - note: Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.
-      Validate argument registry schema consistency [args.registry.validate]
-        - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
-      Validate configured free-form arguments [args.validate.config]
-        - note: Validate free-form arguments declared in config against registry definitions and scope rules.
-      Collect dataset labels [labels.dataset.collect]
-        - note: Build authoritative labelSet as the union of labels from note.labels and relationship.labels without enforcing a taxonomy.
-      Validate label references [labels.reference.validate]
-        - note: Validate referenced labels used by config elements (for example graph.select label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.
-      Resolve graph integrity policy [graph.integrity.policy.resolve]
-        - note: Resolve integrity policy for missing nodes, orphans, duplicates, unknown label references, and cross-report references.
-      Validate graph integrity [graph.integrity.validate]
-        - note: Run integrity checks and emit diagnostics according to resolved policy.
-        Check missing relationship nodes [graph.integrity.check.missing-nodes]
-          - note: Detect relationships that reference notes that do not exist.
-        Check orphan nodes [graph.integrity.check.orphans]
-          - note: Detect notes disconnected from report roots/sections.
-        Check duplicate note names [graph.integrity.check.duplicate-note-names]
-          - note: Detect duplicate note identifiers that can cause ambiguous references.
-        Check cross-report references [graph.integrity.check.cross-report-references]
-          - note: Validate whether note/edge references across report boundaries are allowed by policy.
-      Collect validation diagnostics [diagnostics.collect.validation]
-        - note: Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`).
-      Normalize validated application model [app.model.normalize]
-        - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
+      - ref: see first occurrence above for full subtree
     Resolve deterministic ordering policy [ordering.policy.resolve]
-      - note: Resolve explicit comparators: notes by (primaryLabel, name) where primaryLabel is the lexicographically smallest label; relationships by (from, to, labelsSortedJoined) where labelsSortedJoined is labels sorted lexicographically then joined with `|`; sections by (lowercase(title), originalIndex) for stable tie-breaks; arguments by argument name.
+      - ref: see first occurrence above for full subtree
     Apply deterministic ordering [ordering.apply.deterministic]
-      - note: Apply resolved comparators exactly and use stable tie-breakers only (including section originalIndex), yielding reproducible output without runtime randomness.
+      - ref: see first occurrence above for full subtree
     Resolve name style policy [lint.names.policy.resolve]
       - note: Resolve style matcher as case-sensitive policy: `dot`=`^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)*$`, `snake`=`^[a-z][a-z0-9_]*$`, `regex`=user-provided `--pattern`.
     Filter names by prefix [names.filter.prefix]

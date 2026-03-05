@@ -547,6 +547,7 @@ export const loadAppData = (context: FlowContext) => {
     name: 'load.app.data',
     title: 'Load CUE application data',
     note: 'Read notes, relationships, and report definitions from config.',
+    displayOnce: true,
     level: context.level,
     useCases: [
       uc.reportGenerate,
@@ -564,6 +565,7 @@ export const validateAppData = (context: FlowContext) => {
     name: 'validate.app.data',
     title: 'Validate CUE application data',
     note: 'Canonical validation pipeline: schema checks, argument registry and free-form argument validation, dataset-based label reference validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.',
+    displayOnce: true,
     level: context.level,
     useCases: [
       uc.configRelationshipsLabeled,
@@ -758,6 +760,7 @@ export const resolveOrderingPolicy = (context: FlowContext) => {
     name: 'ordering.policy.resolve',
     title: 'Resolve deterministic ordering policy',
     note: 'Resolve explicit comparators: notes by (primaryLabel, name) where primaryLabel is the lexicographically smallest label; relationships by (from, to, labelsSortedJoined) where labelsSortedJoined is labels sorted lexicographically then joined with `|`; sections by (lowercase(title), originalIndex) for stable tie-breaks; arguments by argument name.',
+    displayOnce: true,
     level: context.level,
     useCases: [uc.outputDeterministicOrderingPolicy],
   };
@@ -769,6 +772,7 @@ export const applyDeterministicOrdering = (context: FlowContext) => {
     name: 'ordering.apply.deterministic',
     title: 'Apply deterministic ordering',
     note: 'Apply resolved comparators exactly and use stable tie-breakers only (including section originalIndex), yielding reproducible output without runtime randomness.',
+    displayOnce: true,
     level: context.level,
     useCases: [
       uc.outputDeterministicOrdering,

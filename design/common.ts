@@ -55,6 +55,9 @@ export type ComponentCall = {
   name: string;
   title: string;
   note?: string;
+  // When true, render full details only on first appearance in FLOW_DESIGN,
+  // later appearances are rendered as a lightweight reference line.
+  displayOnce?: boolean;
   directory?: string;
   level: number;
   useCases?: string[];
@@ -286,8 +289,24 @@ export const appendToReport = async (line: string) => {
  * Render the flow-tree as indented lines of titles.
  */
 export const displayCallsAsText = async (calls: ComponentCall[]) => {
-  for (const call of calls) {
+  const seen = new Set<string>();
+  for (let i = 0; i < calls.length; i += 1) {
+    const call = calls[i];
     const spaces = ' '.repeat(call.level * 2);
+
+    if (call.displayOnce && seen.has(call.name)) {
+      await appendToReport(`${spaces}${call.title} [${call.name}] (ref)`);
+      const startLevel = call.level;
+      while (i + 1 < calls.length && calls[i + 1].level > startLevel) {
+        i += 1;
+      }
+      continue;
+    }
+
+    if (call.displayOnce) {
+      seen.add(call.name);
+    }
+
     await appendToReport(`${spaces}${call.title}`);
   }
 };
@@ -296,8 +315,27 @@ export const displayCallsAsText = async (calls: ComponentCall[]) => {
  * Render a detailed view of the call tree with notes and suggestions.
  */
 export const displayCallsDetailed = async (calls: ComponentCall[]) => {
-  for (const call of calls) {
+  const seen = new Set<string>();
+  for (let i = 0; i < calls.length; i += 1) {
+    const call = calls[i];
     const base = ' '.repeat(call.level * 2);
+
+    if (call.displayOnce && seen.has(call.name)) {
+      await appendToReport(`${base}${call.title} [${call.name}]`);
+      await appendToReport(
+        `${base}  - ref: see first occurrence above for full subtree`,
+      );
+      const startLevel = call.level;
+      while (i + 1 < calls.length && calls[i + 1].level > startLevel) {
+        i += 1;
+      }
+      continue;
+    }
+
+    if (call.displayOnce) {
+      seen.add(call.name);
+    }
+
     await appendToReport(`${base}${call.title} [${call.name}]`);
     if (call.note) {
       await appendToReport(`${base}  - note: ${call.note}`);
