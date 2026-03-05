@@ -41,6 +41,52 @@ flyb CLI root command [cli.root]
         - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
     List reports from ValidatedApp [list.reports.output]
       - note: Enumerate reports from the normalized validated model with optional strictness behavior handled by validation policy.
+  List note and relationship names [action.list.names]
+    - note: Print note and relationship identifiers for daily inventory with required `--prefix`, optional `--kind notes|relationships|all`, and `--format table|json` (default table).
+    Load CUE application data [load.app.data]
+      - note: Read notes, relationships, and report definitions from config.
+    Validate CUE application data [validate.app.data]
+      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, dataset-based label reference validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
+      Validate CUE schema and structure [validate.cue.schema]
+        - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
+      Resolve argument registry schema [args.registry.resolve]
+        - note: Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.
+      Validate argument registry schema consistency [args.registry.validate]
+        - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
+      Validate configured free-form arguments [args.validate.config]
+        - note: Validate free-form arguments declared in config against registry definitions and scope rules.
+      Collect dataset labels [labels.dataset.collect]
+        - note: Build authoritative labelSet as the union of labels from note.labels and relationship.labels without enforcing a taxonomy.
+      Validate label references [labels.reference.validate]
+        - note: Validate referenced labels used by config elements (for example graph.select label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.
+      Resolve graph integrity policy [graph.integrity.policy.resolve]
+        - note: Resolve integrity policy for missing nodes, orphans, duplicates, unknown label references, and cross-report references.
+      Validate graph integrity [graph.integrity.validate]
+        - note: Run integrity checks and emit diagnostics according to resolved policy.
+        Check missing relationship nodes [graph.integrity.check.missing-nodes]
+          - note: Detect relationships that reference notes that do not exist.
+        Check orphan nodes [graph.integrity.check.orphans]
+          - note: Detect notes disconnected from report roots/sections.
+        Check duplicate note names [graph.integrity.check.duplicate-note-names]
+          - note: Detect duplicate note identifiers that can cause ambiguous references.
+        Check cross-report references [graph.integrity.check.cross-report-references]
+          - note: Validate whether note/edge references across report boundaries are allowed by policy.
+      Collect validation diagnostics [diagnostics.collect.validation]
+        - note: Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`).
+      Normalize validated application model [app.model.normalize]
+        - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
+    Resolve deterministic ordering policy [ordering.policy.resolve]
+      - note: Resolve explicit comparators: notes by (primaryLabel, name) where primaryLabel is the lexicographically smallest label; relationships by (from, to, labelsSortedJoined) where labelsSortedJoined is labels sorted lexicographically then joined with `|`; sections by (lowercase(title), originalIndex) for stable tie-breaks; arguments by argument name.
+    Apply deterministic ordering [ordering.apply.deterministic]
+      - note: Apply resolved comparators exactly and use stable tie-breakers only (including section originalIndex), yielding reproducible output without runtime randomness.
+    Filter names by prefix [names.filter.prefix]
+      - note: Apply required `--prefix` filter: keep notes where `name` starts with prefix and relationships where `from` or `to` starts with prefix.
+    Filter names by kind [names.filter.kind]
+      - note: Apply optional `--kind notes|relationships|all` filter (default `all`) to reduce output noise.
+    Output names as table [names.output.table]
+      - note: Default output: notes table rows `name | title | labels` and relationship rows `from | to | labels`.
+    Output names as JSON [names.output.json]
+      - note: Optional `--format json` output as `{ notes: [], relationships: [] }` with the same fields used in table mode.
   Generate markdown reports [action.generate.markdown]
     - note: Renders one or more markdown outputs from a single validated application model.
     Load CUE application data [load.app.data]
@@ -209,6 +255,54 @@ flyb CLI root command [cli.root]
         - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
     Emit structured diagnostics [diagnostics.emit.structured]
       - note: Emit diagnostics with code, severity, source, message, canonical machine-readable `location`, and optional human-readable context fields.
+  Lint note and relationship names [action.lint.names]
+    - note: Run naming-style hygiene checks with `--style dot|snake|regex` (default dot), optional `--pattern` for regex style, optional `--prefix` scope, and configurable `--severity warning|error` (default warning).
+    Load CUE application data [load.app.data]
+      - note: Read notes, relationships, and report definitions from config.
+    Validate CUE application data [validate.app.data]
+      - note: Canonical validation pipeline: schema checks, argument registry and free-form argument validation, dataset-based label reference validation, graph integrity policy resolution and graph integrity checks, diagnostic collection, and normalized ValidatedApp output.
+      Validate CUE schema and structure [validate.cue.schema]
+        - note: Validate required fields, types, and cross-references and attach precise config locations to diagnostics.
+      Resolve argument registry schema [args.registry.resolve]
+        - note: Load known argument definitions (type, default, allowed values, scopes) where valid scopes are `h3-section`, `note`, and `renderer`.
+      Validate argument registry schema consistency [args.registry.validate]
+        - note: Validate argument definitions, duplicate keys, scopes, defaults, and allowed values.
+      Validate configured free-form arguments [args.validate.config]
+        - note: Validate free-form arguments declared in config against registry definitions and scope rules.
+      Collect dataset labels [labels.dataset.collect]
+        - note: Build authoritative labelSet as the union of labels from note.labels and relationship.labels without enforcing a taxonomy.
+      Validate label references [labels.reference.validate]
+        - note: Validate referenced labels used by config elements (for example graph.select label arguments) against labelSet; emit `LABEL_REF_UNKNOWN` (default severity `warning`) with argument location and referenced label value for unknown references.
+      Resolve graph integrity policy [graph.integrity.policy.resolve]
+        - note: Resolve integrity policy for missing nodes, orphans, duplicates, unknown label references, and cross-report references.
+      Validate graph integrity [graph.integrity.validate]
+        - note: Run integrity checks and emit diagnostics according to resolved policy.
+        Check missing relationship nodes [graph.integrity.check.missing-nodes]
+          - note: Detect relationships that reference notes that do not exist.
+        Check orphan nodes [graph.integrity.check.orphans]
+          - note: Detect notes disconnected from report roots/sections.
+        Check duplicate note names [graph.integrity.check.duplicate-note-names]
+          - note: Detect duplicate note identifiers that can cause ambiguous references.
+        Check cross-report references [graph.integrity.check.cross-report-references]
+          - note: Validate whether note/edge references across report boundaries are allowed by policy.
+      Collect validation diagnostics [diagnostics.collect.validation]
+        - note: Collect stable diagnostic codes, severities, sources, canonical machine-readable config `location` paths, and human-readable context fields (`reportTitle`, `sectionTitle`, `noteName`, `relationship`, `argumentName`).
+      Normalize validated application model [app.model.normalize]
+        - note: Build ValidatedApp with normalized notes, relationships, reports, resolved graph integrity policy, resolved argument registry, and diagnostics. Ordering policy resolution remains generation-time.
+    Resolve deterministic ordering policy [ordering.policy.resolve]
+      - note: Resolve explicit comparators: notes by (primaryLabel, name) where primaryLabel is the lexicographically smallest label; relationships by (from, to, labelsSortedJoined) where labelsSortedJoined is labels sorted lexicographically then joined with `|`; sections by (lowercase(title), originalIndex) for stable tie-breaks; arguments by argument name.
+    Apply deterministic ordering [ordering.apply.deterministic]
+      - note: Apply resolved comparators exactly and use stable tie-breakers only (including section originalIndex), yielding reproducible output without runtime randomness.
+    Resolve name style policy [lint.names.policy.resolve]
+      - note: Resolve style matcher as case-sensitive policy: `dot`=`^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)*$`, `snake`=`^[a-z][a-z0-9_]*$`, `regex`=user-provided `--pattern`.
+    Filter names by prefix [names.filter.prefix]
+      - note: Apply required `--prefix` filter: keep notes where `name` starts with prefix and relationships where `from` or `to` starts with prefix.
+    Lint note names [lint.names.notes]
+      - note: Check note names against resolved style; emit `NAME_STYLE_VIOLATION` diagnostics with canonical config location and human-readable context for each violation.
+    Lint relationship endpoint names [lint.names.relationships]
+      - note: Check relationship `from` and `to` endpoint names against resolved style; emit `NAME_STYLE_VIOLATION` diagnostics with canonical config location and relationship context for each violation.
+    Emit structured diagnostics [diagnostics.emit.structured]
+      - note: Emit diagnostics with code, severity, source, message, canonical machine-readable `location`, and optional human-readable context fields.
 ```
 
 ## Validation Contract
@@ -250,9 +344,13 @@ Supported use cases:
   - Validate graph integrity using policy rules — Integrity checks should emit structured diagnostics tied to offending notes, relationships, and config locations.
   - Resolve arguments by scope — Apply argument rules by scope (h3-section, note, renderer); for renderer scope, collect from H3Section and note arguments and apply precedence (`note` > `h3-section` > registry default).
   - Build a report from a relationship-label subgraph — Report generation can include only edges matching selected labels, where label references are validated against dataset labels derived from notes and relationships.
-  - Render note title and markdown description — Each note includes a concise title with free-form markdown content.
+  - List note and relationship names for daily inventory — The CLI exposes `flyb list names` with `--prefix` filtering and `--format table|json` output.
+  - Filter names by prefix scope — Prefix filtering keeps notes whose name starts with prefix and relationships where `from` or `to` starts with prefix.
+  - Render names as table or JSON — Default output is human-friendly table; JSON is opt-in and returns `{ notes: [], relationships: [] }`.
   - Guarantee deterministic output ordering — Sort notes, relationships, sections, and arguments with explicit comparators and tie-breakers so repeated runs produce identical output.
   - Define an explicit ordering policy — Ordering policy is part of runtime behavior and contractually defines comparators: notes (primaryLabel, name), relationships (from, to, labelsSortedJoined), sections (case-insensitive title, originalIndex), arguments (name).
+  - Lint note and relationship names for style hygiene — The CLI exposes `flyb lint names` to emit structured diagnostics for naming-style violations without introducing label taxonomy requirements.
+  - Render note title and markdown description — Each note includes a concise title with free-form markdown content.
   - Keep CUE config compact with argument-driven rendering options — Prefer small composable argument lists over proliferating specialized configuration fields.
   - Coerce free-form argument values into typed values — Convert string-like argument inputs into validated typed values before rendering.
   - Allow each H3 section to define cycle policy — H3Section arguments can declare whether cycles are disallowed or allowed.
@@ -267,5 +365,6 @@ Supported use cases:
   - Embed CSV content from a referenced file — CSV input can render as a markdown table or as raw CSV.
   - Filter embedded CSV rows by column — Column filters reduce CSV output to the relevant subset using `csv-include=column:value` and `csv-exclude=column:value` exact-match arguments.
   - Preview referenced image files in markdown — Image references render as embedded previews in reports.
+  - Define explicit name style policy — Name styles are case-sensitive: dot=`^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)*$`, snake=`^[a-z][a-z0-9_]*$`, regex=user-provided `--pattern`.
 
 

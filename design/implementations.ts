@@ -13,13 +13,50 @@ export const implementations: Record<string, ImplementationConsideration> = {
     name: 'cli.cobra',
     title: 'Use Cobra for CLI command and argument parsing',
     description:
-      'Use Cobra to model commands, flags, and subcommands (`generate markdown`, `generate json`, `validate`, `list`) with a consistent command tree.',
+      'Use Cobra to model commands, flags, and subcommands (`generate markdown`, `generate json`, `validate`, `list reports`, `list names`, `lint names`) with a consistent command tree.',
     calls: [
       'cli.root',
       'action.generate.markdown',
       'action.generate.json',
       'action.validate',
       'action.list.reports',
+      'action.list.names',
+      'action.lint.names',
+    ],
+  },
+  'names.list.command': {
+    name: 'names.list.command',
+    title: 'Implement list names inventory command',
+    description:
+      'Implement `flyb list names` with required `--prefix`, optional `--kind notes|relationships|all`, and `--format table|json` (default table); reuse validated app data and deterministic ordering before filtering/output.',
+    calls: [
+      'action.list.names',
+      'load.app.data',
+      'validate.app.data',
+      'ordering.policy.resolve',
+      'ordering.apply.deterministic',
+      'names.filter.prefix',
+      'names.filter.kind',
+      'names.output.table',
+      'names.output.json',
+    ],
+  },
+  'names.lint.command': {
+    name: 'names.lint.command',
+    title: 'Implement lint names hygiene command',
+    description:
+      'Implement `flyb lint names` with style policy (`dot|snake|regex`), optional regex `--pattern`, optional prefix scope, and configurable severity; emit structured `NAME_STYLE_VIOLATION` diagnostics with canonical config locations and readable context.',
+    calls: [
+      'action.lint.names',
+      'load.app.data',
+      'validate.app.data',
+      'ordering.policy.resolve',
+      'ordering.apply.deterministic',
+      'lint.names.policy.resolve',
+      'names.filter.prefix',
+      'lint.names.notes',
+      'lint.names.relationships',
+      'diagnostics.emit.structured',
     ],
   },
   'renderer.registry.contract': {

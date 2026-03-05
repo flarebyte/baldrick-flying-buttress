@@ -16,6 +16,8 @@ This document summarizes suggested implementation choices.
 - Define a graph integrity policy model [graph.integrity.policy-model]
 - Implement graph integrity validation checks [graph.integrity.validation-engine]
 - Implement the CLI in Go [lang.go]
+- Implement lint names hygiene command [names.lint.command]
+- Implement list names inventory command [names.list.command]
 - Guarantee deterministic ordering in generated outputs [output.ordering.deterministic]
 - Treat ordering policy as a testable contract [output.ordering.policy-contract]
 - Define a renderer plugin registry contract [renderer.registry.contract]
@@ -53,8 +55,8 @@ This document summarizes suggested implementation choices.
 
 ## Use Cobra for CLI command and argument parsing [cli.cobra]
 
-- Description: Use Cobra to model commands, flags, and subcommands (`generate markdown`, `generate json`, `validate`, `list`) with a consistent command tree.
-- Calls: cli.root, action.generate.markdown, action.generate.json, action.validate, action.list.reports
+- Description: Use Cobra to model commands, flags, and subcommands (`generate markdown`, `generate json`, `validate`, `list reports`, `list names`, `lint names`) with a consistent command tree.
+- Calls: cli.root, action.generate.markdown, action.generate.json, action.validate, action.list.reports, action.list.names, action.lint.names
 
 ## Use arguments to reduce CUE configuration noise [config.arguments.reduce-noise]
 
@@ -90,6 +92,16 @@ This document summarizes suggested implementation choices.
 
 - Description: Use Go as the primary implementation language for strong typing, fast startup, and straightforward single-binary distribution.
 - Calls: cli.root
+
+## Implement lint names hygiene command [names.lint.command]
+
+- Description: Implement `flyb lint names` with style policy (`dot|snake|regex`), optional regex `--pattern`, optional prefix scope, and configurable severity; emit structured `NAME_STYLE_VIOLATION` diagnostics with canonical config locations and readable context.
+- Calls: action.lint.names, load.app.data, validate.app.data, ordering.policy.resolve, ordering.apply.deterministic, lint.names.policy.resolve, names.filter.prefix, lint.names.notes, lint.names.relationships, diagnostics.emit.structured
+
+## Implement list names inventory command [names.list.command]
+
+- Description: Implement `flyb list names` with required `--prefix`, optional `--kind notes|relationships|all`, and `--format table|json` (default table); reuse validated app data and deterministic ordering before filtering/output.
+- Calls: action.list.names, load.app.data, validate.app.data, ordering.policy.resolve, ordering.apply.deterministic, names.filter.prefix, names.filter.kind, names.output.table, names.output.json
 
 ## Guarantee deterministic ordering in generated outputs [output.ordering.deterministic]
 

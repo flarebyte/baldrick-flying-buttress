@@ -66,6 +66,14 @@ const subtreeNames = (indexed: IndexedCall[], rootIndex: number) => {
 };
 
 describe('validation entrypoint refactor', () => {
+  test('cli root includes list names and lint names workflows', () => {
+    const indexed = buildFlow();
+    const rootChildren = directChildren(indexed, 'cli.root');
+
+    expect(rootChildren).toContain('action.list.names');
+    expect(rootChildren).toContain('action.lint.names');
+  });
+
   test('uses validate.app.data consistently across command flows', () => {
     const indexed = buildFlow();
 
@@ -315,5 +323,73 @@ describe('validation entrypoint refactor', () => {
     expect(excludeArg).toBeDefined();
     expect(includeArg?.scopes).toEqual(['note']);
     expect(excludeArg?.scopes).toEqual(['note']);
+  });
+
+  test('list names command has deterministic filtering and dual output formats', () => {
+    const indexed = buildFlow();
+
+    expect(directChildren(indexed, 'action.list.names')).toEqual([
+      'load.app.data',
+      'validate.app.data',
+      'ordering.policy.resolve',
+      'ordering.apply.deterministic',
+      'names.filter.prefix',
+      'names.filter.kind',
+      'names.output.table',
+      'names.output.json',
+    ]);
+
+    const listNames = calls.find((call) => call.name === 'action.list.names');
+    const prefixFilter = calls.find((call) => call.name === 'names.filter.prefix');
+    const tableOutput = calls.find((call) => call.name === 'names.output.table');
+    const jsonOutput = calls.find((call) => call.name === 'names.output.json');
+
+    if (!listNames || !prefixFilter || !tableOutput || !jsonOutput) {
+      throw new Error('Expected list names command and related calls');
+    }
+
+    expect(listNames.note).toContain('required `--prefix`');
+    expect(listNames.note).toContain('`--format table|json` (default table)');
+    expect(prefixFilter.note).toContain('`from` or `to` starts with prefix');
+    expect(tableOutput.note).toContain('name | title | labels');
+    expect(tableOutput.note).toContain('from | to | labels');
+    expect(jsonOutput.note).toContain('{ notes: [], relationships: [] }');
+  });
+
+  test('lint names command emits structured style diagnostics', () => {
+    const indexed = buildFlow();
+
+    expect(directChildren(indexed, 'action.lint.names')).toEqual([
+      'load.app.data',
+      'validate.app.data',
+      'ordering.policy.resolve',
+      'ordering.apply.deterministic',
+      'lint.names.policy.resolve',
+      'names.filter.prefix',
+      'lint.names.notes',
+      'lint.names.relationships',
+      'diagnostics.emit.structured',
+    ]);
+
+    const lintAction = calls.find((call) => call.name === 'action.lint.names');
+    const lintPolicy = calls.find(
+      (call) => call.name === 'lint.names.policy.resolve',
+    );
+    const lintNotes = calls.find((call) => call.name === 'lint.names.notes');
+    const lintRelationships = calls.find(
+      (call) => call.name === 'lint.names.relationships',
+    );
+
+    if (!lintAction || !lintPolicy || !lintNotes || !lintRelationships) {
+      throw new Error('Expected lint names command and lint checks');
+    }
+
+    expect(lintAction.note).toContain('--style dot|snake|regex');
+    expect(lintAction.note).toContain('--severity warning|error');
+    expect(lintPolicy.note).toContain('`dot`=`^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$`');
+    expect(lintPolicy.note).toContain('`snake`=`^[a-z][a-z0-9_]*$`');
+    expect(lintPolicy.note).toContain('`regex`=user-provided `--pattern`');
+    expect(lintNotes.note).toContain('`NAME_STYLE_VIOLATION`');
+    expect(lintRelationships.note).toContain('`NAME_STYLE_VIOLATION`');
   });
 });

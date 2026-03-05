@@ -14,6 +14,11 @@ const uc = {
   configRelationshipsLabeled: useCases['cli.config.relationships.labeled'].name,
   configReportsMultiple: useCases['cli.config.reports.multiple'].name,
   reportList: useCases['cli.report.list'].name,
+  namesList: useCases['cli.names.list'].name,
+  namesLint: useCases['cli.names.lint'].name,
+  namesStylePolicy: useCases['cli.names.style-policy'].name,
+  namesPrefixFilter: useCases['cli.names.prefix-filter'].name,
+  namesOutputFormats: useCases['cli.names.output-formats'].name,
   exportJsonGraph: useCases['cli.export.json.graph'].name,
   reportSubgraphByLabel: useCases['cli.report.subgraph.by-label'].name,
   sectionH3CyclePolicy: useCases['cli.section.h3.cycle-policy'].name,
@@ -52,9 +57,11 @@ export const cliRoot = (context: FlowContext) => {
   };
   calls.push(call);
   listReportsAction(incrContext(context));
+  listNamesAction(incrContext(context));
   generateMarkdownAction(incrContext(context));
   generateJsonAction(incrContext(context));
   validateAction(incrContext(context));
+  lintNamesAction(incrContext(context));
 };
 
 export const listReportsAction = (context: FlowContext) => {
@@ -69,6 +76,31 @@ export const listReportsAction = (context: FlowContext) => {
   loadAppData(incrContext(context));
   validateAppData(incrContext(context));
   listValidatedReports(incrContext(context));
+};
+
+export const listNamesAction = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'action.list.names',
+    title: 'List note and relationship names',
+    note: 'Print note and relationship identifiers for daily inventory with required `--prefix`, optional `--kind notes|relationships|all`, and `--format table|json` (default table).',
+    level: context.level,
+    useCases: [
+      uc.namesList,
+      uc.namesPrefixFilter,
+      uc.namesOutputFormats,
+      uc.outputDeterministicOrdering,
+      uc.outputDeterministicOrderingPolicy,
+    ],
+  };
+  calls.push(call);
+  loadAppData(incrContext(context));
+  validateAppData(incrContext(context));
+  resolveOrderingPolicy(incrContext(context));
+  applyDeterministicOrdering(incrContext(context));
+  filterNamesByPrefix(incrContext(context));
+  filterNamesByKind(incrContext(context));
+  outputNamesTable(incrContext(context));
+  outputNamesJson(incrContext(context));
 };
 
 export const generateMarkdownAction = (context: FlowContext) => {
@@ -482,6 +514,34 @@ export const validateAction = (context: FlowContext) => {
   emitDiagnostics(incrContext(context));
 };
 
+export const lintNamesAction = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'action.lint.names',
+    title: 'Lint note and relationship names',
+    note: 'Run naming-style hygiene checks with `--style dot|snake|regex` (default dot), optional `--pattern` for regex style, optional `--prefix` scope, and configurable `--severity warning|error` (default warning).',
+    level: context.level,
+    useCases: [
+      uc.namesLint,
+      uc.namesStylePolicy,
+      uc.namesPrefixFilter,
+      uc.diagnosticsModel,
+      uc.diagnosticsValidation,
+      uc.outputDeterministicOrdering,
+      uc.outputDeterministicOrderingPolicy,
+    ],
+  };
+  calls.push(call);
+  loadAppData(incrContext(context));
+  validateAppData(incrContext(context));
+  resolveOrderingPolicy(incrContext(context));
+  applyDeterministicOrdering(incrContext(context));
+  resolveNameStylePolicy(incrContext(context));
+  filterNamesByPrefix(incrContext(context));
+  lintNoteNames(incrContext(context));
+  lintRelationshipEndpointNames(incrContext(context));
+  emitDiagnostics(incrContext(context));
+};
+
 export const loadAppData = (context: FlowContext) => {
   const call: ComponentCall = {
     name: 'load.app.data',
@@ -714,6 +774,83 @@ export const applyDeterministicOrdering = (context: FlowContext) => {
       uc.outputDeterministicOrdering,
       uc.outputDeterministicOrderingPolicy,
     ],
+  };
+  calls.push(call);
+};
+
+export const filterNamesByPrefix = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'names.filter.prefix',
+    title: 'Filter names by prefix',
+    note: 'Apply required `--prefix` filter: keep notes where `name` starts with prefix and relationships where `from` or `to` starts with prefix.',
+    level: context.level,
+    useCases: [uc.namesPrefixFilter, uc.namesList, uc.namesLint],
+  };
+  calls.push(call);
+};
+
+export const filterNamesByKind = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'names.filter.kind',
+    title: 'Filter names by kind',
+    note: 'Apply optional `--kind notes|relationships|all` filter (default `all`) to reduce output noise.',
+    level: context.level,
+    useCases: [uc.namesList, uc.namesOutputFormats],
+  };
+  calls.push(call);
+};
+
+export const outputNamesTable = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'names.output.table',
+    title: 'Output names as table',
+    note: 'Default output: notes table rows `name | title | labels` and relationship rows `from | to | labels`.',
+    level: context.level,
+    useCases: [uc.namesList, uc.namesOutputFormats],
+  };
+  calls.push(call);
+};
+
+export const outputNamesJson = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'names.output.json',
+    title: 'Output names as JSON',
+    note: 'Optional `--format json` output as `{ notes: [], relationships: [] }` with the same fields used in table mode.',
+    level: context.level,
+    useCases: [uc.namesList, uc.namesOutputFormats],
+  };
+  calls.push(call);
+};
+
+export const resolveNameStylePolicy = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'lint.names.policy.resolve',
+    title: 'Resolve name style policy',
+    note: 'Resolve style matcher as case-sensitive policy: `dot`=`^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$`, `snake`=`^[a-z][a-z0-9_]*$`, `regex`=user-provided `--pattern`.',
+    level: context.level,
+    useCases: [uc.namesLint, uc.namesStylePolicy],
+  };
+  calls.push(call);
+};
+
+export const lintNoteNames = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'lint.names.notes',
+    title: 'Lint note names',
+    note: 'Check note names against resolved style; emit `NAME_STYLE_VIOLATION` diagnostics with canonical config location and human-readable context for each violation.',
+    level: context.level,
+    useCases: [uc.namesLint, uc.namesStylePolicy, uc.diagnosticsValidation],
+  };
+  calls.push(call);
+};
+
+export const lintRelationshipEndpointNames = (context: FlowContext) => {
+  const call: ComponentCall = {
+    name: 'lint.names.relationships',
+    title: 'Lint relationship endpoint names',
+    note: 'Check relationship `from` and `to` endpoint names against resolved style; emit `NAME_STYLE_VIOLATION` diagnostics with canonical config location and relationship context for each violation.',
+    level: context.level,
+    useCases: [uc.namesLint, uc.namesStylePolicy, uc.diagnosticsValidation],
   };
   calls.push(call);
 };

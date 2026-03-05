@@ -57,6 +57,31 @@ export const useCases: Record<string, UseCase> = {
     title: 'List all configured markdown reports',
     note: 'The CLI exposes a command to enumerate report targets.',
   },
+  'cli.names.list': {
+    name: 'cli.names.list',
+    title: 'List note and relationship names for daily inventory',
+    note: 'The CLI exposes `flyb list names` with `--prefix` filtering and `--format table|json` output.',
+  },
+  'cli.names.lint': {
+    name: 'cli.names.lint',
+    title: 'Lint note and relationship names for style hygiene',
+    note: 'The CLI exposes `flyb lint names` to emit structured diagnostics for naming-style violations without introducing label taxonomy requirements.',
+  },
+  'cli.names.style-policy': {
+    name: 'cli.names.style-policy',
+    title: 'Define explicit name style policy',
+    note: 'Name styles are case-sensitive: dot=`^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$`, snake=`^[a-z][a-z0-9_]*$`, regex=user-provided `--pattern`.',
+  },
+  'cli.names.prefix-filter': {
+    name: 'cli.names.prefix-filter',
+    title: 'Filter names by prefix scope',
+    note: 'Prefix filtering keeps notes whose name starts with prefix and relationships where `from` or `to` starts with prefix.',
+  },
+  'cli.names.output-formats': {
+    name: 'cli.names.output-formats',
+    title: 'Render names as table or JSON',
+    note: 'Default output is human-friendly table; JSON is opt-in and returns `{ notes: [], relationships: [] }`.',
+  },
   'cli.export.json.graph': {
     name: 'cli.export.json.graph',
     title: 'Export notes and relationships as JSON',
