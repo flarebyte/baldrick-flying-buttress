@@ -6,70 +6,30 @@ import (
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
-	"github.com/flarebyte/baldrick-flying-buttress/internal/load"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
-	"github.com/flarebyte/baldrick-flying-buttress/internal/pipeline"
-	"github.com/flarebyte/baldrick-flying-buttress/internal/validate"
 )
 
 func TestGenerateMarkdownSuccess(t *testing.T) {
 	t.Parallel()
-
-	tmp := t.TempDir()
-	configPath := writeFixtureConfig(t, tmp, "config.markdown.raw.json")
-	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
-	validator := validate.AppDataValidator{}
-
-	code, stdout, stderr := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
-	if code != 0 {
-		t.Fatalf("expected exit code 0, got %d", code)
-	}
-	assertOutput(t, stdout, stderr, "", "")
-
-	alpha, err := os.ReadFile(filepath.Join(tmp, "out", "alpha.md"))
-	if err != nil {
-		t.Fatalf("read alpha report failed: %v", err)
-	}
-	beta, err := os.ReadFile(filepath.Join(tmp, "out", "beta.md"))
-	if err != nil {
-		t.Fatalf("read beta report failed: %v", err)
-	}
-	if string(alpha) != readGolden(t, "generate_markdown_alpha_output.golden") {
-		t.Fatalf("alpha markdown mismatch\\nwant: %q\\n got: %q", readGolden(t, "generate_markdown_alpha_output.golden"), string(alpha))
-	}
-	if string(beta) != readGolden(t, "generate_markdown_beta_output.golden") {
-		t.Fatalf("beta markdown mismatch\\nwant: %q\\n got: %q", readGolden(t, "generate_markdown_beta_output.golden"), string(beta))
-	}
+	assertGenerateMarkdownSuccessFixture(t, "config.markdown.raw.json")
 }
 
 func TestGenerateMarkdownSuccessWithCueConfig(t *testing.T) {
 	t.Parallel()
+	assertGenerateMarkdownSuccessFixture(t, "config.markdown.cue")
+}
 
-	tmp := t.TempDir()
-	configPath := writeFixtureConfig(t, tmp, "config.markdown.cue")
-	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
-	validator := validate.AppDataValidator{}
-
-	code, stdout, stderr := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+func assertGenerateMarkdownSuccessFixture(t *testing.T, fixtureName string) {
+	t.Helper()
+	tmp, code, stdout, stderr := runGenerateMarkdownFixture(t, fixtureName)
 	if code != 0 {
 		t.Fatalf("expected exit code 0, got %d", code)
 	}
 	assertOutput(t, stdout, stderr, "", "")
-
-	alpha, err := os.ReadFile(filepath.Join(tmp, "out", "alpha.md"))
-	if err != nil {
-		t.Fatalf("read alpha report failed: %v", err)
-	}
-	beta, err := os.ReadFile(filepath.Join(tmp, "out", "beta.md"))
-	if err != nil {
-		t.Fatalf("read beta report failed: %v", err)
-	}
-	if string(alpha) != readGolden(t, "generate_markdown_alpha_output.golden") {
-		t.Fatalf("alpha markdown mismatch\\nwant: %q\\n got: %q", readGolden(t, "generate_markdown_alpha_output.golden"), string(alpha))
-	}
-	if string(beta) != readGolden(t, "generate_markdown_beta_output.golden") {
-		t.Fatalf("beta markdown mismatch\\nwant: %q\\n got: %q", readGolden(t, "generate_markdown_beta_output.golden"), string(beta))
-	}
+	assertGeneratedMarkdownGoldens(t, tmp, []markdownGoldenExpectation{
+		{outputPath: filepath.Join("out", "alpha.md"), goldenName: "generate_markdown_alpha_output.golden"},
+		{outputPath: filepath.Join("out", "beta.md"), goldenName: "generate_markdown_beta_output.golden"},
+	})
 }
 
 func TestGenerateMarkdownBlockedOnErrorDiagnostic(t *testing.T) {
@@ -98,19 +58,8 @@ func TestGenerateMarkdownRuntimeFailureOnUnwritablePath(t *testing.T) {
 	if err := os.WriteFile(configPath, []byte(content), 0o644); err != nil {
 		t.Fatalf("write config failed: %v", err)
 	}
-	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
-	validator := validate.AppDataValidator{}
-
-	code, stdout, stderr := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
-	if code != outcome.ExitCodeRuntimeFailure {
-		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeRuntimeFailure, code)
-	}
-	if stdout != "" {
-		t.Fatalf("expected empty stdout, got %q", stdout)
-	}
-	if stderr == "" {
-		t.Fatal("expected stderr")
-	}
+	code, stdout, stderr := runGenerateMarkdownWithConfig(configPath)
+	assertRuntimeFailureOutput(t, code, stdout, stderr)
 }
 
 func TestGenerateMarkdownFailureLeavesExistingFileUnchanged(t *testing.T) {
@@ -140,19 +89,8 @@ func TestGenerateMarkdownFailureLeavesExistingFileUnchanged(t *testing.T) {
 		_ = os.Chmod(outDir, 0o755)
 	}()
 
-	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
-	validator := validate.AppDataValidator{}
-
-	code, stdout, stderr := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
-	if code != outcome.ExitCodeRuntimeFailure {
-		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeRuntimeFailure, code)
-	}
-	if stdout != "" {
-		t.Fatalf("expected empty stdout, got %q", stdout)
-	}
-	if stderr == "" {
-		t.Fatal("expected stderr")
-	}
+	code, stdout, stderr := runGenerateMarkdownWithConfig(configPath)
+	assertRuntimeFailureOutput(t, code, stdout, stderr)
 
 	got, err := os.ReadFile(reportPath)
 	if err != nil {
@@ -168,50 +106,32 @@ func TestGenerateMarkdownDeterministicAcrossRuns(t *testing.T) {
 
 	tmp := t.TempDir()
 	configPath := writeFixtureConfig(t, tmp, "config.markdown.raw.json")
-	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
-	validator := validate.AppDataValidator{}
-
-	code1, stdout1, stderr1 := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	code1, stdout1, stderr1 := runGenerateMarkdownWithConfig(configPath)
 	if code1 != 0 {
 		t.Fatalf("expected first exit code 0, got %d", code1)
 	}
-	alpha1, err := os.ReadFile(filepath.Join(tmp, "out", "alpha.md"))
-	if err != nil {
-		t.Fatalf("read alpha first run failed: %v", err)
-	}
-	beta1, err := os.ReadFile(filepath.Join(tmp, "out", "beta.md"))
-	if err != nil {
-		t.Fatalf("read beta first run failed: %v", err)
-	}
+	alpha1 := readGeneratedMarkdown(t, tmp, filepath.Join("out", "alpha.md"))
+	beta1 := readGeneratedMarkdown(t, tmp, filepath.Join("out", "beta.md"))
 
-	code2, stdout2, stderr2 := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	code2, stdout2, stderr2 := runGenerateMarkdownWithConfig(configPath)
 	if code2 != 0 {
 		t.Fatalf("expected second exit code 0, got %d", code2)
 	}
-	alpha2, err := os.ReadFile(filepath.Join(tmp, "out", "alpha.md"))
-	if err != nil {
-		t.Fatalf("read alpha second run failed: %v", err)
-	}
-	beta2, err := os.ReadFile(filepath.Join(tmp, "out", "beta.md"))
-	if err != nil {
-		t.Fatalf("read beta second run failed: %v", err)
-	}
+	alpha2 := readGeneratedMarkdown(t, tmp, filepath.Join("out", "alpha.md"))
+	beta2 := readGeneratedMarkdown(t, tmp, filepath.Join("out", "beta.md"))
 
 	if stdout1 != stdout2 || stderr1 != stderr2 {
 		t.Fatalf("non-deterministic command output")
 	}
-	if string(alpha1) != string(alpha2) {
-		t.Fatalf("non-deterministic alpha markdown\\nfirst: %q\\nsecond: %q", string(alpha1), string(alpha2))
+	if alpha1 != alpha2 {
+		t.Fatalf("non-deterministic alpha markdown\\nfirst: %q\\nsecond: %q", alpha1, alpha2)
 	}
-	if string(beta1) != string(beta2) {
-		t.Fatalf("non-deterministic beta markdown\\nfirst: %q\\nsecond: %q", string(beta1), string(beta2))
+	if beta1 != beta2 {
+		t.Fatalf("non-deterministic beta markdown\\nfirst: %q\\nsecond: %q", beta1, beta2)
 	}
 }
 
 func TestGenerateMarkdownSingleWorkerEqualsMultiWorker(t *testing.T) {
-	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
-	validator := validate.AppDataValidator{}
-
 	tmpSingle := t.TempDir()
 	configSingle := writeFixtureConfig(t, tmpSingle, "config.markdown.raw.json")
 	var code1 int
@@ -220,19 +140,13 @@ func TestGenerateMarkdownSingleWorkerEqualsMultiWorker(t *testing.T) {
 	func() {
 		restoreSingle := setMarkdownReportWorkersForTest(1)
 		defer restoreSingle()
-		code1, stdout1, stderr1 = runCommandWithFactory([]string{"generate", "markdown", "--config", configSingle}, loaderFactory, validator)
+		code1, stdout1, stderr1 = runGenerateMarkdownWithConfig(configSingle)
 	}()
 	if code1 != 0 {
 		t.Fatalf("expected single-worker exit code 0, got %d", code1)
 	}
-	alpha1, err := os.ReadFile(filepath.Join(tmpSingle, "out", "alpha.md"))
-	if err != nil {
-		t.Fatalf("read single-worker alpha failed: %v", err)
-	}
-	beta1, err := os.ReadFile(filepath.Join(tmpSingle, "out", "beta.md"))
-	if err != nil {
-		t.Fatalf("read single-worker beta failed: %v", err)
-	}
+	alpha1 := readGeneratedMarkdown(t, tmpSingle, filepath.Join("out", "alpha.md"))
+	beta1 := readGeneratedMarkdown(t, tmpSingle, filepath.Join("out", "beta.md"))
 
 	tmpMulti := t.TempDir()
 	configMulti := writeFixtureConfig(t, tmpMulti, "config.markdown.raw.json")
@@ -242,27 +156,21 @@ func TestGenerateMarkdownSingleWorkerEqualsMultiWorker(t *testing.T) {
 	func() {
 		restoreMulti := setMarkdownReportWorkersForTest(4)
 		defer restoreMulti()
-		code2, stdout2, stderr2 = runCommandWithFactory([]string{"generate", "markdown", "--config", configMulti}, loaderFactory, validator)
+		code2, stdout2, stderr2 = runGenerateMarkdownWithConfig(configMulti)
 	}()
 	if code2 != 0 {
 		t.Fatalf("expected multi-worker exit code 0, got %d", code2)
 	}
-	alpha2, err := os.ReadFile(filepath.Join(tmpMulti, "out", "alpha.md"))
-	if err != nil {
-		t.Fatalf("read multi-worker alpha failed: %v", err)
-	}
-	beta2, err := os.ReadFile(filepath.Join(tmpMulti, "out", "beta.md"))
-	if err != nil {
-		t.Fatalf("read multi-worker beta failed: %v", err)
-	}
+	alpha2 := readGeneratedMarkdown(t, tmpMulti, filepath.Join("out", "alpha.md"))
+	beta2 := readGeneratedMarkdown(t, tmpMulti, filepath.Join("out", "beta.md"))
 
 	if stdout1 != stdout2 || stderr1 != stderr2 {
 		t.Fatalf("single-worker and multi-worker command output mismatch")
 	}
-	if string(alpha1) != string(alpha2) {
+	if alpha1 != alpha2 {
 		t.Fatalf("single-worker and multi-worker alpha mismatch")
 	}
-	if string(beta1) != string(beta2) {
+	if beta1 != beta2 {
 		t.Fatalf("single-worker and multi-worker beta mismatch")
 	}
 }

@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,20 +13,71 @@ import (
 	"github.com/flarebyte/baldrick-flying-buttress/internal/validate"
 )
 
-func TestCommandsWorkWithConfigFlagAndFilesystemLoader(t *testing.T) {
-	t.Parallel()
+type commandExpectation struct {
+	name       string
+	args       []string
+	wantCode   int
+	wantStdout string
+}
 
-	configPath := filepath.Join("testdata", "config.raw.json")
-	loaderFactory := func(path string) pipeline.AppLoader {
-		return load.FSAppLoader{ConfigPath: path}
+func fsLoaderFactory(path string) pipeline.AppLoader {
+	return load.FSAppLoader{ConfigPath: path}
+}
+
+func runAndAssertCommand(t *testing.T, args []string, wantCode int, wantStdout string) {
+	t.Helper()
+	code, stdout, stderr := runCommandWithFactory(args, fsLoaderFactory, validate.AppDataValidator{})
+	if code != wantCode {
+		t.Fatalf("expected exit code %d, got %d", wantCode, code)
 	}
-	validator := validate.AppDataValidator{}
-	tests := []struct {
-		name       string
-		args       []string
-		wantCode   int
-		wantStdout string
-	}{
+	assertOutput(t, stdout, stderr, wantStdout, "")
+}
+
+func runAndAssertCommandSet(t *testing.T, tests []commandExpectation) {
+	t.Helper()
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			runAndAssertCommand(t, tc.args, tc.wantCode, tc.wantStdout)
+		})
+	}
+}
+
+func assertValidateAndListBlocked(t *testing.T, configPath, validateGolden string) {
+	t.Helper()
+	validateCode, validateStdout, validateStderr := runCommandWithFactory(
+		[]string{"validate", "--config", configPath},
+		fsLoaderFactory,
+		validate.AppDataValidator{},
+	)
+	if validateCode != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected validate exit code %d, got %d", outcome.ExitCodeValidationBlocked, validateCode)
+	}
+	if validateStderr != "" {
+		t.Fatalf("expected empty validate stderr, got %q", validateStderr)
+	}
+	assertOutput(t, validateStdout, validateStderr, readGolden(t, validateGolden), "")
+
+	listCode, listStdout, listStderr := runCommandWithFactory(
+		[]string{"list", "reports", "--config", configPath},
+		fsLoaderFactory,
+		validate.AppDataValidator{},
+	)
+	if listCode != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected list exit code %d, got %d", outcome.ExitCodeValidationBlocked, listCode)
+	}
+	assertOutput(t, listStdout, listStderr, "", "")
+}
+
+func assertValidateOutput(t *testing.T, configPath string, wantCode int, golden string) {
+	t.Helper()
+	runAndAssertCommand(t, []string{"validate", "--config", configPath}, wantCode, readGolden(t, golden))
+}
+
+func assertCommandsWorkWithConfig(t *testing.T, configPath string) {
+	t.Helper()
+	runAndAssertCommandSet(t, []commandExpectation{
 		{
 			name:       "validate",
 			args:       []string{"validate", "--config", configPath},
@@ -46,259 +96,114 @@ func TestCommandsWorkWithConfigFlagAndFilesystemLoader(t *testing.T) {
 			wantCode:   0,
 			wantStdout: readGolden(t, "generate_json_output.golden"),
 		},
-	}
+	})
+}
 
-	for _, tc := range tests {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			var out bytes.Buffer
-			var errOut bytes.Buffer
-			exitCode := ExecuteWithFactory(tc.args, &out, &errOut, loaderFactory, validator)
-			if exitCode != tc.wantCode {
-				t.Fatalf("expected exit code %d, got %d", tc.wantCode, exitCode)
-			}
-			assertOutput(t, out.String(), errOut.String(), tc.wantStdout, "")
-		})
-	}
+func TestCommandsWorkWithConfigFlagAndFilesystemLoader(t *testing.T) {
+	t.Parallel()
+
+	assertCommandsWorkWithConfig(t, filepath.Join("testdata", "config.raw.json"))
 }
 
 func TestCommandsWorkWithCueConfigAndFilesystemLoader(t *testing.T) {
 	t.Parallel()
 
-	configPath := filepath.Join("testdata", "config.cue")
-	loaderFactory := func(path string) pipeline.AppLoader {
-		return load.FSAppLoader{ConfigPath: path}
-	}
-	validator := validate.AppDataValidator{}
-	tests := []struct {
-		name       string
-		args       []string
-		wantCode   int
-		wantStdout string
-	}{
-		{
-			name:       "validate",
-			args:       []string{"validate", "--config", configPath},
-			wantCode:   0,
-			wantStdout: "{\"diagnostics\":[]}\n",
-		},
-		{
-			name:       "list reports",
-			args:       []string{"list", "reports", "--config", configPath},
-			wantCode:   0,
-			wantStdout: readGolden(t, "list_reports_output.golden"),
-		},
-		{
-			name:       "generate json",
-			args:       []string{"generate", "json", "--config", configPath},
-			wantCode:   0,
-			wantStdout: readGolden(t, "generate_json_output.golden"),
-		},
-	}
-
-	for _, tc := range tests {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			var out bytes.Buffer
-			var errOut bytes.Buffer
-			exitCode := ExecuteWithFactory(tc.args, &out, &errOut, loaderFactory, validator)
-			if exitCode != tc.wantCode {
-				t.Fatalf("expected exit code %d, got %d", tc.wantCode, exitCode)
-			}
-			assertOutput(t, out.String(), errOut.String(), tc.wantStdout, "")
-		})
-	}
+	assertCommandsWorkWithConfig(t, filepath.Join("testdata", "config.cue"))
 }
 
 func TestCommandsWithInvalidStructureConfigProduceValidationDiagnostics(t *testing.T) {
 	t.Parallel()
 
-	configPath := filepath.Join("testdata", "config.invalid.raw.json")
-	loaderFactory := func(path string) pipeline.AppLoader {
-		return load.FSAppLoader{ConfigPath: path}
-	}
-	validator := validate.AppDataValidator{}
-
-	validateCode, validateStdout, validateStderr := runCommandWithFactory(
-		[]string{"validate", "--config", configPath},
-		loaderFactory,
-		validator,
-	)
-	if validateCode != outcome.ExitCodeValidationBlocked {
-		t.Fatalf("expected validate exit code %d, got %d", outcome.ExitCodeValidationBlocked, validateCode)
-	}
-	if validateStderr != "" {
-		t.Fatalf("expected empty validate stderr, got %q", validateStderr)
-	}
-	assertOutput(t, validateStdout, validateStderr, readGolden(t, "validate_invalid_output.golden"), "")
-
-	listCode, listStdout, listStderr := runCommandWithFactory(
-		[]string{"list", "reports", "--config", configPath},
-		loaderFactory,
-		validator,
-	)
-	if listCode != outcome.ExitCodeValidationBlocked {
-		t.Fatalf("expected list exit code %d, got %d", outcome.ExitCodeValidationBlocked, listCode)
-	}
-	assertOutput(t, listStdout, listStderr, "", "")
+	assertValidateAndListBlocked(t, filepath.Join("testdata", "config.invalid.raw.json"), "validate_invalid_output.golden")
 }
 
 func TestCommandsWithInvalidStructureCueConfigProduceValidationDiagnostics(t *testing.T) {
 	t.Parallel()
 
-	configPath := filepath.Join("testdata", "config.invalid.cue")
-	loaderFactory := func(path string) pipeline.AppLoader {
-		return load.FSAppLoader{ConfigPath: path}
-	}
-	validator := validate.AppDataValidator{}
-
-	validateCode, validateStdout, validateStderr := runCommandWithFactory(
-		[]string{"validate", "--config", configPath},
-		loaderFactory,
-		validator,
-	)
-	if validateCode != outcome.ExitCodeValidationBlocked {
-		t.Fatalf("expected validate exit code %d, got %d", outcome.ExitCodeValidationBlocked, validateCode)
-	}
-	if validateStderr != "" {
-		t.Fatalf("expected empty validate stderr, got %q", validateStderr)
-	}
-	assertOutput(t, validateStdout, validateStderr, readGolden(t, "validate_invalid_output.golden"), "")
-
-	listCode, listStdout, listStderr := runCommandWithFactory(
-		[]string{"list", "reports", "--config", configPath},
-		loaderFactory,
-		validator,
-	)
-	if listCode != outcome.ExitCodeValidationBlocked {
-		t.Fatalf("expected list exit code %d, got %d", outcome.ExitCodeValidationBlocked, listCode)
-	}
-	assertOutput(t, listStdout, listStderr, "", "")
+	assertValidateAndListBlocked(t, filepath.Join("testdata", "config.invalid.cue"), "validate_invalid_output.golden")
 }
 
 func TestValidateWithInvalidRegistryConfigCollectsMultipleDiagnostics(t *testing.T) {
 	t.Parallel()
 
-	configPath := filepath.Join("testdata", "config.registry.invalid.raw.json")
-	loaderFactory := func(path string) pipeline.AppLoader {
-		return load.FSAppLoader{ConfigPath: path}
-	}
-	validator := validate.AppDataValidator{}
-
-	validateCode, validateStdout, validateStderr := runCommandWithFactory(
-		[]string{"validate", "--config", configPath},
-		loaderFactory,
-		validator,
+	assertValidateOutput(
+		t,
+		filepath.Join("testdata", "config.registry.invalid.raw.json"),
+		outcome.ExitCodeValidationBlocked,
+		"validate_registry_invalid_output.golden",
 	)
-	if validateCode != outcome.ExitCodeValidationBlocked {
-		t.Fatalf("expected validate exit code %d, got %d", outcome.ExitCodeValidationBlocked, validateCode)
-	}
-	assertOutput(t, validateStdout, validateStderr, readGolden(t, "validate_registry_invalid_output.golden"), "")
 }
 
 func TestValidateWithInvalidConfiguredArgumentsCollectsMultipleDiagnostics(t *testing.T) {
 	t.Parallel()
 
-	configPath := filepath.Join("testdata", "config.args.invalid.raw.json")
-	loaderFactory := func(path string) pipeline.AppLoader {
-		return load.FSAppLoader{ConfigPath: path}
-	}
-	validator := validate.AppDataValidator{}
-
-	validateCode, validateStdout, validateStderr := runCommandWithFactory(
-		[]string{"validate", "--config", configPath},
-		loaderFactory,
-		validator,
+	assertValidateOutput(
+		t,
+		filepath.Join("testdata", "config.args.invalid.raw.json"),
+		outcome.ExitCodeValidationBlocked,
+		"validate_args_invalid_output.golden",
 	)
-	if validateCode != outcome.ExitCodeValidationBlocked {
-		t.Fatalf("expected validate exit code %d, got %d", outcome.ExitCodeValidationBlocked, validateCode)
-	}
-	assertOutput(t, validateStdout, validateStderr, readGolden(t, "validate_args_invalid_output.golden"), "")
 }
 
 func TestValidateWithUnknownLabelReferencesEmitsWarningsOnly(t *testing.T) {
 	t.Parallel()
 
 	configPath := filepath.Join("testdata", "config.labels.invalid.raw.json")
-	loaderFactory := func(path string) pipeline.AppLoader {
-		return load.FSAppLoader{ConfigPath: path}
-	}
-	validator := validate.AppDataValidator{}
-
-	validateCode, validateStdout, validateStderr := runCommandWithFactory(
+	runAndAssertCommand(
+		t,
 		[]string{"validate", "--config", configPath},
-		loaderFactory,
-		validator,
+		0,
+		readGolden(t, "validate_labels_invalid_output.golden"),
 	)
-	if validateCode != 0 {
-		t.Fatalf("expected validate exit code 0, got %d", validateCode)
-	}
-	assertOutput(t, validateStdout, validateStderr, readGolden(t, "validate_labels_invalid_output.golden"), "")
-
-	listCode, listStdout, listStderr := runCommandWithFactory(
+	runAndAssertCommand(
+		t,
 		[]string{"list", "reports", "--config", configPath},
-		loaderFactory,
-		validator,
+		0,
+		readGolden(t, "list_reports_output.golden"),
 	)
-	if listCode != 0 {
-		t.Fatalf("expected list exit code 0, got %d", listCode)
-	}
-	assertOutput(t, listStdout, listStderr, readGolden(t, "list_reports_output.golden"), "")
 }
 
 func TestValidateWithGraphIntegrityIssuesCollectsDiagnostics(t *testing.T) {
 	t.Parallel()
 
-	configPath := filepath.Join("testdata", "config.graph.invalid.raw.json")
-	loaderFactory := func(path string) pipeline.AppLoader {
-		return load.FSAppLoader{ConfigPath: path}
-	}
-	validator := validate.AppDataValidator{}
-
-	validateCode, validateStdout, validateStderr := runCommandWithFactory(
-		[]string{"validate", "--config", configPath},
-		loaderFactory,
-		validator,
+	assertValidateOutput(
+		t,
+		filepath.Join("testdata", "config.graph.invalid.raw.json"),
+		outcome.ExitCodeValidationBlocked,
+		"validate_graph_invalid_output.golden",
 	)
-	if validateCode != outcome.ExitCodeValidationBlocked {
-		t.Fatalf("expected validate exit code %d, got %d", outcome.ExitCodeValidationBlocked, validateCode)
-	}
-	assertOutput(t, validateStdout, validateStderr, readGolden(t, "validate_graph_invalid_output.golden"), "")
 }
 
 func TestFilesystemLoaderDeterministicOutputAcrossRuns(t *testing.T) {
 	t.Parallel()
 
 	configPath := filepath.Join("testdata", "config.raw.json")
-	loaderFactory := func(path string) pipeline.AppLoader {
-		return load.FSAppLoader{ConfigPath: path}
-	}
-	validator := validate.AppDataValidator{}
-
-	var out1 bytes.Buffer
-	var err1 bytes.Buffer
-	code1 := ExecuteWithFactory([]string{"list", "reports", "--config", configPath}, &out1, &err1, loaderFactory, validator)
+	code1, out1, err1 := runCommandWithFactory(
+		[]string{"list", "reports", "--config", configPath},
+		fsLoaderFactory,
+		validate.AppDataValidator{},
+	)
 	if code1 != 0 {
 		t.Fatalf("expected first exit code 0, got %d", code1)
 	}
-	if err1.String() != "" {
-		t.Fatalf("expected empty first stderr, got %q", err1.String())
+	if err1 != "" {
+		t.Fatalf("expected empty first stderr, got %q", err1)
 	}
 
-	var out2 bytes.Buffer
-	var err2 bytes.Buffer
-	code2 := ExecuteWithFactory([]string{"list", "reports", "--config", configPath}, &out2, &err2, loaderFactory, validator)
+	code2, out2, err2 := runCommandWithFactory(
+		[]string{"list", "reports", "--config", configPath},
+		fsLoaderFactory,
+		validate.AppDataValidator{},
+	)
 	if code2 != 0 {
 		t.Fatalf("expected second exit code 0, got %d", code2)
 	}
-	if err2.String() != "" {
-		t.Fatalf("expected empty second stderr, got %q", err2.String())
+	if err2 != "" {
+		t.Fatalf("expected empty second stderr, got %q", err2)
 	}
 
-	if out1.String() != out2.String() {
-		t.Fatalf("non-deterministic stdout\nfirst: %q\nsecond: %q", out1.String(), out2.String())
+	if out1 != out2 {
+		t.Fatalf("non-deterministic stdout\nfirst: %q\nsecond: %q", out1, out2)
 	}
 }
 
@@ -312,20 +217,15 @@ func TestOversizedConfigRuntimeFailureDeterministic(t *testing.T) {
 		t.Fatalf("write oversized config failed: %v", err)
 	}
 
-	loaderFactory := func(path string) pipeline.AppLoader {
-		return load.FSAppLoader{ConfigPath: path}
-	}
-	validator := validate.AppDataValidator{}
-
 	code1, stdout1, stderr1 := runCommandWithFactory(
 		[]string{"validate", "--config", configPath},
-		loaderFactory,
-		validator,
+		fsLoaderFactory,
+		validate.AppDataValidator{},
 	)
 	code2, stdout2, stderr2 := runCommandWithFactory(
 		[]string{"validate", "--config", configPath},
-		loaderFactory,
-		validator,
+		fsLoaderFactory,
+		validate.AppDataValidator{},
 	)
 
 	if code1 != outcome.ExitCodeRuntimeFailure || code2 != outcome.ExitCodeRuntimeFailure {

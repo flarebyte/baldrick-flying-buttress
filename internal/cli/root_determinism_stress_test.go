@@ -10,6 +10,19 @@ import (
 	"github.com/flarebyte/baldrick-flying-buttress/internal/validate"
 )
 
+func assertSameCommandResult(t *testing.T, runIndex int, code, wantCode int, out, wantOut, errOut, wantErr string) {
+	t.Helper()
+	if code != wantCode {
+		t.Fatalf("run %d exit code mismatch: got %d want %d", runIndex, code, wantCode)
+	}
+	if out != wantOut {
+		t.Fatalf("run %d stdout mismatch", runIndex)
+	}
+	if errOut != wantErr {
+		t.Fatalf("run %d stderr mismatch", runIndex)
+	}
+}
+
 func TestDeterminismStressNonFileCommands(t *testing.T) {
 	t.Parallel()
 
@@ -35,15 +48,7 @@ func TestDeterminismStressNonFileCommands(t *testing.T) {
 			firstCode, firstOut, firstErr := runCommandWithFactory(tc.args, loaderFactory, validator)
 			for i := 0; i < 4; i++ {
 				code, out, errOut := runCommandWithFactory(tc.args, loaderFactory, validator)
-				if code != firstCode {
-					t.Fatalf("run %d exit code mismatch: got %d want %d", i+2, code, firstCode)
-				}
-				if out != firstOut {
-					t.Fatalf("run %d stdout mismatch", i+2)
-				}
-				if errOut != firstErr {
-					t.Fatalf("run %d stderr mismatch", i+2)
-				}
+				assertSameCommandResult(t, i+2, code, firstCode, out, firstOut, errOut, firstErr)
 			}
 		})
 	}
@@ -72,15 +77,7 @@ func TestDeterminismStressGenerateMarkdownFiles(t *testing.T) {
 
 	for i := 0; i < 4; i++ {
 		code, out, errOut := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
-		if code != firstCode {
-			t.Fatalf("run %d exit code mismatch: got %d want %d", i+2, code, firstCode)
-		}
-		if out != firstOut {
-			t.Fatalf("run %d stdout mismatch", i+2)
-		}
-		if errOut != firstErr {
-			t.Fatalf("run %d stderr mismatch", i+2)
-		}
+		assertSameCommandResult(t, i+2, code, firstCode, out, firstOut, errOut, firstErr)
 		alpha, err := os.ReadFile(filepath.Join(tmp, "out", "alpha.md"))
 		if err != nil {
 			t.Fatalf("read alpha failed on run %d: %v", i+2, err)

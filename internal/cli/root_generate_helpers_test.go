@@ -23,20 +23,50 @@ func runGenerateMarkdownFixture(t *testing.T, fixtureName string) (string, int, 
 	t.Helper()
 	tmp := t.TempDir()
 	configPath := writeFixtureConfig(t, tmp, fixtureName)
-	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
-	validator := validate.AppDataValidator{}
-	code, stdout, stderr := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	code, stdout, stderr := runGenerateMarkdownWithConfig(configPath)
 	return tmp, code, stdout, stderr
 }
 
-func assertGeneratedMarkdownGolden(t *testing.T, tmpDir, outputPath, goldenName string) {
+func runGenerateMarkdownBundleFixture(t *testing.T, fixtureName string, relativePaths []string) (string, int, string, string) {
+	t.Helper()
+	tmp := t.TempDir()
+	configPath := writeFixtureBundle(t, tmp, fixtureName, relativePaths)
+	code, stdout, stderr := runGenerateMarkdownWithConfig(configPath)
+	return tmp, code, stdout, stderr
+}
+
+func runGenerateMarkdownWithConfig(configPath string) (int, string, string) {
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+	return runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+}
+
+func readGeneratedMarkdown(t *testing.T, tmpDir, outputPath string) string {
 	t.Helper()
 	output, err := os.ReadFile(filepath.Join(tmpDir, outputPath))
 	if err != nil {
 		t.Fatalf("read generated report failed: %v", err)
 	}
+	return string(output)
+}
+
+func assertGeneratedMarkdownGolden(t *testing.T, tmpDir, outputPath, goldenName string) {
+	t.Helper()
+	output := readGeneratedMarkdown(t, tmpDir, outputPath)
 	want := readGolden(t, goldenName)
-	if string(output) != want {
-		t.Fatalf("generated markdown mismatch\nwant: %q\n got: %q", want, string(output))
+	if output != want {
+		t.Fatalf("generated markdown mismatch\nwant: %q\n got: %q", want, output)
+	}
+}
+
+type markdownGoldenExpectation struct {
+	outputPath string
+	goldenName string
+}
+
+func assertGeneratedMarkdownGoldens(t *testing.T, tmpDir string, expectations []markdownGoldenExpectation) {
+	t.Helper()
+	for _, expectation := range expectations {
+		assertGeneratedMarkdownGolden(t, tmpDir, expectation.outputPath, expectation.goldenName)
 	}
 }
