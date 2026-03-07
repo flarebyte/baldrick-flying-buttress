@@ -546,19 +546,25 @@ func normalizeValidatedApp(raw domain.RawApp, registry domain.ArgumentRegistry, 
 	notes := make([]domain.Note, 0, len(raw.Notes))
 	for _, note := range raw.Notes {
 		notes = append(notes, domain.Note{
-			ID:       note.Name,
-			Label:    note.Title,
-			Title:    note.Title,
-			Markdown: note.Markdown,
+			ID:        note.Name,
+			Label:     note.Title,
+			Title:     note.Title,
+			Markdown:  note.Markdown,
+			LabelsCSV: strings.Join(ordering.Strings(note.Labels), ","),
 		})
 	}
 
 	relationships := make([]domain.Relationship, 0, len(raw.Relationships))
 	for _, relationship := range raw.Relationships {
+		labels := append([]string{}, relationship.Labels...)
+		if relationship.Label != "" {
+			labels = append(labels, relationship.Label)
+		}
 		relationships = append(relationships, domain.Relationship{
-			FromID: relationship.FromID,
-			ToID:   relationship.ToID,
-			Label:  relationship.Label,
+			FromID:    relationship.FromID,
+			ToID:      relationship.ToID,
+			Label:     relationship.Label,
+			LabelsCSV: strings.Join(ordering.Strings(labels), ","),
 		})
 	}
 
@@ -583,24 +589,28 @@ func normalizeValidatedApp(raw domain.RawApp, registry domain.ArgumentRegistry, 
 
 func normalizeMarkdownReports(raw domain.RawApp) []domain.MarkdownReport {
 	reports := make([]domain.MarkdownReport, 0, len(raw.Reports))
-	for _, rawReport := range raw.Reports {
+	for reportIndex, rawReport := range raw.Reports {
 		report := domain.MarkdownReport{
 			Title:       rawReport.Title,
 			Filepath:    rawReport.Filepath,
 			Description: rawReport.Description,
 			Sections:    make([]domain.MarkdownH2Section, 0, len(rawReport.Sections)),
 		}
-		for _, rawH2 := range rawReport.Sections {
+		for h2Index, rawH2 := range rawReport.Sections {
 			h2 := domain.MarkdownH2Section{
 				Title:       rawH2.Title,
 				Description: rawH2.Description,
 				Sections:    make([]domain.MarkdownH3Section, 0, len(rawH2.Sections)),
 			}
-			for _, rawH3 := range rawH2.Sections {
+			for h3Index, rawH3 := range rawH2.Sections {
 				h2.Sections = append(h2.Sections, domain.MarkdownH3Section{
 					Title:       rawH3.Title,
 					Description: rawH3.Description,
 					NoteIDs:     ordering.Strings(rawH3.Notes),
+					Arguments:   ordering.Strings(rawH3.Arguments),
+					Path:        fmt.Sprintf("reports[%d].sections[%d].sections[%d]", reportIndex, h2Index, h3Index),
+					H2Title:     rawH2.Title,
+					ReportTitle: rawReport.Title,
 				})
 			}
 			h2.Sections = ordering.MarkdownH3Sections(h2.Sections)

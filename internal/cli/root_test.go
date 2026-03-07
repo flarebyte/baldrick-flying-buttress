@@ -497,6 +497,52 @@ func TestGenerateMarkdownDeterministicAcrossRuns(t *testing.T) {
 	}
 }
 
+func TestGenerateMarkdownGraphRendering(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	configPath := writeFixtureConfig(t, tmp, "config.markdown.graph.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	code, stdout, stderr := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, "", "")
+
+	graphReport, err := os.ReadFile(filepath.Join(tmp, "out", "graph.md"))
+	if err != nil {
+		t.Fatalf("read graph report failed: %v", err)
+	}
+	if string(graphReport) != readGolden(t, "generate_markdown_graph_output.golden") {
+		t.Fatalf("graph markdown mismatch\\nwant: %q\\n got: %q", readGolden(t, "generate_markdown_graph_output.golden"), string(graphReport))
+	}
+}
+
+func TestGenerateMarkdownGraphCyclePolicyDisallowSkipsSection(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	configPath := writeFixtureConfig(t, tmp, "config.markdown.graph.cycle.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	code, stdout, stderr := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, readGolden(t, "generate_markdown_graph_cycle_diagnostic_output.golden"), "")
+
+	graphReport, err := os.ReadFile(filepath.Join(tmp, "out", "cycle.md"))
+	if err != nil {
+		t.Fatalf("read cycle report failed: %v", err)
+	}
+	if string(graphReport) != readGolden(t, "generate_markdown_graph_cycle_output.golden") {
+		t.Fatalf("cycle markdown mismatch\\nwant: %q\\n got: %q", readGolden(t, "generate_markdown_graph_cycle_output.golden"), string(graphReport))
+	}
+}
+
 func TestGenerateJSONBlockedOnErrorDiagnostic(t *testing.T) {
 	t.Parallel()
 

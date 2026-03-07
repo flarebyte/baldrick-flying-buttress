@@ -23,7 +23,10 @@ func TestRenderMarkdownPlainNote(t *testing.T) {
 	}
 	notes := map[string]domain.Note{"n.apple": {ID: "n.apple", Title: "Apple", Markdown: "Fresh apple."}}
 
-	got := renderMarkdownReport(report, notes)
+	got, diagnostics := renderMarkdownReport(report, notes, domain.ValidatedApp{})
+	if len(diagnostics) != 0 {
+		t.Fatalf("expected no diagnostics, got %#v", diagnostics)
+	}
 	want := "# Inventory\n\n## Overview\n\n### Ingredients\n\n#### Apple\n\nFresh apple.\n\n"
 	if got != want {
 		t.Fatalf("markdown mismatch\nwant: %q\n got: %q", want, got)
@@ -41,8 +44,11 @@ func TestRenderMarkdownDeterministicSections(t *testing.T) {
 		},
 	}
 
-	first := renderMarkdownReport(report, map[string]domain.Note{})
-	second := renderMarkdownReport(report, map[string]domain.Note{})
+	first, firstDiagnostics := renderMarkdownReport(report, map[string]domain.Note{}, domain.ValidatedApp{})
+	second, secondDiagnostics := renderMarkdownReport(report, map[string]domain.Note{}, domain.ValidatedApp{})
+	if len(firstDiagnostics) != 0 || len(secondDiagnostics) != 0 {
+		t.Fatalf("expected no diagnostics, got first=%#v second=%#v", firstDiagnostics, secondDiagnostics)
+	}
 	want := "# R\n\n## A\n\n### X\n\n### Z\n\n## B\n\n### Y\n\n"
 	if first != want {
 		t.Fatalf("markdown mismatch\nwant: %q\n got: %q", want, first)
@@ -55,7 +61,10 @@ func TestRenderMarkdownDeterministicSections(t *testing.T) {
 func TestRenderMarkdownTrailingNewline(t *testing.T) {
 	t.Parallel()
 
-	got := renderMarkdownReport(domain.MarkdownReport{Title: "Title"}, map[string]domain.Note{})
+	got, diagnostics := renderMarkdownReport(domain.MarkdownReport{Title: "Title"}, map[string]domain.Note{}, domain.ValidatedApp{})
+	if len(diagnostics) != 0 {
+		t.Fatalf("expected no diagnostics, got %#v", diagnostics)
+	}
 	if got[len(got)-1] != '\n' {
 		t.Fatalf("expected trailing newline, got %q", got)
 	}
@@ -84,16 +93,20 @@ func TestWriteMarkdownReportsDeterministic(t *testing.T) {
 		}},
 	}
 
-	if err := writeMarkdownReports(app); err != nil {
+	if diagnostics, err := writeMarkdownReports(app); err != nil {
 		t.Fatalf("first write failed: %v", err)
+	} else if len(diagnostics) != 0 {
+		t.Fatalf("expected no diagnostics on first write, got %#v", diagnostics)
 	}
 	first, err := os.ReadFile(filepath.Join(tmp, "out/report.md"))
 	if err != nil {
 		t.Fatalf("read first output failed: %v", err)
 	}
 
-	if err := writeMarkdownReports(app); err != nil {
+	if diagnostics, err := writeMarkdownReports(app); err != nil {
 		t.Fatalf("second write failed: %v", err)
+	} else if len(diagnostics) != 0 {
+		t.Fatalf("expected no diagnostics on second write, got %#v", diagnostics)
 	}
 	second, err := os.ReadFile(filepath.Join(tmp, "out/report.md"))
 	if err != nil {

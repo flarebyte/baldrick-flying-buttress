@@ -109,16 +109,18 @@ func (r ValidationReport) HasErrors() bool {
 }
 
 type Note struct {
-	ID       string
-	Label    string
-	Title    string
-	Markdown string
+	ID        string
+	Label     string
+	Title     string
+	Markdown  string
+	LabelsCSV string
 }
 
 type Relationship struct {
-	FromID string
-	ToID   string
-	Label  string
+	FromID    string
+	ToID      string
+	Label     string
+	LabelsCSV string
 }
 
 type Report struct {
@@ -143,6 +145,10 @@ type MarkdownH3Section struct {
 	Title       string
 	Description string
 	NoteIDs     []string
+	Arguments   []string
+	Path        string
+	H2Title     string
+	ReportTitle string
 }
 
 type ArgumentScope string

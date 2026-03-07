@@ -16,6 +16,11 @@ const namesFixturePath = join(rootDir, 'testdata', 'names.raw.json');
 const lintFixturePath = join(rootDir, 'testdata', 'lint.raw.json');
 const orphansFixturePath = join(rootDir, 'testdata', 'orphans.raw.json');
 const markdownFixturePath = join(rootDir, 'testdata', 'markdown.raw.json');
+const markdownGraphFixturePath = join(
+  rootDir,
+  'testdata',
+  'markdown.graph.raw.json',
+);
 
 function runFlyb(args: string[]) {
   const result = Bun.spawnSync({
@@ -137,6 +142,27 @@ test('flyb generate markdown writes deterministic report files', () => {
     expect(bytesHex(got.stderr)).toBe('');
     expect(bytesHex(gotAlpha)).toBe(bytesHex(wantAlpha));
     expect(bytesHex(gotBeta)).toBe(bytesHex(wantBeta));
+  } finally {
+    rmSync(fixture.dir, { recursive: true, force: true });
+  }
+});
+
+test('flyb generate markdown renders graph sections', () => {
+  const fixture = makeTempFixture(markdownGraphFixturePath);
+  try {
+    const got = runFlyb([
+      'generate',
+      'markdown',
+      '--config',
+      fixture.configPath,
+    ]);
+    const want = readGolden('generate-markdown-graph.golden');
+    const gotGraph = readFileSync(join(fixture.dir, 'out', 'graph.md'));
+
+    expect(got.exitCode).toBe(0);
+    expect(bytesHex(got.stdout)).toBe('');
+    expect(bytesHex(got.stderr)).toBe('');
+    expect(bytesHex(gotGraph)).toBe(bytesHex(want));
   } finally {
     rmSync(fixture.dir, { recursive: true, force: true });
   }

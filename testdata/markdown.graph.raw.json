@@ -1,0 +1,122 @@
+{
+  "source": "markdown-graph-app",
+  "name": "markdown-graph-app",
+  "modules": ["core"],
+  "reports": [
+    {
+      "title": "Graph Report",
+      "filepath": "out/graph.md",
+      "description": "Graph report intro.",
+      "sections": [
+        {
+          "title": "Topology",
+          "description": "Graph section.",
+          "sections": [
+            {
+              "title": "Tree View",
+              "description": "Tree graph.",
+              "arguments": [
+                "graph-subject-label=graph",
+                "graph-edge-label=tree",
+                "graph-start-node=root"
+              ]
+            },
+            {
+              "title": "DAG View",
+              "description": "Dag graph.",
+              "arguments": [
+                "graph-subject-label=graph",
+                "graph-edge-label=dag",
+                "graph-start-node=dag.a"
+              ]
+            },
+            {
+              "title": "Cycle View",
+              "description": "Cycle graph.",
+              "arguments": [
+                "graph-subject-label=graph",
+                "graph-edge-label=cycle",
+                "graph-start-node=cy.a",
+                "cycle-policy=allow"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "name": "root",
+      "title": "Root",
+      "markdown": "root body",
+      "labels": ["graph"]
+    },
+    {
+      "name": "left",
+      "title": "Left",
+      "markdown": "left body",
+      "labels": ["graph"]
+    },
+    {
+      "name": "right",
+      "title": "Right",
+      "markdown": "right body",
+      "labels": ["graph"]
+    },
+
+    { "name": "dag.a", "title": "A", "markdown": "a", "labels": ["graph"] },
+    { "name": "dag.b", "title": "B", "markdown": "b", "labels": ["graph"] },
+    { "name": "dag.c", "title": "C", "markdown": "c", "labels": ["graph"] },
+    { "name": "dag.d", "title": "D", "markdown": "d", "labels": ["graph"] },
+
+    { "name": "cy.a", "title": "CyA", "markdown": "ca", "labels": ["graph"] },
+    { "name": "cy.b", "title": "CyB", "markdown": "cb", "labels": ["graph"] },
+    { "name": "cy.c", "title": "CyC", "markdown": "cc", "labels": ["graph"] }
+  ],
+  "relationships": [
+    { "from": "root", "to": "left", "label": "tree", "labels": ["tree"] },
+    { "from": "root", "to": "right", "label": "tree", "labels": ["tree"] },
+
+    { "from": "dag.a", "to": "dag.b", "label": "dag", "labels": ["dag"] },
+    { "from": "dag.a", "to": "dag.c", "label": "dag", "labels": ["dag"] },
+    { "from": "dag.b", "to": "dag.d", "label": "dag", "labels": ["dag"] },
+    { "from": "dag.c", "to": "dag.d", "label": "dag", "labels": ["dag"] },
+
+    { "from": "cy.a", "to": "cy.b", "label": "cycle", "labels": ["cycle"] },
+    { "from": "cy.b", "to": "cy.c", "label": "cycle", "labels": ["cycle"] },
+    { "from": "cy.c", "to": "cy.a", "label": "cycle", "labels": ["cycle"] }
+  ],
+  "argumentRegistry": {
+    "version": "1",
+    "arguments": [
+      {
+        "name": "graph-subject-label",
+        "valueType": "string",
+        "scopes": ["h3-section"]
+      },
+      {
+        "name": "graph-edge-label",
+        "valueType": "string",
+        "scopes": ["h3-section"]
+      },
+      {
+        "name": "graph-counterpart-label",
+        "valueType": "string",
+        "scopes": ["h3-section"]
+      },
+      {
+        "name": "graph-start-node",
+        "valueType": "string",
+        "scopes": ["h3-section"]
+      },
+      {
+        "name": "cycle-policy",
+        "valueType": "enum",
+        "scopes": ["h3-section"],
+        "allowedValues": ["allow", "disallow"],
+        "defaultValue": "disallow"
+      }
+    ]
+  }
+}

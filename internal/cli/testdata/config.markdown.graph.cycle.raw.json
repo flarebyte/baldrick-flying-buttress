@@ -1,0 +1,67 @@
+{
+  "source": "markdown-graph-cycle-app",
+  "name": "markdown-graph-cycle-app",
+  "modules": ["core"],
+  "reports": [
+    {
+      "title": "Cycle Report",
+      "filepath": "out/cycle.md",
+      "description": "Cycle report intro.",
+      "sections": [
+        {
+          "title": "Topology",
+          "description": "Cycle section.",
+          "sections": [
+            {
+              "title": "Cycle Disallow",
+              "description": "Should skip due to cycle.",
+              "arguments": [
+                "graph-subject-label=graph",
+                "graph-edge-label=cycle",
+                "graph-start-node=cy.a",
+                "cycle-policy=disallow"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    { "name": "cy.a", "title": "CyA", "markdown": "ca", "labels": ["graph"] },
+    { "name": "cy.b", "title": "CyB", "markdown": "cb", "labels": ["graph"] },
+    { "name": "cy.c", "title": "CyC", "markdown": "cc", "labels": ["graph"] }
+  ],
+  "relationships": [
+    { "from": "cy.a", "to": "cy.b", "label": "cycle", "labels": ["cycle"] },
+    { "from": "cy.b", "to": "cy.c", "label": "cycle", "labels": ["cycle"] },
+    { "from": "cy.c", "to": "cy.a", "label": "cycle", "labels": ["cycle"] }
+  ],
+  "argumentRegistry": {
+    "version": "1",
+    "arguments": [
+      {
+        "name": "graph-subject-label",
+        "valueType": "string",
+        "scopes": ["h3-section"]
+      },
+      {
+        "name": "graph-edge-label",
+        "valueType": "string",
+        "scopes": ["h3-section"]
+      },
+      {
+        "name": "graph-start-node",
+        "valueType": "string",
+        "scopes": ["h3-section"]
+      },
+      {
+        "name": "cycle-policy",
+        "valueType": "enum",
+        "scopes": ["h3-section"],
+        "allowedValues": ["allow", "disallow"],
+        "defaultValue": "disallow"
+      }
+    ]
+  }
+}
