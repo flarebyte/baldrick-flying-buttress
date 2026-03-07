@@ -7,7 +7,7 @@ modules: ["design", "documentation"]
 reports: [
   {
     title: "Flow Design Overview"
-    filepath: "doc/FLOW_DESIGN.md"
+    filepath: "../design/FLOW_DESIGN.md"
     description: "Migrated flow call tree and validation pipeline design notes."
     sections: [{
       title: "Function calls tree"
@@ -28,7 +28,7 @@ reports: [
   },
   {
     title: "Use Cases"
-    filepath: "doc/USE_CASES.md"
+    filepath: "../design/USE_CASES.md"
     description: "Migrated use-case catalog."
     sections: [{
       title: "Use Cases"
@@ -42,7 +42,7 @@ reports: [
   },
   {
     title: "Implementation Considerations"
-    filepath: "doc/IMPLEMENTATIONS.md"
+    filepath: "../design/IMPLEMENTATIONS.md"
     description: "Migrated implementation guidance."
     sections: [{
       title: "Implementations"
@@ -56,7 +56,7 @@ reports: [
   },
   {
     title: "Risks Overview"
-    filepath: "doc/RISKS.md"
+    filepath: "../design/RISKS.md"
     description: "Migrated risk catalog and mitigations."
     sections: [{
       title: "Risks"

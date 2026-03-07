@@ -51,8 +51,9 @@ e2e:
 	$(BUN) test script/e2e
 
 doc-design: build-dev
-	./.e2e-bin/flyb validate --config doc/design/app.cue
-	./.e2e-bin/flyb generate markdown --config doc/design/app.cue
+	mkdir -p doc/design
+	./.e2e-bin/flyb validate --config doc/design-meta/app.cue
+	./.e2e-bin/flyb generate markdown --config doc/design-meta/app.cue
 
 perf-smoke:
 	$(GO_ENV) $(GO) test -run PerfSmoke ./internal/cli
@@ -97,7 +98,7 @@ help:
 	@printf "  build      Build Go release binaries into build/.\n"
 	@printf "  typecheck  Run TypeScript type-check only.\n"
 	@printf "  e2e        Run Bun-powered end-to-end tests.\n"
-	@printf "  doc-design Generate design docs from doc/design CUE with flyb.\n"
+	@printf "  doc-design Generate design docs in doc/design from doc/design-meta CUE.\n"
 	@printf "  perf-smoke Run deterministic moderate-size Go smoke tests.\n"
 	@printf "  test-race  Run Go tests with the race detector.\n"
 	@printf "  contract-snapshots  Run contract snapshot and contract invariants.\n"
