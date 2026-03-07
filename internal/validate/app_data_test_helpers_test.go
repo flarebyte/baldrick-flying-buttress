@@ -36,3 +36,13 @@ func validateRaw(t *testing.T, raw domain.RawApp) (domain.ValidatedApp, domain.V
 	}
 	return app, report
 }
+
+func rawAppWithMinimalShape(registry domain.RawArgumentRegistry) domain.RawApp {
+	return domain.RawApp{
+		Source:        "app",
+		Reports:       []domain.RawReport{{Title: "R", Filepath: "reports/r.md", Sections: []domain.RawReportSection{{Title: "S"}}}},
+		Notes:         []domain.RawNote{{Name: "n1", Title: "N1"}},
+		Relationships: []domain.RawRelationship{{FromID: "n1", ToID: "n2", Label: "L"}},
+		Registry:      registry,
+	}
+}

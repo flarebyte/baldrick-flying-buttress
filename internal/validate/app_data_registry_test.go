@@ -10,19 +10,13 @@ import (
 func TestAppDataValidatorRegistryDiagnostics(t *testing.T) {
 	t.Parallel()
 
-	raw := domain.RawApp{
-		Source:        "app",
-		Reports:       []domain.RawReport{{Title: "R", Filepath: "reports/r.md", Sections: []domain.RawReportSection{{Title: "S"}}}},
-		Notes:         []domain.RawNote{{Name: "n1", Title: "N1"}},
-		Relationships: []domain.RawRelationship{{FromID: "n1", ToID: "n2", Label: "L"}},
-		Registry: domain.RawArgumentRegistry{Arguments: []domain.RawArgumentDefinition{
-			{Name: "", ValueType: "", Scopes: nil},
-			{Name: "fmt", ValueType: "bogus", Scopes: []string{"bad-scope"}},
-			{Name: "mode", ValueType: "enum", Scopes: []string{"note"}, AllowedValues: []string{"a", "a"}, DefaultValue: "z"},
-			{Name: "dup", ValueType: "string", Scopes: []string{"note"}},
-			{Name: "dup", ValueType: "string", Scopes: []string{"note"}},
-		}},
-	}
+	raw := rawAppWithMinimalShape(domain.RawArgumentRegistry{Arguments: []domain.RawArgumentDefinition{
+		{Name: "", ValueType: "", Scopes: nil},
+		{Name: "fmt", ValueType: "bogus", Scopes: []string{"bad-scope"}},
+		{Name: "mode", ValueType: "enum", Scopes: []string{"note"}, AllowedValues: []string{"a", "a"}, DefaultValue: "z"},
+		{Name: "dup", ValueType: "string", Scopes: []string{"note"}},
+		{Name: "dup", ValueType: "string", Scopes: []string{"note"}},
+	}})
 
 	_, report := validateRaw(t, raw)
 
@@ -42,16 +36,10 @@ func TestAppDataValidatorRegistryDiagnostics(t *testing.T) {
 func TestAppDataValidatorRegistryNormalizedOrder(t *testing.T) {
 	t.Parallel()
 
-	raw := domain.RawApp{
-		Source:        "app",
-		Reports:       []domain.RawReport{{Title: "R", Filepath: "reports/r.md", Sections: []domain.RawReportSection{{Title: "S"}}}},
-		Notes:         []domain.RawNote{{Name: "n1", Title: "N1"}},
-		Relationships: []domain.RawRelationship{{FromID: "n1", ToID: "n2", Label: "L"}},
-		Registry: domain.RawArgumentRegistry{Arguments: []domain.RawArgumentDefinition{
-			{Name: "zeta", ValueType: "enum", Scopes: []string{"renderer", "note", "note"}, AllowedValues: []string{"b", "a", "a"}, DefaultValue: "a"},
-			{Name: "alpha", ValueType: "string", Scopes: []string{"note"}},
-		}},
-	}
+	raw := rawAppWithMinimalShape(domain.RawArgumentRegistry{Arguments: []domain.RawArgumentDefinition{
+		{Name: "zeta", ValueType: "enum", Scopes: []string{"renderer", "note", "note"}, AllowedValues: []string{"b", "a", "a"}, DefaultValue: "a"},
+		{Name: "alpha", ValueType: "string", Scopes: []string{"note"}},
+	}})
 
 	app, _ := validateRaw(t, raw)
 	if len(app.Registry.Arguments) != 2 {

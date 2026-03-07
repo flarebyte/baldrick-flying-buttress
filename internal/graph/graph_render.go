@@ -56,13 +56,10 @@ func RenderMarkdownText(ctx context.Context, selected Selected, shape Shape, pol
 }
 
 func renderTree(ctx context.Context, b *strings.Builder, nodeID string, depth int, adj map[string][]string, noteByID map[string]domain.Note, budget *renderBudget) error {
-	if err := ctx.Err(); err != nil {
+	note, ok, err := resolveRenderableNote(ctx, nodeID, noteByID, budget)
+	if err != nil {
 		return err
 	}
-	if err := budget.use(); err != nil {
-		return err
-	}
-	note, ok := noteByID[nodeID]
 	if !ok {
 		return nil
 	}
@@ -76,13 +73,10 @@ func renderTree(ctx context.Context, b *strings.Builder, nodeID string, depth in
 }
 
 func renderDAG(ctx context.Context, b *strings.Builder, nodeID string, depth int, adj map[string][]string, noteByID map[string]domain.Note, visits map[string]int, maxVisits int, budget *renderBudget) error {
-	if err := ctx.Err(); err != nil {
+	note, ok, err := resolveRenderableNote(ctx, nodeID, noteByID, budget)
+	if err != nil {
 		return err
 	}
-	if err := budget.use(); err != nil {
-		return err
-	}
-	note, ok := noteByID[nodeID]
 	if !ok {
 		return nil
 	}
@@ -105,13 +99,10 @@ func renderDAG(ctx context.Context, b *strings.Builder, nodeID string, depth int
 }
 
 func renderCyclic(ctx context.Context, b *strings.Builder, nodeID string, depth int, adj map[string][]string, noteByID map[string]domain.Note, rendered map[string]bool, stack map[string]bool, budget *renderBudget) error {
-	if err := ctx.Err(); err != nil {
+	note, ok, err := resolveRenderableNote(ctx, nodeID, noteByID, budget)
+	if err != nil {
 		return err
 	}
-	if err := budget.use(); err != nil {
-		return err
-	}
-	note, ok := noteByID[nodeID]
 	if !ok {
 		return nil
 	}
@@ -148,6 +139,17 @@ func (b *renderBudget) use() error {
 		return fmt.Errorf("graph render limit exceeded: %w", err)
 	}
 	return nil
+}
+
+func resolveRenderableNote(ctx context.Context, nodeID string, noteByID map[string]domain.Note, budget *renderBudget) (domain.Note, bool, error) {
+	if err := ctx.Err(); err != nil {
+		return domain.Note{}, false, err
+	}
+	if err := budget.use(); err != nil {
+		return domain.Note{}, false, err
+	}
+	note, ok := noteByID[nodeID]
+	return note, ok, nil
 }
 
 func writeNodeLine(b *strings.Builder, note domain.Note, depth int) {

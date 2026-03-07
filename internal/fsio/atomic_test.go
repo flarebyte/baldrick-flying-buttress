@@ -18,13 +18,7 @@ func TestWriteFileAtomicCreateNewFile(t *testing.T) {
 		t.Fatalf("write failed: %v", err)
 	}
 
-	got, err := os.ReadFile(destination)
-	if err != nil {
-		t.Fatalf("read failed: %v", err)
-	}
-	if string(got) != string(want) {
-		t.Fatalf("content mismatch\nwant: %q\ngot: %q", string(want), string(got))
-	}
+	assertFileBytes(t, destination, want)
 }
 
 func TestWriteFileAtomicReplaceExistingFile(t *testing.T) {
@@ -39,13 +33,7 @@ func TestWriteFileAtomicReplaceExistingFile(t *testing.T) {
 		t.Fatalf("replace failed: %v", err)
 	}
 
-	got, err := os.ReadFile(destination)
-	if err != nil {
-		t.Fatalf("read failed: %v", err)
-	}
-	if string(got) != string(want) {
-		t.Fatalf("content mismatch\nwant: %q\ngot: %q", string(want), string(got))
-	}
+	assertFileBytes(t, destination, want)
 }
 
 func TestWriteFileAtomicRenameFailureLeavesOriginalUnchanged(t *testing.T) {
@@ -90,15 +78,7 @@ func TestWriteFileAtomicFailureCleansTempFileBestEffort(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-	entries, listErr := os.ReadDir(dir)
-	if listErr != nil {
-		t.Fatalf("list dir failed: %v", listErr)
-	}
-	for _, entry := range entries {
-		if strings.HasPrefix(entry.Name(), ".flyb-write-") {
-			t.Fatalf("temp file not cleaned up: %s", entry.Name())
-		}
-	}
+	assertNoAtomicTempFiles(t, dir)
 }
 
 func TestWriteFileAtomicCancellationNoDestinationAndNoTempFile(t *testing.T) {
@@ -117,9 +97,25 @@ func TestWriteFileAtomicCancellationNoDestinationAndNoTempFile(t *testing.T) {
 		t.Fatalf("expected destination to not exist, got err: %v", statErr)
 	}
 
-	entries, listErr := os.ReadDir(dir)
-	if listErr != nil {
-		t.Fatalf("list dir failed: %v", listErr)
+	assertNoAtomicTempFiles(t, dir)
+}
+
+func assertFileBytes(t *testing.T, path string, want []byte) {
+	t.Helper()
+	got, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read failed: %v", err)
+	}
+	if string(got) != string(want) {
+		t.Fatalf("content mismatch\nwant: %q\ngot: %q", string(want), string(got))
+	}
+}
+
+func assertNoAtomicTempFiles(t *testing.T, dir string) {
+	t.Helper()
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatalf("list dir failed: %v", err)
 	}
 	for _, entry := range entries {
 		if strings.HasPrefix(entry.Name(), ".flyb-write-") {
