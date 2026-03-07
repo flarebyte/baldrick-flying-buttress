@@ -1,19 +1,20 @@
 package cli
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 
-	"github.com/olivier/baldrick-flying-buttress/internal/validate"
+	"github.com/olivier/baldrick-flying-buttress/internal/app"
+	"github.com/olivier/baldrick-flying-buttress/internal/diagnostics"
+	"github.com/olivier/baldrick-flying-buttress/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 
 var errValidationFailed = errors.New("validation failed")
 
-func NewRootCmd(runner validate.Runner) *cobra.Command {
+func NewRootCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "flyb",
 		Short:         "Baldrick Flying Buttress CLI",
@@ -21,12 +22,12 @@ func NewRootCmd(runner validate.Runner) *cobra.Command {
 		SilenceUsage:  true,
 	}
 
-	cmd.AddCommand(newValidateCmd(runner))
+	cmd.AddCommand(newValidateCmd(loader, validator))
 	return cmd
 }
 
-func Execute(args []string, out io.Writer, errOut io.Writer, runner validate.Runner) int {
-	cmd := NewRootCmd(runner)
+func Execute(args []string, out io.Writer, errOut io.Writer, loader pipeline.Loader, validator pipeline.Validator) int {
+	cmd := NewRootCmd(loader, validator)
 	cmd.SetOut(out)
 	cmd.SetErr(errOut)
 	cmd.SetArgs(args)
@@ -42,28 +43,26 @@ func Execute(args []string, out io.Writer, errOut io.Writer, runner validate.Run
 	return 1
 }
 
-func newValidateCmd(runner validate.Runner) *cobra.Command {
+func newValidateCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra.Command {
 	return &cobra.Command{
 		Use:   "validate",
 		Short: "Validate configuration",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			report, err := runner(context.Background())
-			if err != nil {
-				return err
-			}
+			return pipeline.Run(loader, validator, func(validated app.ValidatedApp, report diagnostics.Report) error {
+				_ = validated
+				payload, err := json.Marshal(report)
+				if err != nil {
+					return err
+				}
+				if _, err := cmd.OutOrStdout().Write(append(payload, '\n')); err != nil {
+					return err
+				}
 
-			payload, err := json.Marshal(report)
-			if err != nil {
-				return err
-			}
-			if _, err := cmd.OutOrStdout().Write(append(payload, '\n')); err != nil {
-				return err
-			}
-
-			if report.HasErrors() {
-				return errValidationFailed
-			}
-			return nil
+				if report.HasErrors() {
+					return errValidationFailed
+				}
+				return nil
+			})
 		},
 	}
 }

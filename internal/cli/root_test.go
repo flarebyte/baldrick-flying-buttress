@@ -1,11 +1,11 @@
 package cli
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/olivier/baldrick-flying-buttress/internal/app"
 	"github.com/olivier/baldrick-flying-buttress/internal/diagnostics"
 	"github.com/olivier/baldrick-flying-buttress/internal/validate"
 )
@@ -13,9 +13,12 @@ import (
 func TestValidateSuccessWarningsOnly(t *testing.T) {
 	t.Parallel()
 
-	runner := func(ctx context.Context) (diagnostics.Report, error) {
-		_ = ctx
-		return diagnostics.Report{
+	loader := func() (app.RawApp, error) {
+		return app.RawApp{Source: "in-memory-stub"}, nil
+	}
+	validator := func(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) {
+		_ = raw
+		return app.ValidatedApp{Name: "stub-app", Modules: []string{"core", "edge"}}, diagnostics.Report{
 			Diagnostics: []diagnostics.Diagnostic{
 				{
 					Code:     "FBW01",
@@ -28,7 +31,7 @@ func TestValidateSuccessWarningsOnly(t *testing.T) {
 	}
 
 	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"validate"}, &out, &errOut, runner)
+	exitCode := Execute([]string{"validate"}, &out, &errOut, loader, validator)
 
 	if exitCode != 0 {
 		t.Fatalf("expected exit code 0, got %d", exitCode)
@@ -45,9 +48,12 @@ func TestValidateSuccessWarningsOnly(t *testing.T) {
 func TestValidateFailureErrorDiagnostic(t *testing.T) {
 	t.Parallel()
 
-	runner := func(ctx context.Context) (diagnostics.Report, error) {
-		_ = ctx
-		return diagnostics.Report{
+	loader := func() (app.RawApp, error) {
+		return app.RawApp{Source: "in-memory-stub"}, nil
+	}
+	validator := func(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) {
+		_ = raw
+		return app.ValidatedApp{Name: "stub-app", Modules: []string{"core", "edge"}}, diagnostics.Report{
 			Diagnostics: []diagnostics.Diagnostic{
 				{
 					Code:     "FBE01",
@@ -60,7 +66,7 @@ func TestValidateFailureErrorDiagnostic(t *testing.T) {
 	}
 
 	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"validate"}, &out, &errOut, runner)
+	exitCode := Execute([]string{"validate"}, &out, &errOut, loader, validator)
 
 	if exitCode != 1 {
 		t.Fatalf("expected exit code 1, got %d", exitCode)
@@ -78,7 +84,7 @@ func TestValidateGoldenOutput(t *testing.T) {
 	t.Parallel()
 
 	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"validate"}, &out, &errOut, validate.RunStub)
+	exitCode := Execute([]string{"validate"}, &out, &errOut, validate.LoadStub, validate.ValidateStub)
 
 	if exitCode != 1 {
 		t.Fatalf("expected exit code 1, got %d", exitCode)
@@ -94,6 +100,32 @@ func TestValidateGoldenOutput(t *testing.T) {
 	}
 	if out.String() != string(want) {
 		t.Fatalf("golden mismatch\nwant: %q\n got: %q", string(want), out.String())
+	}
+}
+
+func TestValidateDeterministicOutputAcrossRuns(t *testing.T) {
+	t.Parallel()
+
+	var out1, errOut1 bytesBuffer
+	exitCode1 := Execute([]string{"validate"}, &out1, &errOut1, validate.LoadStub, validate.ValidateStub)
+	if exitCode1 != 1 {
+		t.Fatalf("expected first exit code 1, got %d", exitCode1)
+	}
+	if errOut1.String() != "" {
+		t.Fatalf("expected empty first stderr, got %q", errOut1.String())
+	}
+
+	var out2, errOut2 bytesBuffer
+	exitCode2 := Execute([]string{"validate"}, &out2, &errOut2, validate.LoadStub, validate.ValidateStub)
+	if exitCode2 != 1 {
+		t.Fatalf("expected second exit code 1, got %d", exitCode2)
+	}
+	if errOut2.String() != "" {
+		t.Fatalf("expected empty second stderr, got %q", errOut2.String())
+	}
+
+	if out1.String() != out2.String() {
+		t.Fatalf("non-deterministic output\nfirst: %q\nsecond: %q", out1.String(), out2.String())
 	}
 }
 
