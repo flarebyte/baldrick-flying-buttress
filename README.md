@@ -18,7 +18,14 @@ Key design principles:
 
 ## Quick start
 
-Build locally:
+Install with Homebrew:
+
+```bash
+brew install flarebyte/tap/baldrick-flying-buttress
+flyb --help
+```
+
+Build locally for development:
 
 ```bash
 make build-dev
