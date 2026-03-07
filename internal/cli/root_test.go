@@ -242,6 +242,36 @@ func TestValidateWithInvalidConfiguredArgumentsCollectsMultipleDiagnostics(t *te
 	assertOutput(t, validateStdout, validateStderr, readGolden(t, "validate_args_invalid_output.golden"), "")
 }
 
+func TestValidateWithUnknownLabelReferencesEmitsWarningsOnly(t *testing.T) {
+	t.Parallel()
+
+	configPath := filepath.Join("testdata", "config.labels.invalid.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader {
+		return load.FSAppLoader{ConfigPath: path}
+	}
+	validator := validate.AppDataValidator{}
+
+	validateCode, validateStdout, validateStderr := runCommandWithFactory(
+		[]string{"validate", "--config", configPath},
+		loaderFactory,
+		validator,
+	)
+	if validateCode != 0 {
+		t.Fatalf("expected validate exit code 0, got %d", validateCode)
+	}
+	assertOutput(t, validateStdout, validateStderr, readGolden(t, "validate_labels_invalid_output.golden"), "")
+
+	listCode, listStdout, listStderr := runCommandWithFactory(
+		[]string{"list", "reports", "--config", configPath},
+		loaderFactory,
+		validator,
+	)
+	if listCode != 0 {
+		t.Fatalf("expected list exit code 0, got %d", listCode)
+	}
+	assertOutput(t, listStdout, listStderr, readGolden(t, "list_reports_output.golden"), "")
+}
+
 func TestFilesystemLoaderDeterministicOutputAcrossRuns(t *testing.T) {
 	t.Parallel()
 

@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	schemaValidationSource     = "validate.app.data.schema"
-	registryValidationSource   = "validate.app.data.args.registry"
-	configArgsValidationSource = "validate.app.data.args.config"
+	schemaValidationSource         = "validate.app.data.schema"
+	registryValidationSource       = "validate.app.data.args.registry"
+	configArgsValidationSource     = "validate.app.data.args.config"
+	labelReferenceValidationSource = "labels.reference.validate"
 )
 
 type AppDataValidator struct {
@@ -37,11 +38,17 @@ func (v AppDataValidator) Validate(raw domain.RawApp) (domain.ValidatedApp, doma
 	v.step("args_validate_config")
 	diagnostics = append(diagnostics, validateConfiguredArguments(rawModel, registry)...)
 
+	v.step("labels_dataset_collect")
+	datasetLabels := collectDatasetLabels(rawModel)
+
+	v.step("labels_reference_validate")
+	diagnostics = append(diagnostics, validateLabelReferences(rawModel, datasetLabels)...)
+
 	v.step("diagnostics_collection")
 	diagnostics = collectDiagnostics(diagnostics)
 
 	v.step("validated_app_normalization")
-	validated := normalizeValidatedApp(rawModel, registry)
+	validated := normalizeValidatedApp(rawModel, registry, datasetLabels)
 
 	return validated, domain.ValidationReport{Diagnostics: diagnostics}.Canonical(), nil
 }
@@ -267,6 +274,56 @@ func validateConfiguredArguments(raw domain.RawApp, registry domain.ArgumentRegi
 	return diagnostics
 }
 
+func collectDatasetLabels(raw domain.RawApp) []string {
+	labels := make([]string, 0)
+	for _, note := range raw.Notes {
+		labels = append(labels, note.Labels...)
+	}
+	for _, relationship := range raw.Relationships {
+		labels = append(labels, relationship.Labels...)
+		if relationship.Label != "" {
+			labels = append(labels, relationship.Label)
+		}
+	}
+	return normalizeAllowedValues(labels)
+}
+
+func validateLabelReferences(raw domain.RawApp, labelSet []string) []domain.Diagnostic {
+	diagnostics := make([]domain.Diagnostic, 0)
+
+	for i, report := range raw.Reports {
+		for j, section := range report.Sections {
+			for k, entry := range section.Arguments {
+				name, value, ok := parseConfiguredArgument(entry)
+				if !ok || !isLabelReferenceArgument(name) {
+					continue
+				}
+				if containsString(labelSet, value) {
+					continue
+				}
+				location := fmt.Sprintf("reports[%d].sections[%d].arguments[%d]", i, j, k)
+				diagnostics = append(diagnostics, newLabelReferenceDiagnostic("LABEL_REF_UNKNOWN", "unknown label reference", location, report.Title, section.Title, "", name, value))
+			}
+		}
+	}
+
+	for i, note := range raw.Notes {
+		for j, entry := range note.Arguments {
+			name, value, ok := parseConfiguredArgument(entry)
+			if !ok || !isLabelReferenceArgument(name) {
+				continue
+			}
+			if containsString(labelSet, value) {
+				continue
+			}
+			location := fmt.Sprintf("notes[%d].arguments[%d]", i, j)
+			diagnostics = append(diagnostics, newLabelReferenceDiagnostic("LABEL_REF_UNKNOWN", "unknown label reference", location, "", "", note.Name, name, value))
+		}
+	}
+
+	return diagnostics
+}
+
 func collectDiagnostics(diagnostics []domain.Diagnostic) []domain.Diagnostic {
 	if diagnostics == nil {
 		diagnostics = []domain.Diagnostic{}
@@ -274,7 +331,7 @@ func collectDiagnostics(diagnostics []domain.Diagnostic) []domain.Diagnostic {
 	return ordering.Diagnostics(diagnostics)
 }
 
-func normalizeValidatedApp(raw domain.RawApp, registry domain.ArgumentRegistry) domain.ValidatedApp {
+func normalizeValidatedApp(raw domain.RawApp, registry domain.ArgumentRegistry, datasetLabels []string) domain.ValidatedApp {
 	reports := make([]domain.Report, 0, len(raw.Reports))
 	for _, report := range raw.Reports {
 		reports = append(reports, domain.Report{
@@ -290,7 +347,11 @@ func normalizeValidatedApp(raw domain.RawApp, registry domain.ArgumentRegistry) 
 
 	relationships := make([]domain.Relationship, 0, len(raw.Relationships))
 	for _, relationship := range raw.Relationships {
-		relationships = append(relationships, domain.Relationship(relationship))
+		relationships = append(relationships, domain.Relationship{
+			FromID: relationship.FromID,
+			ToID:   relationship.ToID,
+			Label:  relationship.Label,
+		})
 	}
 
 	return domain.ValidatedApp{
@@ -300,6 +361,7 @@ func normalizeValidatedApp(raw domain.RawApp, registry domain.ArgumentRegistry) 
 		Notes:         ordering.Notes(notes),
 		Relationships: ordering.Relationships(relationships),
 		Registry:      registry,
+		DatasetLabels: datasetLabels,
 	}
 }
 
@@ -425,6 +487,10 @@ func valueMatchesType(value string, def domain.ArgumentDefinition) bool {
 	}
 }
 
+func isLabelReferenceArgument(name string) bool {
+	return strings.HasSuffix(name, "-label")
+}
+
 func isValidValueType(valueType string) bool {
 	switch valueType {
 	case string(domain.ArgumentValueTypeString),
@@ -467,6 +533,17 @@ func newArgumentDiagnostic(code, message, location, reportTitle, sectionTitle, n
 	d.SectionTitle = sectionTitle
 	d.NoteName = noteName
 	d.ArgumentName = argumentName
+	return d
+}
+
+func newLabelReferenceDiagnostic(code, message, location, reportTitle, sectionTitle, noteName, argumentName, labelValue string) domain.Diagnostic {
+	d := newDiagnostic(labelReferenceValidationSource, code, message, location)
+	d.Severity = domain.SeverityWarning
+	d.ReportTitle = reportTitle
+	d.SectionTitle = sectionTitle
+	d.NoteName = noteName
+	d.ArgumentName = argumentName
+	d.LabelValue = labelValue
 	return d
 }
 

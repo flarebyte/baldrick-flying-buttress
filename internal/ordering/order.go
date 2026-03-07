@@ -27,6 +27,9 @@ func Diagnostics(in []domain.Diagnostic) []domain.Diagnostic {
 		if v := cmpString(a.ArgumentName, b.ArgumentName); v != 0 {
 			return v
 		}
+		if v := cmpString(a.LabelValue, b.LabelValue); v != 0 {
+			return v
+		}
 		return cmpString(a.Message, b.Message)
 	})
 	return out

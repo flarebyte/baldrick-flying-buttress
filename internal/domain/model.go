@@ -15,12 +15,14 @@ type RawNote struct {
 	Name      string   `json:"name"`
 	Title     string   `json:"title"`
 	Arguments []string `json:"arguments"`
+	Labels    []string `json:"labels"`
 }
 
 type RawRelationship struct {
-	FromID string `json:"from"`
-	ToID   string `json:"to"`
-	Label  string `json:"label"`
+	FromID string   `json:"from"`
+	ToID   string   `json:"to"`
+	Label  string   `json:"label"`
+	Labels []string `json:"labels"`
 }
 
 type RawArgumentDefinition struct {
@@ -65,6 +67,7 @@ type Diagnostic struct {
 	SectionTitle string   `json:"sectionTitle,omitempty"`
 	NoteName     string   `json:"noteName,omitempty"`
 	ArgumentName string   `json:"argumentName,omitempty"`
+	LabelValue   string   `json:"labelValue,omitempty"`
 }
 
 type ValidationReport struct {
@@ -142,4 +145,5 @@ type ValidatedApp struct {
 	Notes         []Note
 	Relationships []Relationship
 	Registry      ArgumentRegistry
+	DatasetLabels []string
 }

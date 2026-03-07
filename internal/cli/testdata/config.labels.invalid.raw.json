@@ -1,0 +1,67 @@
+{
+  "source": "cli-invalid-label-refs",
+  "name": "stub-app",
+  "modules": ["core", "edge"],
+  "reports": [
+    {
+      "title": "CPU Overview",
+      "filepath": "reports/cpu-overview.md",
+      "sections": [
+        {
+          "title": "Overview",
+          "arguments": [
+            "orphan-subject-label=service.api",
+            "orphan-edge-label=missing-edge",
+            "orphan-counterpart-label=missing-counterpart"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Memory Health",
+      "filepath": "reports/memory-health.md",
+      "sections": [{ "title": "Overview" }]
+    }
+  ],
+  "notes": [
+    {
+      "name": "n1",
+      "title": "service.api",
+      "labels": ["service.api"],
+      "arguments": ["orphan-subject-label=missing-note"]
+    },
+    {
+      "name": "n2",
+      "title": "service.db",
+      "labels": ["service.db"]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "n1",
+      "to": "n2",
+      "label": "depends_on",
+      "labels": ["depends_on"]
+    }
+  ],
+  "argumentRegistry": {
+    "version": "v1",
+    "arguments": [
+      {
+        "name": "orphan-subject-label",
+        "valueType": "string",
+        "scopes": ["h3-section", "note"]
+      },
+      {
+        "name": "orphan-edge-label",
+        "valueType": "string",
+        "scopes": ["h3-section"]
+      },
+      {
+        "name": "orphan-counterpart-label",
+        "valueType": "string",
+        "scopes": ["h3-section"]
+      }
+    ]
+  }
+}
