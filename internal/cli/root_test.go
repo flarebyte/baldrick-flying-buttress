@@ -1,11 +1,13 @@
 package cli
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/pipeline"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/validate"
 )
@@ -68,8 +70,8 @@ func TestValidateFailureErrorDiagnostic(t *testing.T) {
 	var out, errOut bytesBuffer
 	exitCode := Execute([]string{"validate"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
 
-	if exitCode != 1 {
-		t.Fatalf("expected exit code 1, got %d", exitCode)
+	if exitCode != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, exitCode)
 	}
 	want := "{\"diagnostics\":[{\"code\":\"FBE01\",\"severity\":\"error\",\"message\":\"error diagnostic\",\"path\":\"module.stub\"}]}\n"
 	if out.String() != want {
@@ -86,8 +88,8 @@ func TestValidateGoldenOutput(t *testing.T) {
 	var out, errOut bytesBuffer
 	exitCode := Execute([]string{"validate"}, &out, &errOut, validate.StubAppLoader{}, validate.StubAppValidator{})
 
-	if exitCode != 1 {
-		t.Fatalf("expected exit code 1, got %d", exitCode)
+	if exitCode != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, exitCode)
 	}
 	if errOut.String() != "" {
 		t.Fatalf("expected empty stderr, got %q", errOut.String())
@@ -190,8 +192,8 @@ func TestListReportsBlockedOnErrorDiagnostic(t *testing.T) {
 
 	var out, errOut bytesBuffer
 	exitCode := Execute([]string{"list", "reports"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
-	if exitCode != 1 {
-		t.Fatalf("expected exit code 1, got %d", exitCode)
+	if exitCode != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, exitCode)
 	}
 	if out.String() != "" {
 		t.Fatalf("expected empty stdout, got %q", out.String())
@@ -296,14 +298,39 @@ func TestGenerateJSONBlockedOnErrorDiagnostic(t *testing.T) {
 
 	var out, errOut bytesBuffer
 	exitCode := Execute([]string{"generate", "json"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
-	if exitCode != 1 {
-		t.Fatalf("expected exit code 1, got %d", exitCode)
+	if exitCode != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, exitCode)
 	}
 	if out.String() != "" {
 		t.Fatalf("expected empty stdout, got %q", out.String())
 	}
 	if errOut.String() != "" {
 		t.Fatalf("expected empty stderr, got %q", errOut.String())
+	}
+}
+
+func TestRuntimeFailureMapsToDistinctExitCodeAndStderr(t *testing.T) {
+	t.Parallel()
+
+	loader := func() (domain.RawApp, error) {
+		return domain.RawApp{}, errors.New("runtime exploded")
+	}
+	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
+		_ = raw
+		return domain.ValidatedApp{}, domain.ValidationReport{}, nil
+	}
+
+	var out, errOut bytesBuffer
+	exitCode := Execute([]string{"validate"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
+
+	if exitCode != outcome.ExitCodeRuntimeFailure {
+		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeRuntimeFailure, exitCode)
+	}
+	if out.String() != "" {
+		t.Fatalf("expected empty stdout, got %q", out.String())
+	}
+	if errOut.String() != "runtime exploded\n" {
+		t.Fatalf("expected stderr runtime message, got %q", errOut.String())
 	}
 }
 

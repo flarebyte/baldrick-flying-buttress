@@ -4,9 +4,8 @@ import (
 	"errors"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
 )
-
-var ErrValidationFailed = errors.New("validation failed")
 
 type AppLoader interface {
 	Load() (domain.RawApp, error)
@@ -55,7 +54,7 @@ func Run(loader AppLoader, validator AppValidator, action CommandAction) error {
 	}
 
 	if report.HasErrors() && !action.AllowOnValidationErrors() {
-		return ErrValidationFailed
+		return outcome.ValidationBlockedError()
 	}
 
 	return action.Execute(validated, report)

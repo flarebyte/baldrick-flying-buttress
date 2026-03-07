@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
 )
 
 func TestRunCallsLoadValidateAction(t *testing.T) {
@@ -84,8 +85,8 @@ func TestRunShortCircuitsActionOnValidationErrorDiagnostic(t *testing.T) {
 			allowOnValidationErrors: false,
 		},
 	)
-	if err != ErrValidationFailed {
-		t.Fatalf("expected ErrValidationFailed, got %v", err)
+	if !outcome.IsValidationBlocked(err) {
+		t.Fatalf("expected validation blocked error, got %v", err)
 	}
 	if actionCalled {
 		t.Fatal("expected action to be skipped")

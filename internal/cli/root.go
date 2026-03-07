@@ -1,11 +1,11 @@
 package cli
 
 import (
-	"errors"
 	"fmt"
 	"io"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/pipeline"
 	"github.com/spf13/cobra"
 )
@@ -31,14 +31,11 @@ func Execute(args []string, out io.Writer, errOut io.Writer, loader pipeline.App
 	cmd.SetArgs(args)
 
 	err := cmd.Execute()
-	if err == nil {
-		return 0
+	exec := outcome.FromError(err)
+	if exec.Kind == outcome.KindRuntimeFailure {
+		_, _ = fmt.Fprintln(errOut, exec.Err.Error())
 	}
-	if errors.Is(err, pipeline.ErrValidationFailed) {
-		return 1
-	}
-	_, _ = fmt.Fprintln(errOut, err.Error())
-	return 1
+	return exec.ExitCode()
 }
 
 func newValidateCmd(loader pipeline.AppLoader, validator pipeline.AppValidator) *cobra.Command {
@@ -99,7 +96,7 @@ func (a validateAction) Execute(validated domain.ValidatedApp, report domain.Val
 		return err
 	}
 	if report.HasErrors() {
-		return pipeline.ErrValidationFailed
+		return outcome.ValidationBlockedError()
 	}
 	return nil
 }
