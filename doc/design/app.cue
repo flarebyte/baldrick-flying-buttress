@@ -10,11 +10,18 @@ reports: [
     filepath: "doc/FLOW_DESIGN.md"
     description: "Migrated flow call tree and validation pipeline design notes."
     sections: [{
-      title: "Flow"
-      description: "Flow call notes."
+      title: "Function calls tree"
+      description: ""
       sections: [{
-        title: "Flow Calls"
+        title: "Flow call graph"
         description: "Generated from design/flows.ts."
+        arguments: [
+          "graph-subject-label=call",
+          "graph-edge-label=contains_step",
+          "graph-start-node=cli.root",
+          "graph-renderer=markdown-text",
+          "cycle-policy=disallow",
+        ]
         notes: ["action.generate.json", "action.generate.markdown", "action.generate.markdown.section.h3", "action.generate.markdown.sections", "action.lint.names", "action.lint.orphans", "action.list.names", "action.list.reports", "action.validate", "app.model.normalize", "args.coerce.typed", "args.h3.resolve", "args.note.resolve", "args.orphan.query.resolve", "args.registry.resolve", "args.registry.validate", "args.renderer.resolve", "args.validate.config", "args.validate.runtime", "cli.root", "diagnostics.collect.validation", "diagnostics.emit.structured", "export.graph.json", "file.csv.filter", "graph.integrity.check.cross-report-references", "graph.integrity.check.duplicate-note-names", "graph.integrity.check.missing-nodes", "graph.integrity.check.orphans", "graph.integrity.policy.resolve", "graph.integrity.validate", "graph.policy.cycle", "graph.select", "graph.shape.detect", "labels.dataset.collect", "labels.reference.validate", "lint.names.notes", "lint.names.policy.resolve", "lint.names.relationships", "lint.orphans.emit", "lint.orphans.query.resolve", "list.reports.output", "load.app.data", "names.filter.kind", "names.filter.prefix", "names.output.json", "names.output.table", "ordering.apply.deterministic", "ordering.policy.resolve", "orphans.query.find", "orphans.render.rows", "render.graph.circular", "render.graph.markdown.text", "render.graph.mermaid", "render.graph.tree-or-dag", "render.section.file", "render.section.file.code", "render.section.file.csv", "render.section.file.media", "render.section.graph", "render.section.orphans", "render.section.plain", "renderer.plugin.select", "renderer.registry.resolve", "validate.app.data", "validate.cue.schema"]
       }]
     }]
