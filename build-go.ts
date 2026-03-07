@@ -158,9 +158,12 @@ async function main() {
     }
 
     const out = path.join('build', `${folderName}-${p.os}-${p.arch}`);
-    await runChecked(['go', 'build', '-o', out, '-ldflags', ldflags, './cmd/flyb'], {
-      env,
-    });
+    await runChecked(
+      ['go', 'build', '-o', out, '-ldflags', ldflags, './cmd/flyb'],
+      {
+        env,
+      },
+    );
     builtFiles.push(out);
   }
 

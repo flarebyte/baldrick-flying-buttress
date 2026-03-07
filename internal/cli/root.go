@@ -2,10 +2,13 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"runtime"
 
+	"github.com/flarebyte/baldrick-flying-buttress/internal/buildinfo"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
 	clioutput "github.com/flarebyte/baldrick-flying-buttress/internal/output"
@@ -25,19 +28,54 @@ func NewRootCmd(loader pipeline.AppLoader, validator pipeline.AppValidator) *cob
 
 func NewRootCmdWithFactory(loaderFactory LoaderFactory, validator pipeline.AppValidator) *cobra.Command {
 	var configPath string
+	var showVersion bool
 	cmd := &cobra.Command{
-		Use:           "flyb",
-		Short:         "Baldrick Flying Buttress CLI",
+		Use:   "flyb",
+		Short: "Build, inspect, lint, and generate structured graph-driven reports",
+		Long: "flyb validates application graph configuration and provides deterministic\n" +
+			"commands to list entities, run lint checks, and generate JSON or markdown outputs.",
 		SilenceErrors: true,
 		SilenceUsage:  true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if showVersion {
+				return emitVersionJSON(cmd.OutOrStdout())
+			}
+			return cmd.Help()
+		},
 	}
 	cmd.PersistentFlags().StringVar(&configPath, "config", defaultConfigPath, "Path to raw app config file")
+	cmd.PersistentFlags().BoolVar(&showVersion, "version", false, "Print detailed version metadata as JSON")
 
 	cmd.AddCommand(newValidateCmd(loaderFactory, validator, &configPath))
 	cmd.AddCommand(newListCmd(loaderFactory, validator, &configPath))
 	cmd.AddCommand(newLintCmd(loaderFactory, validator, &configPath))
 	cmd.AddCommand(newGenerateCmd(loaderFactory, validator, &configPath))
 	return cmd
+}
+
+type versionDTO struct {
+	Version   string `json:"version"`
+	Commit    string `json:"commit"`
+	Date      string `json:"date"`
+	GoVersion string `json:"goVersion"`
+	GOOS      string `json:"goos"`
+	GOARCH    string `json:"goarch"`
+}
+
+func emitVersionJSON(w io.Writer) error {
+	data, err := json.Marshal(versionDTO{
+		Version:   buildinfo.Version,
+		Commit:    buildinfo.Commit,
+		Date:      buildinfo.Date,
+		GoVersion: runtime.Version(),
+		GOOS:      runtime.GOOS,
+		GOARCH:    runtime.GOARCH,
+	})
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(append(data, '\n'))
+	return err
 }
 
 func Execute(args []string, out io.Writer, errOut io.Writer, loader pipeline.AppLoader, validator pipeline.AppValidator) int {
