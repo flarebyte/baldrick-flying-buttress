@@ -1,6 +1,7 @@
 package output
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -16,7 +17,7 @@ func TestEmitDiagnosticsExactBytes(t *testing.T) {
 		},
 	}
 
-	var b bytesBuffer
+	var b bytes.Buffer
 	if err := EmitDiagnostics(&b, report); err != nil {
 		t.Fatalf("emit diagnostics: %v", err)
 	}
@@ -37,7 +38,7 @@ func TestEmitReportListExactBytes(t *testing.T) {
 		},
 	}
 
-	var b bytesBuffer
+	var b bytes.Buffer
 	if err := EmitReportList(&b, app); err != nil {
 		t.Fatalf("emit report list: %v", err)
 	}
@@ -62,7 +63,7 @@ func TestEmitGraphJSONExactBytes(t *testing.T) {
 		},
 	}
 
-	var b bytesBuffer
+	var b bytes.Buffer
 	if err := EmitGraphJSON(&b, app); err != nil {
 		t.Fatalf("emit graph: %v", err)
 	}
@@ -84,7 +85,7 @@ func TestEmitterOutputUnaffectedByUnmappedDomainFields(t *testing.T) {
 		},
 	}
 
-	var b bytesBuffer
+	var b bytes.Buffer
 	if err := EmitReportList(&b, app); err != nil {
 		t.Fatalf("emit report list: %v", err)
 	}
@@ -93,17 +94,4 @@ func TestEmitterOutputUnaffectedByUnmappedDomainFields(t *testing.T) {
 	if b.String() != want {
 		t.Fatalf("bytes mismatch\nwant: %q\n got: %q", want, b.String())
 	}
-}
-
-type bytesBuffer struct {
-	b []byte
-}
-
-func (b *bytesBuffer) Write(p []byte) (int, error) {
-	b.b = append(b.b, p...)
-	return len(p), nil
-}
-
-func (b *bytesBuffer) String() string {
-	return string(b.b)
 }

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"errors"
 	"os"
 	"path/filepath"
@@ -15,405 +16,247 @@ import (
 func TestValidateSuccessWarningsOnly(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (domain.RawApp, error) {
-		return domain.RawApp{Source: "in-memory-stub"}, nil
-	}
-	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
-		_ = raw
-		return domain.ValidatedApp{Name: "stub-app", Modules: []string{"core", "edge"}}, domain.ValidationReport{
-			Diagnostics: []domain.Diagnostic{
-				{
-					Code:     "FBW01",
-					Severity: domain.SeverityWarning,
-					Message:  "warning only",
-					Path:     "module.stub",
-				},
-			},
-		}, nil
-	}
+	app := listValidatedApp()
+	report := domain.ValidationReport{Diagnostics: []domain.Diagnostic{{
+		Code:     "FBW01",
+		Severity: domain.SeverityWarning,
+		Message:  "warning only",
+		Path:     "module.stub",
+	}}}
 
-	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"validate"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
-
+	exitCode, stdout, stderr := runCommand([]string{"validate"}, stubLoader(), validatorWith(app, report, nil))
 	if exitCode != 0 {
 		t.Fatalf("expected exit code 0, got %d", exitCode)
 	}
 	want := "{\"diagnostics\":[{\"code\":\"FBW01\",\"severity\":\"warning\",\"message\":\"warning only\",\"path\":\"module.stub\"}]}\n"
-	if out.String() != want {
-		t.Fatalf("stdout mismatch\nwant: %q\n got: %q", want, out.String())
-	}
-	if errOut.String() != "" {
-		t.Fatalf("expected empty stderr, got %q", errOut.String())
-	}
+	assertOutput(t, stdout, stderr, want, "")
 }
 
 func TestValidateFailureErrorDiagnostic(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (domain.RawApp, error) {
-		return domain.RawApp{Source: "in-memory-stub"}, nil
-	}
-	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
-		_ = raw
-		return domain.ValidatedApp{Name: "stub-app", Modules: []string{"core", "edge"}}, domain.ValidationReport{
-			Diagnostics: []domain.Diagnostic{
-				{
-					Code:     "FBE01",
-					Severity: domain.SeverityError,
-					Message:  "error diagnostic",
-					Path:     "module.stub",
-				},
-			},
-		}, nil
-	}
+	app := listValidatedApp()
+	report := domain.ValidationReport{Diagnostics: []domain.Diagnostic{{
+		Code:     "FBE01",
+		Severity: domain.SeverityError,
+		Message:  "error diagnostic",
+		Path:     "module.stub",
+	}}}
 
-	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"validate"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
-
+	exitCode, stdout, stderr := runCommand([]string{"validate"}, stubLoader(), validatorWith(app, report, nil))
 	if exitCode != outcome.ExitCodeValidationBlocked {
 		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, exitCode)
 	}
 	want := "{\"diagnostics\":[{\"code\":\"FBE01\",\"severity\":\"error\",\"message\":\"error diagnostic\",\"path\":\"module.stub\"}]}\n"
-	if out.String() != want {
-		t.Fatalf("stdout mismatch\nwant: %q\n got: %q", want, out.String())
-	}
-	if errOut.String() != "" {
-		t.Fatalf("expected empty stderr, got %q", errOut.String())
-	}
+	assertOutput(t, stdout, stderr, want, "")
 }
 
 func TestValidateGoldenOutput(t *testing.T) {
 	t.Parallel()
 
-	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"validate"}, &out, &errOut, validate.StubAppLoader{}, validate.StubAppValidator{})
-
+	exitCode, stdout, stderr := runCommand([]string{"validate"}, validate.StubAppLoader{}, validate.StubAppValidator{})
 	if exitCode != outcome.ExitCodeValidationBlocked {
 		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, exitCode)
 	}
-	if errOut.String() != "" {
-		t.Fatalf("expected empty stderr, got %q", errOut.String())
-	}
-
-	goldenPath := filepath.Join("testdata", "validate_output.golden")
-	want, err := os.ReadFile(goldenPath)
-	if err != nil {
-		t.Fatalf("read golden: %v", err)
-	}
-	if out.String() != string(want) {
-		t.Fatalf("golden mismatch\nwant: %q\n got: %q", string(want), out.String())
-	}
-}
-
-func TestValidateDeterministicOutputAcrossRuns(t *testing.T) {
-	t.Parallel()
-
-	var out1, errOut1 bytesBuffer
-	exitCode1 := Execute([]string{"validate"}, &out1, &errOut1, validate.StubAppLoader{}, validate.StubAppValidator{})
-	if exitCode1 != 1 {
-		t.Fatalf("expected first exit code 1, got %d", exitCode1)
-	}
-	if errOut1.String() != "" {
-		t.Fatalf("expected empty first stderr, got %q", errOut1.String())
-	}
-
-	var out2, errOut2 bytesBuffer
-	exitCode2 := Execute([]string{"validate"}, &out2, &errOut2, validate.StubAppLoader{}, validate.StubAppValidator{})
-	if exitCode2 != 1 {
-		t.Fatalf("expected second exit code 1, got %d", exitCode2)
-	}
-	if errOut2.String() != "" {
-		t.Fatalf("expected empty second stderr, got %q", errOut2.String())
-	}
-
-	if out1.String() != out2.String() {
-		t.Fatalf("non-deterministic output\nfirst: %q\nsecond: %q", out1.String(), out2.String())
-	}
+	assertOutput(t, stdout, stderr, readGolden(t, "validate_output.golden"), "")
 }
 
 func TestListReportsGoldenOutput(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (domain.RawApp, error) {
-		return domain.RawApp{Source: "in-memory-stub"}, nil
-	}
-	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
-		_ = raw
-		return listValidatedApp(), domain.ValidationReport{
-			Diagnostics: []domain.Diagnostic{
-				{
-					Code:     "FBW01",
-					Severity: domain.SeverityWarning,
-					Message:  "warning only",
-					Path:     "module.stub",
-				},
-			},
-		}, nil
-	}
+	report := domain.ValidationReport{Diagnostics: []domain.Diagnostic{{
+		Code:     "FBW01",
+		Severity: domain.SeverityWarning,
+		Message:  "warning only",
+		Path:     "module.stub",
+	}}}
 
-	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"list", "reports"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
+	exitCode, stdout, stderr := runCommand([]string{"list", "reports"}, stubLoader(), validatorWith(listValidatedApp(), report, nil))
 	if exitCode != 0 {
 		t.Fatalf("expected exit code 0, got %d", exitCode)
 	}
-	if errOut.String() != "" {
-		t.Fatalf("expected empty stderr, got %q", errOut.String())
-	}
-
-	goldenPath := filepath.Join("testdata", "list_reports_output.golden")
-	want, err := os.ReadFile(goldenPath)
-	if err != nil {
-		t.Fatalf("read golden: %v", err)
-	}
-	if out.String() != string(want) {
-		t.Fatalf("golden mismatch\nwant: %q\n got: %q", string(want), out.String())
-	}
+	assertOutput(t, stdout, stderr, readGolden(t, "list_reports_output.golden"), "")
 }
 
 func TestListReportsBlockedOnErrorDiagnostic(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (domain.RawApp, error) {
-		return domain.RawApp{Source: "in-memory-stub"}, nil
-	}
-	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
-		_ = raw
-		return listValidatedApp(), domain.ValidationReport{
-			Diagnostics: []domain.Diagnostic{
-				{
-					Code:     "FBE01",
-					Severity: domain.SeverityError,
-					Message:  "error diagnostic",
-					Path:     "module.stub",
-				},
-			},
-		}, nil
-	}
+	report := domain.ValidationReport{Diagnostics: []domain.Diagnostic{{
+		Code:     "FBE01",
+		Severity: domain.SeverityError,
+		Message:  "error diagnostic",
+		Path:     "module.stub",
+	}}}
 
-	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"list", "reports"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
+	exitCode, stdout, stderr := runCommand([]string{"list", "reports"}, stubLoader(), validatorWith(listValidatedApp(), report, nil))
 	if exitCode != outcome.ExitCodeValidationBlocked {
 		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, exitCode)
 	}
-	if out.String() != "" {
-		t.Fatalf("expected empty stdout, got %q", out.String())
-	}
-	if errOut.String() != "" {
-		t.Fatalf("expected empty stderr, got %q", errOut.String())
-	}
-}
-
-func TestListReportsDeterministicOutputAcrossRuns(t *testing.T) {
-	t.Parallel()
-
-	loader := func() (domain.RawApp, error) {
-		return domain.RawApp{Source: "in-memory-stub"}, nil
-	}
-	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
-		_ = raw
-		return listValidatedApp(), domain.ValidationReport{}, nil
-	}
-
-	var out1, errOut1 bytesBuffer
-	exitCode1 := Execute([]string{"list", "reports"}, &out1, &errOut1, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
-	if exitCode1 != 0 {
-		t.Fatalf("expected first exit code 0, got %d", exitCode1)
-	}
-	if errOut1.String() != "" {
-		t.Fatalf("expected empty first stderr, got %q", errOut1.String())
-	}
-
-	var out2, errOut2 bytesBuffer
-	exitCode2 := Execute([]string{"list", "reports"}, &out2, &errOut2, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
-	if exitCode2 != 0 {
-		t.Fatalf("expected second exit code 0, got %d", exitCode2)
-	}
-	if errOut2.String() != "" {
-		t.Fatalf("expected empty second stderr, got %q", errOut2.String())
-	}
-
-	if out1.String() != out2.String() {
-		t.Fatalf("non-deterministic output\nfirst: %q\nsecond: %q", out1.String(), out2.String())
-	}
+	assertOutput(t, stdout, stderr, "", "")
 }
 
 func TestGenerateJSONGoldenOutput(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (domain.RawApp, error) {
-		return domain.RawApp{Source: "in-memory-stub"}, nil
-	}
-	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
-		_ = raw
-		return listValidatedApp(), domain.ValidationReport{
-			Diagnostics: []domain.Diagnostic{
-				{
-					Code:     "FBW01",
-					Severity: domain.SeverityWarning,
-					Message:  "warning only",
-					Path:     "module.stub",
-				},
-			},
-		}, nil
-	}
+	report := domain.ValidationReport{Diagnostics: []domain.Diagnostic{{
+		Code:     "FBW01",
+		Severity: domain.SeverityWarning,
+		Message:  "warning only",
+		Path:     "module.stub",
+	}}}
 
-	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"generate", "json"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
+	exitCode, stdout, stderr := runCommand([]string{"generate", "json"}, stubLoader(), validatorWith(listValidatedApp(), report, nil))
 	if exitCode != 0 {
 		t.Fatalf("expected exit code 0, got %d", exitCode)
 	}
-	if errOut.String() != "" {
-		t.Fatalf("expected empty stderr, got %q", errOut.String())
-	}
-
-	goldenPath := filepath.Join("testdata", "generate_json_output.golden")
-	want, err := os.ReadFile(goldenPath)
-	if err != nil {
-		t.Fatalf("read golden: %v", err)
-	}
-	if out.String() != string(want) {
-		t.Fatalf("golden mismatch\nwant: %q\n got: %q", string(want), out.String())
-	}
+	assertOutput(t, stdout, stderr, readGolden(t, "generate_json_output.golden"), "")
 }
 
 func TestGenerateJSONBlockedOnErrorDiagnostic(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (domain.RawApp, error) {
-		return domain.RawApp{Source: "in-memory-stub"}, nil
-	}
-	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
-		_ = raw
-		return listValidatedApp(), domain.ValidationReport{
-			Diagnostics: []domain.Diagnostic{
-				{
-					Code:     "FBE01",
-					Severity: domain.SeverityError,
-					Message:  "error diagnostic",
-					Path:     "module.stub",
-				},
-			},
-		}, nil
-	}
+	report := domain.ValidationReport{Diagnostics: []domain.Diagnostic{{
+		Code:     "FBE01",
+		Severity: domain.SeverityError,
+		Message:  "error diagnostic",
+		Path:     "module.stub",
+	}}}
 
-	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"generate", "json"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
+	exitCode, stdout, stderr := runCommand([]string{"generate", "json"}, stubLoader(), validatorWith(listValidatedApp(), report, nil))
 	if exitCode != outcome.ExitCodeValidationBlocked {
 		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, exitCode)
 	}
-	if out.String() != "" {
-		t.Fatalf("expected empty stdout, got %q", out.String())
-	}
-	if errOut.String() != "" {
-		t.Fatalf("expected empty stderr, got %q", errOut.String())
-	}
+	assertOutput(t, stdout, stderr, "", "")
 }
 
 func TestRuntimeFailureMapsToDistinctExitCodeAndStderr(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (domain.RawApp, error) {
-		return domain.RawApp{}, errors.New("runtime exploded")
-	}
-	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
-		_ = raw
+	runtimeErr := errors.New("runtime exploded")
+	loader := pipeline.LoaderFunc(func() (domain.RawApp, error) {
+		return domain.RawApp{}, runtimeErr
+	})
+	validator := pipeline.ValidatorFunc(func(domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 		return domain.ValidatedApp{}, domain.ValidationReport{}, nil
-	}
+	})
 
-	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"validate"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
-
+	exitCode, stdout, stderr := runCommand([]string{"validate"}, loader, validator)
 	if exitCode != outcome.ExitCodeRuntimeFailure {
 		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeRuntimeFailure, exitCode)
 	}
-	if out.String() != "" {
-		t.Fatalf("expected empty stdout, got %q", out.String())
-	}
-	if errOut.String() != "runtime exploded\n" {
-		t.Fatalf("expected stderr runtime message, got %q", errOut.String())
-	}
+	assertOutput(t, stdout, stderr, "", "runtime exploded\n")
 }
 
 func TestCanonicalOrderingFromDifferentInputOrdersProducesIdenticalOutput(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (domain.RawApp, error) {
-		return domain.RawApp{Source: "in-memory-stub"}, nil
-	}
-	validatorOrdered := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
-		_ = raw
-		return orderedValidatedAppForOrdering(), domain.ValidationReport{
-			Diagnostics: []domain.Diagnostic{
-				{Code: "FB001", Severity: domain.SeverityWarning, Message: "w", Path: "p1"},
-				{Code: "FB002", Severity: domain.SeverityError, Message: "e", Path: "p2"},
-			},
-		}, nil
-	}
-	validatorUnordered := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
-		_ = raw
-		return unorderedValidatedApp(), domain.ValidationReport{
-			Diagnostics: []domain.Diagnostic{
-				{Code: "FB002", Severity: domain.SeverityError, Message: "e", Path: "p2"},
-				{Code: "FB001", Severity: domain.SeverityWarning, Message: "w", Path: "p1"},
-			},
-		}, nil
-	}
+	orderedReport := domain.ValidationReport{Diagnostics: []domain.Diagnostic{
+		{Code: "FB001", Severity: domain.SeverityWarning, Message: "w", Path: "p1"},
+		{Code: "FB002", Severity: domain.SeverityError, Message: "e", Path: "p2"},
+	}}
+	unorderedReport := domain.ValidationReport{Diagnostics: []domain.Diagnostic{
+		{Code: "FB002", Severity: domain.SeverityError, Message: "e", Path: "p2"},
+		{Code: "FB001", Severity: domain.SeverityWarning, Message: "w", Path: "p1"},
+	}}
 
-	commands := [][]string{
-		{"validate"},
-		{"list", "reports"},
-		{"generate", "json"},
-	}
-	for _, args := range commands {
-		var outOrdered, errOrdered bytesBuffer
-		codeOrdered := Execute(args, &outOrdered, &errOrdered, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validatorOrdered))
+	orderedValidator := validatorWith(orderedValidatedAppForOrdering(), orderedReport, nil)
+	unorderedValidator := validatorWith(unorderedValidatedApp(), unorderedReport, nil)
 
-		var outUnordered, errUnordered bytesBuffer
-		codeUnordered := Execute(args, &outUnordered, &errUnordered, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validatorUnordered))
+	for _, args := range [][]string{{"validate"}, {"list", "reports"}, {"generate", "json"}} {
+		orderedCode, orderedStdout, orderedStderr := runCommand(args, stubLoader(), orderedValidator)
+		unorderedCode, unorderedStdout, unorderedStderr := runCommand(args, stubLoader(), unorderedValidator)
 
-		if codeOrdered != codeUnordered {
-			t.Fatalf("exit code mismatch for %v: %d vs %d", args, codeOrdered, codeUnordered)
+		if orderedCode != unorderedCode {
+			t.Fatalf("exit code mismatch for %v: %d vs %d", args, orderedCode, unorderedCode)
 		}
-		if outOrdered.String() != outUnordered.String() {
-			t.Fatalf("stdout mismatch for %v\nordered: %q\nunordered: %q", args, outOrdered.String(), outUnordered.String())
+		if orderedStdout != unorderedStdout {
+			t.Fatalf("stdout mismatch for %v\nordered: %q\nunordered: %q", args, orderedStdout, unorderedStdout)
 		}
-		if errOrdered.String() != errUnordered.String() {
-			t.Fatalf("stderr mismatch for %v\nordered: %q\nunordered: %q", args, errOrdered.String(), errUnordered.String())
+		if orderedStderr != unorderedStderr {
+			t.Fatalf("stderr mismatch for %v\nordered: %q\nunordered: %q", args, orderedStderr, unorderedStderr)
 		}
 	}
 }
 
-func TestGenerateJSONDeterministicOutputAcrossRuns(t *testing.T) {
+func TestDeterministicOutputAcrossRuns(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (domain.RawApp, error) {
+	tests := []struct {
+		name      string
+		args      []string
+		loader    pipeline.AppLoader
+		validator pipeline.AppValidator
+		exitCode  int
+	}{
+		{name: "validate", args: []string{"validate"}, loader: validate.StubAppLoader{}, validator: validate.StubAppValidator{}, exitCode: outcome.ExitCodeValidationBlocked},
+		{name: "list reports", args: []string{"list", "reports"}, loader: stubLoader(), validator: validatorWith(listValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
+		{name: "generate json", args: []string{"generate", "json"}, loader: stubLoader(), validator: validatorWith(listValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assertDeterministic(t, tc.args, tc.loader, tc.validator, tc.exitCode)
+		})
+	}
+}
+
+func assertDeterministic(t *testing.T, args []string, loader pipeline.AppLoader, validator pipeline.AppValidator, wantCode int) {
+	t.Helper()
+
+	code1, out1, err1 := runCommand(args, loader, validator)
+	if code1 != wantCode {
+		t.Fatalf("expected first exit code %d, got %d", wantCode, code1)
+	}
+	code2, out2, err2 := runCommand(args, loader, validator)
+	if code2 != wantCode {
+		t.Fatalf("expected second exit code %d, got %d", wantCode, code2)
+	}
+	if out1 != out2 {
+		t.Fatalf("non-deterministic stdout\nfirst: %q\nsecond: %q", out1, out2)
+	}
+	if err1 != err2 {
+		t.Fatalf("non-deterministic stderr\nfirst: %q\nsecond: %q", err1, err2)
+	}
+}
+
+func runCommand(args []string, loader pipeline.AppLoader, validator pipeline.AppValidator) (int, string, string) {
+	var out bytes.Buffer
+	var errOut bytes.Buffer
+	code := Execute(args, &out, &errOut, loader, validator)
+	return code, out.String(), errOut.String()
+}
+
+func stubLoader() pipeline.AppLoader {
+	return pipeline.LoaderFunc(func() (domain.RawApp, error) {
 		return domain.RawApp{Source: "in-memory-stub"}, nil
-	}
-	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
-		_ = raw
-		return listValidatedApp(), domain.ValidationReport{}, nil
-	}
+	})
+}
 
-	var out1, errOut1 bytesBuffer
-	exitCode1 := Execute([]string{"generate", "json"}, &out1, &errOut1, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
-	if exitCode1 != 0 {
-		t.Fatalf("expected first exit code 0, got %d", exitCode1)
-	}
-	if errOut1.String() != "" {
-		t.Fatalf("expected empty first stderr, got %q", errOut1.String())
-	}
+func validatorWith(app domain.ValidatedApp, report domain.ValidationReport, err error) pipeline.AppValidator {
+	return pipeline.ValidatorFunc(func(domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
+		return app, report, err
+	})
+}
 
-	var out2, errOut2 bytesBuffer
-	exitCode2 := Execute([]string{"generate", "json"}, &out2, &errOut2, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
-	if exitCode2 != 0 {
-		t.Fatalf("expected second exit code 0, got %d", exitCode2)
+func readGolden(t *testing.T, filename string) string {
+	t.Helper()
+	p := filepath.Join("testdata", filename)
+	b, err := os.ReadFile(p)
+	if err != nil {
+		t.Fatalf("read golden %s: %v", filename, err)
 	}
-	if errOut2.String() != "" {
-		t.Fatalf("expected empty second stderr, got %q", errOut2.String())
-	}
+	return string(b)
+}
 
-	if out1.String() != out2.String() {
-		t.Fatalf("non-deterministic output\nfirst: %q\nsecond: %q", out1.String(), out2.String())
+func assertOutput(t *testing.T, gotStdout, gotStderr, wantStdout, wantStderr string) {
+	t.Helper()
+	if gotStdout != wantStdout {
+		t.Fatalf("stdout mismatch\nwant: %q\n got: %q", wantStdout, gotStdout)
+	}
+	if gotStderr != wantStderr {
+		t.Fatalf("stderr mismatch\nwant: %q\n got: %q", wantStderr, gotStderr)
 	}
 }
 
@@ -422,32 +265,18 @@ func listValidatedApp() domain.ValidatedApp {
 		Name:    "stub-app",
 		Modules: []string{"core", "edge"},
 		Reports: []domain.Report{
-			{
-				ID:    "cpu-overview",
-				Title: "CPU Overview",
-			},
-			{
-				ID:    "memory-health",
-				Title: "Memory Health",
-			},
+			{ID: "cpu-overview", Title: "CPU Overview"},
+			{ID: "memory-health", Title: "Memory Health"},
 		},
 		Notes: []domain.Note{
-			{
-				ID:    "n1",
-				Label: "service.api",
-			},
-			{
-				ID:    "n2",
-				Label: "service.db",
-			},
+			{ID: "n1", Label: "service.api"},
+			{ID: "n2", Label: "service.db"},
 		},
-		Relationships: []domain.Relationship{
-			{
-				FromID: "n1",
-				ToID:   "n2",
-				Label:  "depends_on",
-			},
-		},
+		Relationships: []domain.Relationship{{
+			FromID: "n1",
+			ToID:   "n2",
+			Label:  "depends_on",
+		}},
 	}
 }
 
@@ -456,36 +285,16 @@ func unorderedValidatedApp() domain.ValidatedApp {
 		Name:    "stub-app",
 		Modules: []string{"edge", "core"},
 		Reports: []domain.Report{
-			{
-				ID:    "memory-health",
-				Title: "Memory Health",
-			},
-			{
-				ID:    "cpu-overview",
-				Title: "CPU Overview",
-			},
+			{ID: "memory-health", Title: "Memory Health"},
+			{ID: "cpu-overview", Title: "CPU Overview"},
 		},
 		Notes: []domain.Note{
-			{
-				ID:    "n2",
-				Label: "service.db",
-			},
-			{
-				ID:    "n1",
-				Label: "service.api",
-			},
+			{ID: "n2", Label: "service.db"},
+			{ID: "n1", Label: "service.api"},
 		},
 		Relationships: []domain.Relationship{
-			{
-				FromID: "n1",
-				ToID:   "n2",
-				Label:  "depends_on",
-			},
-			{
-				FromID: "n1",
-				ToID:   "n2",
-				Label:  "owns",
-			},
+			{FromID: "n1", ToID: "n2", Label: "depends_on"},
+			{FromID: "n1", ToID: "n2", Label: "owns"},
 		},
 	}
 }
@@ -495,49 +304,16 @@ func orderedValidatedAppForOrdering() domain.ValidatedApp {
 		Name:    "stub-app",
 		Modules: []string{"core", "edge"},
 		Reports: []domain.Report{
-			{
-				ID:    "cpu-overview",
-				Title: "CPU Overview",
-			},
-			{
-				ID:    "memory-health",
-				Title: "Memory Health",
-			},
+			{ID: "cpu-overview", Title: "CPU Overview"},
+			{ID: "memory-health", Title: "Memory Health"},
 		},
 		Notes: []domain.Note{
-			{
-				ID:    "n1",
-				Label: "service.api",
-			},
-			{
-				ID:    "n2",
-				Label: "service.db",
-			},
+			{ID: "n1", Label: "service.api"},
+			{ID: "n2", Label: "service.db"},
 		},
 		Relationships: []domain.Relationship{
-			{
-				FromID: "n1",
-				ToID:   "n2",
-				Label:  "depends_on",
-			},
-			{
-				FromID: "n1",
-				ToID:   "n2",
-				Label:  "owns",
-			},
+			{FromID: "n1", ToID: "n2", Label: "depends_on"},
+			{FromID: "n1", ToID: "n2", Label: "owns"},
 		},
 	}
-}
-
-type bytesBuffer struct {
-	b []byte
-}
-
-func (b *bytesBuffer) Write(p []byte) (int, error) {
-	b.b = append(b.b, p...)
-	return len(p), nil
-}
-
-func (b *bytesBuffer) String() string {
-	return string(b.b)
 }
