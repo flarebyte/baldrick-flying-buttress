@@ -1,9 +1,3 @@
-notes
-name       | title      | labels      
----------- | ---------- | ------------
-cli.root   | CLI Root   | cli, gateway
-cli.worker | CLI Worker | cli, worker 
-
 relationships
 from     | to         | labels                
 -------- | ---------- | ----------------------

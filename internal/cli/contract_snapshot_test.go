@@ -32,7 +32,7 @@ func TestContractSnapshotListNamesOutput(t *testing.T) {
 	t.Parallel()
 	assertContractCommandOutput(t,
 		[]string{"list", "names", "--config", filepath.Join("..", "..", "testdata", "names.raw.json"), "--prefix", "cli."},
-		readGolden(t, "list_names_table_output.golden"),
+		readGolden(t, "list_names_contract_table_output.golden"),
 		"",
 	)
 }

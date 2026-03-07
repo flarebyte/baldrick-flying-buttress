@@ -86,12 +86,37 @@ func TestEmitNamesTableDeterministic(t *testing.T) {
 		t.Fatalf("emit second failed: %v", err)
 	}
 
-	want := "KIND\tNAME\tFROM\tTO\nnote\tcli.root\t\t\nnote\tcli.worker\t\t\nrelationship\t\tapp.db\tcli.worker\nrelationship\t\tcli.root\tapp.db\n"
+	want := readGolden(t, "list_names_table_output.golden")
 	if first.String() != want {
 		t.Fatalf("table mismatch\nwant: %q\n got: %q", want, first.String())
 	}
 	if second.String() != first.String() {
 		t.Fatalf("non-deterministic table output\nfirst: %q\nsecond: %q", first.String(), second.String())
+	}
+}
+
+func TestEmitNamesTableEmptyLabelsDeterministic(t *testing.T) {
+	t.Parallel()
+
+	notes := []domain.Note{{ID: "x.note", Title: "X Note"}}
+	relationships := []domain.Relationship{{FromID: "x.a", ToID: "x.b"}}
+
+	var out bytes.Buffer
+	if err := emitNamesTable(&out, notes, relationships); err != nil {
+		t.Fatalf("emit failed: %v", err)
+	}
+	want := readGolden(t, "list_names_empty_labels_table_output.golden")
+	if out.String() != want {
+		t.Fatalf("table mismatch\nwant: %q\n got: %q", want, out.String())
+	}
+}
+
+func TestJoinSortedLabelsDeterministic(t *testing.T) {
+	t.Parallel()
+
+	got := joinSortedLabels("zeta,alpha, beta")
+	if got != "alpha, beta, zeta" {
+		t.Fatalf("unexpected labels %q", got)
 	}
 }
 
@@ -124,14 +149,14 @@ func TestEmitNamesJSONDeterministic(t *testing.T) {
 func listNamesValidatedApp() domain.ValidatedApp {
 	return domain.ValidatedApp{
 		Notes: []domain.Note{
-			{ID: "cli.worker", Label: "cli.worker"},
-			{ID: "app.db", Label: "app.db"},
-			{ID: "cli.root", Label: "cli.root"},
+			{ID: "cli.worker", Label: "cli.worker", Title: "CLI Worker", LabelsCSV: "worker,cli"},
+			{ID: "app.db", Label: "app.db", Title: "Application DB", LabelsCSV: "database,persistent"},
+			{ID: "cli.root", Label: "cli.root", Title: "CLI Root", LabelsCSV: "gateway,cli"},
 		},
 		Relationships: []domain.Relationship{
-			{FromID: "cli.root", ToID: "app.db", Label: "depends_on"},
-			{FromID: "app.db", ToID: "cli.worker", Label: "depends_on"},
-			{FromID: "app.db", ToID: "infra.cache", Label: "depends_on"},
+			{FromID: "cli.root", ToID: "app.db", Label: "depends_on", LabelsCSV: "gateway,depends_on"},
+			{FromID: "app.db", ToID: "cli.worker", Label: "depends_on", LabelsCSV: "persistent,depends_on"},
+			{FromID: "app.db", ToID: "infra.cache", Label: "depends_on", LabelsCSV: "cache_link,depends_on"},
 		},
 	}
 }

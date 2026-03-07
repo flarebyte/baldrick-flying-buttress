@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -110,20 +111,126 @@ func matchesRelationshipPrefix(relationship domain.Relationship, prefix string) 
 }
 
 func emitNamesTable(w io.Writer, notes []domain.Note, relationships []domain.Relationship) error {
-	if _, err := io.WriteString(w, "KIND\tNAME\tFROM\tTO\n"); err != nil {
-		return err
-	}
-	for _, note := range notes {
-		if _, err := fmt.Fprintf(w, "note\t%s\t\t\n", note.ID); err != nil {
+	writeDivider := false
+	if len(notes) > 0 {
+		rows := make([][]string, 0, len(notes))
+		for _, note := range notes {
+			rows = append(rows, []string{
+				note.ID,
+				note.Title,
+				joinSortedLabels(note.LabelsCSV),
+			})
+		}
+		if err := emitAlignedTable(w, "notes", []string{"name", "title", "labels"}, rows); err != nil {
 			return err
 		}
+		writeDivider = true
 	}
-	for _, relationship := range relationships {
-		if _, err := fmt.Fprintf(w, "relationship\t\t%s\t%s\n", relationship.FromID, relationship.ToID); err != nil {
+	if len(relationships) > 0 {
+		if writeDivider {
+			if _, err := io.WriteString(w, "\n"); err != nil {
+				return err
+			}
+		}
+		rows := make([][]string, 0, len(relationships))
+		for _, relationship := range relationships {
+			rows = append(rows, []string{
+				relationship.FromID,
+				relationship.ToID,
+				joinSortedLabels(relationship.LabelsCSV),
+			})
+		}
+		if err := emitAlignedTable(w, "relationships", []string{"from", "to", "labels"}, rows); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func emitAlignedTable(w io.Writer, title string, headers []string, rows [][]string) error {
+	if len(headers) == 0 {
+		return nil
+	}
+	widths := make([]int, len(headers))
+	for i := range headers {
+		widths[i] = len(headers[i])
+	}
+	for _, row := range rows {
+		for i := range headers {
+			if i >= len(row) {
+				continue
+			}
+			if len(row[i]) > widths[i] {
+				widths[i] = len(row[i])
+			}
+		}
+	}
+	if _, err := io.WriteString(w, title+"\n"); err != nil {
+		return err
+	}
+	if _, err := io.WriteString(w, formatAlignedRow(headers, widths)); err != nil {
+		return err
+	}
+	dividerCells := make([]string, len(headers))
+	for i := range widths {
+		dividerCells[i] = strings.Repeat("-", widths[i])
+	}
+	if _, err := io.WriteString(w, formatAlignedRow(dividerCells, widths)); err != nil {
+		return err
+	}
+	for _, row := range rows {
+		cells := make([]string, len(headers))
+		copy(cells, row)
+		if _, err := io.WriteString(w, formatAlignedRow(cells, widths)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func formatAlignedRow(cells []string, widths []int) string {
+	var b strings.Builder
+	for i := range widths {
+		if i > 0 {
+			b.WriteString(" | ")
+		}
+		cell := ""
+		if i < len(cells) {
+			cell = cells[i]
+		}
+		b.WriteString(cell)
+		padding := widths[i] - len(cell)
+		if padding > 0 {
+			b.WriteString(strings.Repeat(" ", padding))
+		}
+	}
+	b.WriteByte('\n')
+	return b.String()
+}
+
+func joinSortedLabels(csv string) string {
+	labels := splitCSVLabels(csv)
+	if len(labels) == 0 {
+		return "-"
+	}
+	sort.Strings(labels)
+	return strings.Join(labels, ", ")
+}
+
+func splitCSVLabels(csv string) []string {
+	if csv == "" {
+		return nil
+	}
+	parts := strings.Split(csv, ",")
+	out := make([]string, 0, len(parts))
+	for _, part := range parts {
+		v := strings.TrimSpace(part)
+		if v == "" {
+			continue
+		}
+		out = append(out, v)
+	}
+	return out
 }
 
 type namesJSONDTO struct {

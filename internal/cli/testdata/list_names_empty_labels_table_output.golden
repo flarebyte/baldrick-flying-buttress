@@ -1,0 +1,9 @@
+notes
+name   | title  | labels
+------ | ------ | ------
+x.note | X Note | -     
+
+relationships
+from | to  | labels
+---- | --- | ------
+x.a  | x.b | -     

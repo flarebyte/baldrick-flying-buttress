@@ -52,8 +52,7 @@ func TestListNamesKindNotesOutput(t *testing.T) {
 	if exitCode != 0 {
 		t.Fatalf("expected exit code 0, got %d", exitCode)
 	}
-	want := "KIND\tNAME\tFROM\tTO\nnote\tcli.root\t\t\nnote\tcli.worker\t\t\n"
-	assertOutput(t, stdout, stderr, want, "")
+	assertOutput(t, stdout, stderr, readGolden(t, "list_names_notes_table_output.golden"), "")
 }
 
 func TestListNamesKindRelationshipsOutput(t *testing.T) {
@@ -67,8 +66,7 @@ func TestListNamesKindRelationshipsOutput(t *testing.T) {
 	if exitCode != 0 {
 		t.Fatalf("expected exit code 0, got %d", exitCode)
 	}
-	want := "KIND\tNAME\tFROM\tTO\nrelationship\t\tapp.db\tcli.worker\nrelationship\t\tcli.root\tapp.db\n"
-	assertOutput(t, stdout, stderr, want, "")
+	assertOutput(t, stdout, stderr, readGolden(t, "list_names_relationships_table_output.golden"), "")
 }
 
 func TestListNamesJSONOutput(t *testing.T) {
@@ -83,6 +81,20 @@ func TestListNamesJSONOutput(t *testing.T) {
 		t.Fatalf("expected exit code 0, got %d", exitCode)
 	}
 	assertOutput(t, stdout, stderr, readGolden(t, "list_names_json_output.golden"), "")
+}
+
+func TestListNamesPrefixXOutput(t *testing.T) {
+	t.Parallel()
+
+	exitCode, stdout, stderr := runCommand(
+		[]string{"list", "names", "--prefix", "x"},
+		stubLoader(),
+		validatorWith(listNamesValidatedApp(), domain.ValidationReport{}, nil),
+	)
+	if exitCode != 0 {
+		t.Fatalf("expected exit code 0, got %d", exitCode)
+	}
+	assertOutput(t, stdout, stderr, "", "")
 }
 
 func TestListNamesBlockedOnErrorDiagnostic(t *testing.T) {
