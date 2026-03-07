@@ -1,0 +1,35 @@
+# Graph Report
+
+Graph report intro.
+
+## Topology
+
+Graph section.
+
+### Cycle View
+
+Cycle graph.
+
+- CyA: ca
+  - CyB: cb
+    - CyC: cc
+      - *(cycle back to CyA)*
+
+### DAG View
+
+Dag graph.
+
+- A: a
+  - B: b
+    - D: d
+  - C: c
+    - D: d
+
+### Tree View
+
+Tree graph.
+
+- Root: root body
+  - Left: left body
+  - Right: right body
+

@@ -1,0 +1,47 @@
+{
+  "source": "cli-invalid-args",
+  "name": "stub-app",
+  "modules": ["core", "edge"],
+  "reports": [
+    {
+      "title": "CPU Overview",
+      "filepath": "reports/cpu-overview.md",
+      "sections": [
+        {
+          "title": "Overview",
+          "arguments": ["unknown=x", "mode=z", "broken"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "name": "n1",
+      "title": "service.api",
+      "arguments": ["mode=a", "verbose=maybe"]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "n1",
+      "to": "n2",
+      "label": "depends_on"
+    }
+  ],
+  "argumentRegistry": {
+    "version": "v1",
+    "arguments": [
+      {
+        "name": "mode",
+        "valueType": "enum",
+        "scopes": ["h3-section"],
+        "allowedValues": ["a", "b"]
+      },
+      {
+        "name": "verbose",
+        "valueType": "boolean",
+        "scopes": ["note"]
+      }
+    ]
+  }
+}

@@ -15,7 +15,28 @@ func Diagnostics(in []domain.Diagnostic) []domain.Diagnostic {
 		if v := cmpString(string(a.Severity), string(b.Severity)); v != 0 {
 			return v
 		}
+		if v := cmpString(a.Source, b.Source); v != 0 {
+			return v
+		}
+		if v := cmpString(a.Location, b.Location); v != 0 {
+			return v
+		}
 		if v := cmpString(a.Path, b.Path); v != 0 {
+			return v
+		}
+		if v := cmpString(a.ArgumentName, b.ArgumentName); v != 0 {
+			return v
+		}
+		if v := cmpString(a.LabelValue, b.LabelValue); v != 0 {
+			return v
+		}
+		if v := cmpString(a.SubjectLabel, b.SubjectLabel); v != 0 {
+			return v
+		}
+		if v := cmpString(a.EdgeLabel, b.EdgeLabel); v != 0 {
+			return v
+		}
+		if v := cmpString(a.CounterpartLabel, b.CounterpartLabel); v != 0 {
 			return v
 		}
 		return cmpString(a.Message, b.Message)
@@ -56,6 +77,45 @@ func Relationships(in []domain.Relationship) []domain.Relationship {
 		}
 		return cmpString(a.Label, b.Label)
 	})
+	return out
+}
+
+func MarkdownReports(in []domain.MarkdownReport) []domain.MarkdownReport {
+	out := slices.Clone(in)
+	slices.SortStableFunc(out, func(a, b domain.MarkdownReport) int {
+		if v := cmpString(a.Filepath, b.Filepath); v != 0 {
+			return v
+		}
+		return cmpString(a.Title, b.Title)
+	})
+	return out
+}
+
+func MarkdownH2Sections(in []domain.MarkdownH2Section) []domain.MarkdownH2Section {
+	out := slices.Clone(in)
+	slices.SortStableFunc(out, func(a, b domain.MarkdownH2Section) int {
+		if v := cmpString(a.Title, b.Title); v != 0 {
+			return v
+		}
+		return cmpString(a.Description, b.Description)
+	})
+	return out
+}
+
+func MarkdownH3Sections(in []domain.MarkdownH3Section) []domain.MarkdownH3Section {
+	out := slices.Clone(in)
+	slices.SortStableFunc(out, func(a, b domain.MarkdownH3Section) int {
+		if v := cmpString(a.Title, b.Title); v != 0 {
+			return v
+		}
+		return cmpString(a.Description, b.Description)
+	})
+	return out
+}
+
+func Strings(in []string) []string {
+	out := slices.Clone(in)
+	slices.Sort(out)
 	return out
 }
 

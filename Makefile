@@ -16,7 +16,7 @@ lint:
 	$(GOLINT) run
 
 format:
-	gofmt -w .
+	git ls-files '*.go' | xargs gofmt -w
 	$(BIOME) format --write .
 	$(BIOME) check --unsafe --write
 
@@ -56,7 +56,7 @@ sec:
 	semgrep scan --config auto
 
 dup:
-	npx jscpd --format go --min-lines 10 --gitignore .
+	npx jscpd --format go --min-lines 10 --ignore "**/.gomodcache/**,**/.gocache/**,**/.e2e-bin/**,**/node_modules/**,**/dist/**" --gitignore .
 	npx jscpd --format typescript --min-lines 10 --gitignore .
 
 help:

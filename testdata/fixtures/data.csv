@@ -1,0 +1,4 @@
+name,status,kind
+cli.root,active,note
+cli.worker,inactive,note
+cli.jobs,active,note

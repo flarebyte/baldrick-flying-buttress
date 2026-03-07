@@ -1,0 +1,23 @@
+{
+  "source": "names-app",
+  "name": "names-app",
+  "modules": ["core"],
+  "reports": [
+    {
+      "title": "Names",
+      "filepath": "reports/names.md",
+      "sections": [
+        { "title": "Inventory", "notes": ["cli.root", "cli.worker", "app.db"] }
+      ]
+    }
+  ],
+  "notes": [
+    { "name": "cli.root", "title": "CLI Root" },
+    { "name": "cli.worker", "title": "CLI Worker" },
+    { "name": "app.db", "title": "DB" }
+  ],
+  "relationships": [
+    { "from": "cli.root", "to": "app.db", "label": "depends_on" },
+    { "from": "app.db", "to": "cli.worker", "label": "feeds" }
+  ]
+}

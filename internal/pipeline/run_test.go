@@ -26,8 +26,8 @@ func TestRunCallsLoadValidateAction(t *testing.T) {
 		}),
 		ValidatorFunc(func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 			calls = append(calls, "validate")
-			if raw != wantRaw {
-				t.Fatalf("unexpected raw app: %#v", raw)
+			if raw.Source != wantRaw.Source {
+				t.Fatalf("unexpected raw source: %#v", raw)
 			}
 			return wantValidated, wantReport, nil
 		}),

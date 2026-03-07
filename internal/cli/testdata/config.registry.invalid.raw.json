@@ -1,0 +1,57 @@
+{
+  "source": "cli-invalid-registry",
+  "name": "stub-app",
+  "modules": ["core", "edge"],
+  "reports": [
+    {
+      "title": "CPU Overview",
+      "filepath": "reports/cpu-overview.md",
+      "sections": [{ "title": "Overview" }]
+    }
+  ],
+  "notes": [
+    {
+      "name": "n1",
+      "title": "service.api"
+    }
+  ],
+  "relationships": [
+    {
+      "from": "n1",
+      "to": "n2",
+      "label": "depends_on"
+    }
+  ],
+  "argumentRegistry": {
+    "version": "v1",
+    "arguments": [
+      {
+        "name": "",
+        "valueType": "",
+        "scopes": []
+      },
+      {
+        "name": "fmt",
+        "valueType": "bad",
+        "scopes": ["invalid-scope"]
+      },
+      {
+        "name": "mode",
+        "valueType": "enum",
+        "scopes": ["note"],
+        "allowedValues": ["a", "a"],
+        "defaultValue": "z"
+      },
+      {
+        "name": "dup",
+        "valueType": "string",
+        "scopes": ["note"]
+      },
+      {
+        "name": "dup",
+        "valueType": "string",
+        "scopes": ["note"]
+      }
+    ]
+  }
+}

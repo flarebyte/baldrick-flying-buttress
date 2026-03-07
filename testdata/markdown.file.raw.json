@@ -1,0 +1,53 @@
+{
+  "source": "markdown-file-app",
+  "name": "markdown-file-app",
+  "modules": ["core"],
+  "argumentRegistry": {
+    "version": "1",
+    "arguments": [
+      { "name": "format-csv", "valueType": "string", "scopes": ["note"] },
+      { "name": "csv-include", "valueType": "string", "scopes": ["note"] },
+      { "name": "csv-exclude", "valueType": "string", "scopes": ["note"] }
+    ]
+  },
+  "reports": [
+    {
+      "title": "File Report",
+      "filepath": "out/file.md",
+      "sections": [
+        {
+          "title": "Files",
+          "sections": [
+            {
+              "title": "Renderers",
+              "notes": ["n.csv", "n.image", "n.code"]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "name": "n.csv",
+      "title": "CSV Data",
+      "filepath": "fixtures/data.csv",
+      "arguments": [
+        "format-csv=table",
+        "csv-include=status:active",
+        "csv-exclude=name:cli.jobs"
+      ]
+    },
+    {
+      "name": "n.image",
+      "title": "Diagram",
+      "filepath": "fixtures/diagram.png"
+    },
+    {
+      "name": "n.code",
+      "title": "Flow",
+      "filepath": "fixtures/flow.mmd"
+    }
+  ],
+  "relationships": []
+}

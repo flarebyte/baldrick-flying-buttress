@@ -1,7 +1,66 @@
 package domain
 
+type RawReport struct {
+	Title       string             `json:"title"`
+	Filepath    string             `json:"filepath"`
+	Description string             `json:"description"`
+	Sections    []RawReportSection `json:"sections"`
+}
+
+type RawReportSection struct {
+	Description string             `json:"description"`
+	Title       string             `json:"title"`
+	Arguments   []string           `json:"arguments"`
+	Notes       []string           `json:"notes"`
+	Sections    []RawReportSection `json:"sections"`
+}
+
+type RawNote struct {
+	Name      string   `json:"name"`
+	Title     string   `json:"title"`
+	Markdown  string   `json:"markdown"`
+	Filepath  string   `json:"filepath"`
+	Arguments []string `json:"arguments"`
+	Labels    []string `json:"labels"`
+}
+
+type RawRelationship struct {
+	FromID string   `json:"from"`
+	ToID   string   `json:"to"`
+	Label  string   `json:"label"`
+	Labels []string `json:"labels"`
+}
+
+type RawArgumentDefinition struct {
+	Name          string   `json:"name"`
+	ValueType     string   `json:"valueType"`
+	Scopes        []string `json:"scopes"`
+	AllowedValues []string `json:"allowedValues"`
+	DefaultValue  any      `json:"defaultValue"`
+}
+
+type RawArgumentRegistry struct {
+	Version   string                  `json:"version"`
+	Arguments []RawArgumentDefinition `json:"arguments"`
+}
+
+type RawGraphIntegrityPolicy struct {
+	MissingNode          string `json:"missingNode"`
+	OrphanNode           string `json:"orphanNode"`
+	DuplicateNoteName    string `json:"duplicateNoteName"`
+	CrossReportReference string `json:"crossReportReference"`
+}
+
 type RawApp struct {
-	Source string
+	ConfigPath           string                  `json:"-"`
+	Source               string                  `json:"source"`
+	Name                 string                  `json:"name"`
+	Modules              []string                `json:"modules"`
+	Reports              []RawReport             `json:"reports"`
+	Notes                []RawNote               `json:"notes"`
+	Relationships        []RawRelationship       `json:"relationships"`
+	Registry             RawArgumentRegistry     `json:"argumentRegistry"`
+	GraphIntegrityPolicy RawGraphIntegrityPolicy `json:"graphIntegrityPolicy"`
 }
 
 type Severity string
@@ -12,10 +71,22 @@ const (
 )
 
 type Diagnostic struct {
-	Code     string   `json:"code"`
-	Severity Severity `json:"severity"`
-	Message  string   `json:"message"`
-	Path     string   `json:"path"`
+	Code             string   `json:"code"`
+	Severity         Severity `json:"severity"`
+	Source           string   `json:"source"`
+	Message          string   `json:"message"`
+	Location         string   `json:"location"`
+	Path             string   `json:"path"`
+	ReportTitle      string   `json:"reportTitle,omitempty"`
+	SectionTitle     string   `json:"sectionTitle,omitempty"`
+	NoteName         string   `json:"noteName,omitempty"`
+	ArgumentName     string   `json:"argumentName,omitempty"`
+	LabelValue       string   `json:"labelValue,omitempty"`
+	SubjectLabel     string   `json:"subjectLabel,omitempty"`
+	EdgeLabel        string   `json:"edgeLabel,omitempty"`
+	CounterpartLabel string   `json:"counterpartLabel,omitempty"`
+	RelationshipFrom string   `json:"relationshipFrom,omitempty"`
+	RelationshipTo   string   `json:"relationshipTo,omitempty"`
 }
 
 type ValidationReport struct {
@@ -39,14 +110,20 @@ func (r ValidationReport) HasErrors() bool {
 }
 
 type Note struct {
-	ID    string
-	Label string
+	ID           string
+	Label        string
+	Title        string
+	Markdown     string
+	Filepath     string
+	LabelsCSV    string
+	ArgumentsCSV string
 }
 
 type Relationship struct {
-	FromID string
-	ToID   string
-	Label  string
+	FromID    string
+	ToID      string
+	Label     string
+	LabelsCSV string
 }
 
 type Report struct {
@@ -54,10 +131,92 @@ type Report struct {
 	Title string
 }
 
-type ValidatedApp struct {
+type MarkdownReport struct {
+	Title       string
+	Filepath    string
+	Description string
+	Sections    []MarkdownH2Section
+}
+
+type MarkdownH2Section struct {
+	Title       string
+	Description string
+	Sections    []MarkdownH3Section
+}
+
+type MarkdownH3Section struct {
+	Title       string
+	Description string
+	NoteIDs     []string
+	Arguments   []string
+	Path        string
+	H2Title     string
+	ReportTitle string
+}
+
+type ArgumentScope string
+
+const (
+	ArgumentScopeH3Section ArgumentScope = "h3-section"
+	ArgumentScopeNote      ArgumentScope = "note"
+	ArgumentScopeRenderer  ArgumentScope = "renderer"
+)
+
+type ArgumentValueType string
+
+const (
+	ArgumentValueTypeString  ArgumentValueType = "string"
+	ArgumentValueTypeStrings ArgumentValueType = "string[]"
+	ArgumentValueTypeBoolean ArgumentValueType = "boolean"
+	ArgumentValueTypeInt     ArgumentValueType = "int"
+	ArgumentValueTypeFloat   ArgumentValueType = "float"
+	ArgumentValueTypeEnum    ArgumentValueType = "enum"
+)
+
+type ArgumentDefinition struct {
 	Name          string
-	Modules       []string
-	Reports       []Report
-	Notes         []Note
-	Relationships []Relationship
+	ValueType     ArgumentValueType
+	Scopes        []ArgumentScope
+	AllowedValues []string
+	DefaultValue  *string
+}
+
+type ArgumentRegistry struct {
+	Version   string
+	Arguments []ArgumentDefinition
+}
+
+type PolicySeverity string
+
+const (
+	PolicySeverityError   PolicySeverity = "error"
+	PolicySeverityWarning PolicySeverity = "warning"
+	PolicySeverityIgnore  PolicySeverity = "ignore"
+)
+
+type CrossReportPolicy string
+
+const (
+	CrossReportPolicyAllow    CrossReportPolicy = "allow"
+	CrossReportPolicyDisallow CrossReportPolicy = "disallow"
+)
+
+type GraphIntegrityPolicy struct {
+	MissingNode          PolicySeverity
+	OrphanNode           PolicySeverity
+	DuplicateNoteName    PolicySeverity
+	CrossReportReference CrossReportPolicy
+}
+
+type ValidatedApp struct {
+	Name                 string
+	ConfigDir            string
+	Modules              []string
+	Reports              []Report
+	MarkdownReports      []MarkdownReport
+	Notes                []Note
+	Relationships        []Relationship
+	Registry             ArgumentRegistry
+	DatasetLabels        []string
+	GraphIntegrityPolicy GraphIntegrityPolicy
 }
