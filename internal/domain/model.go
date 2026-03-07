@@ -9,6 +9,7 @@ type RawReport struct {
 type RawReportSection struct {
 	Title     string   `json:"title"`
 	Arguments []string `json:"arguments"`
+	Notes     []string `json:"notes"`
 }
 
 type RawNote struct {
@@ -38,15 +39,23 @@ type RawArgumentRegistry struct {
 	Arguments []RawArgumentDefinition `json:"arguments"`
 }
 
+type RawGraphIntegrityPolicy struct {
+	MissingNode          string `json:"missingNode"`
+	OrphanNode           string `json:"orphanNode"`
+	DuplicateNoteName    string `json:"duplicateNoteName"`
+	CrossReportReference string `json:"crossReportReference"`
+}
+
 type RawApp struct {
-	ConfigPath    string              `json:"-"`
-	Source        string              `json:"source"`
-	Name          string              `json:"name"`
-	Modules       []string            `json:"modules"`
-	Reports       []RawReport         `json:"reports"`
-	Notes         []RawNote           `json:"notes"`
-	Relationships []RawRelationship   `json:"relationships"`
-	Registry      RawArgumentRegistry `json:"argumentRegistry"`
+	ConfigPath           string                  `json:"-"`
+	Source               string                  `json:"source"`
+	Name                 string                  `json:"name"`
+	Modules              []string                `json:"modules"`
+	Reports              []RawReport             `json:"reports"`
+	Notes                []RawNote               `json:"notes"`
+	Relationships        []RawRelationship       `json:"relationships"`
+	Registry             RawArgumentRegistry     `json:"argumentRegistry"`
+	GraphIntegrityPolicy RawGraphIntegrityPolicy `json:"graphIntegrityPolicy"`
 }
 
 type Severity string
@@ -57,17 +66,19 @@ const (
 )
 
 type Diagnostic struct {
-	Code         string   `json:"code"`
-	Severity     Severity `json:"severity"`
-	Source       string   `json:"source"`
-	Message      string   `json:"message"`
-	Location     string   `json:"location"`
-	Path         string   `json:"path"`
-	ReportTitle  string   `json:"reportTitle,omitempty"`
-	SectionTitle string   `json:"sectionTitle,omitempty"`
-	NoteName     string   `json:"noteName,omitempty"`
-	ArgumentName string   `json:"argumentName,omitempty"`
-	LabelValue   string   `json:"labelValue,omitempty"`
+	Code             string   `json:"code"`
+	Severity         Severity `json:"severity"`
+	Source           string   `json:"source"`
+	Message          string   `json:"message"`
+	Location         string   `json:"location"`
+	Path             string   `json:"path"`
+	ReportTitle      string   `json:"reportTitle,omitempty"`
+	SectionTitle     string   `json:"sectionTitle,omitempty"`
+	NoteName         string   `json:"noteName,omitempty"`
+	ArgumentName     string   `json:"argumentName,omitempty"`
+	LabelValue       string   `json:"labelValue,omitempty"`
+	RelationshipFrom string   `json:"relationshipFrom,omitempty"`
+	RelationshipTo   string   `json:"relationshipTo,omitempty"`
 }
 
 type ValidationReport struct {
@@ -138,12 +149,35 @@ type ArgumentRegistry struct {
 	Arguments []ArgumentDefinition
 }
 
+type PolicySeverity string
+
+const (
+	PolicySeverityError   PolicySeverity = "error"
+	PolicySeverityWarning PolicySeverity = "warning"
+	PolicySeverityIgnore  PolicySeverity = "ignore"
+)
+
+type CrossReportPolicy string
+
+const (
+	CrossReportPolicyAllow    CrossReportPolicy = "allow"
+	CrossReportPolicyDisallow CrossReportPolicy = "disallow"
+)
+
+type GraphIntegrityPolicy struct {
+	MissingNode          PolicySeverity
+	OrphanNode           PolicySeverity
+	DuplicateNoteName    PolicySeverity
+	CrossReportReference CrossReportPolicy
+}
+
 type ValidatedApp struct {
-	Name          string
-	Modules       []string
-	Reports       []Report
-	Notes         []Note
-	Relationships []Relationship
-	Registry      ArgumentRegistry
-	DatasetLabels []string
+	Name                 string
+	Modules              []string
+	Reports              []Report
+	Notes                []Note
+	Relationships        []Relationship
+	Registry             ArgumentRegistry
+	DatasetLabels        []string
+	GraphIntegrityPolicy GraphIntegrityPolicy
 }

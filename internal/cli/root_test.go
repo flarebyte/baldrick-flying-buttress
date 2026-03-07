@@ -272,6 +272,26 @@ func TestValidateWithUnknownLabelReferencesEmitsWarningsOnly(t *testing.T) {
 	assertOutput(t, listStdout, listStderr, readGolden(t, "list_reports_output.golden"), "")
 }
 
+func TestValidateWithGraphIntegrityIssuesCollectsDiagnostics(t *testing.T) {
+	t.Parallel()
+
+	configPath := filepath.Join("testdata", "config.graph.invalid.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader {
+		return load.FSAppLoader{ConfigPath: path}
+	}
+	validator := validate.AppDataValidator{}
+
+	validateCode, validateStdout, validateStderr := runCommandWithFactory(
+		[]string{"validate", "--config", configPath},
+		loaderFactory,
+		validator,
+	)
+	if validateCode != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected validate exit code %d, got %d", outcome.ExitCodeValidationBlocked, validateCode)
+	}
+	assertOutput(t, validateStdout, validateStderr, readGolden(t, "validate_graph_invalid_output.golden"), "")
+}
+
 func TestFilesystemLoaderDeterministicOutputAcrossRuns(t *testing.T) {
 	t.Parallel()
 

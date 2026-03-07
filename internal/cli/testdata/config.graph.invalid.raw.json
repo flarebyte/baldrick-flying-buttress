@@ -1,0 +1,44 @@
+{
+  "source": "cli-invalid-graph",
+  "name": "stub-app",
+  "modules": ["core"],
+  "reports": [
+    {
+      "title": "R1",
+      "filepath": "reports/r1.md",
+      "sections": [
+        {
+          "title": "S1",
+          "notes": ["n1"]
+        }
+      ]
+    },
+    {
+      "title": "R2",
+      "filepath": "reports/r2.md",
+      "sections": [
+        {
+          "title": "S2",
+          "notes": ["n2"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    { "name": "n1", "title": "N1" },
+    { "name": "n2", "title": "N2" },
+    { "name": "n3", "title": "N3" },
+    { "name": "dup", "title": "D1" },
+    { "name": "dup", "title": "D2" }
+  ],
+  "relationships": [
+    { "from": "n1", "to": "missing", "label": "depends_on" },
+    { "from": "n1", "to": "n2", "label": "depends_on" }
+  ],
+  "graphIntegrityPolicy": {
+    "missingNode": "error",
+    "orphanNode": "warning",
+    "duplicateNoteName": "warning",
+    "crossReportReference": "disallow"
+  }
+}
