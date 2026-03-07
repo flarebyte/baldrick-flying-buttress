@@ -6,6 +6,7 @@ import (
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
+	clioutput "github.com/flarebyte/baldrick-flying-buttress/internal/output"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/pipeline"
 	"github.com/spf13/cobra"
 )
@@ -92,7 +93,7 @@ type validateAction struct {
 
 func (a validateAction) Execute(validated domain.ValidatedApp, report domain.ValidationReport) error {
 	_ = validated
-	if err := emitDiagnostics(a.out, report); err != nil {
+	if err := clioutput.EmitDiagnostics(a.out, report); err != nil {
 		return err
 	}
 	if report.HasErrors() {
@@ -111,7 +112,7 @@ type listReportsAction struct {
 
 func (a listReportsAction) Execute(validated domain.ValidatedApp, report domain.ValidationReport) error {
 	_ = report
-	return emitReportList(a.out, validated)
+	return clioutput.EmitReportList(a.out, validated)
 }
 
 func (listReportsAction) AllowOnValidationErrors() bool {
@@ -124,34 +125,9 @@ type generateJSONAction struct {
 
 func (a generateJSONAction) Execute(validated domain.ValidatedApp, report domain.ValidationReport) error {
 	_ = report
-	return emitGraphJSON(a.out, validated)
+	return clioutput.EmitGraphJSON(a.out, validated)
 }
 
 func (generateJSONAction) AllowOnValidationErrors() bool {
 	return false
-}
-
-type listReportsOutput struct {
-	Reports []listReport `json:"reports"`
-}
-
-type listReport struct {
-	ID    string `json:"id"`
-	Title string `json:"title"`
-}
-
-type generateJSONOutput struct {
-	Notes         []generateNote         `json:"notes"`
-	Relationships []generateRelationship `json:"relationships"`
-}
-
-type generateNote struct {
-	ID    string `json:"id"`
-	Label string `json:"label"`
-}
-
-type generateRelationship struct {
-	From  string `json:"from"`
-	To    string `json:"to"`
-	Label string `json:"label"`
 }
