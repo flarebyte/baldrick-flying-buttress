@@ -738,6 +738,91 @@ func TestGenerateMarkdownOrphansDeterministicAcrossRuns(t *testing.T) {
 	}
 }
 
+func TestGenerateMarkdownFileBackedRendering(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	configPath := writeFixtureBundle(t, tmp, "config.markdown.file.raw.json", []string{
+		"fixtures/data.csv",
+		"fixtures/diagram.png",
+		"fixtures/flow.mmd",
+	})
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	code, stdout, stderr := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, "", "")
+
+	output, err := os.ReadFile(filepath.Join(tmp, "out", "file.md"))
+	if err != nil {
+		t.Fatalf("read file-backed report failed: %v", err)
+	}
+	if string(output) != readGolden(t, "generate_markdown_file_output.golden") {
+		t.Fatalf("file-backed markdown mismatch\\nwant: %q\\n got: %q", readGolden(t, "generate_markdown_file_output.golden"), string(output))
+	}
+}
+
+func TestGenerateMarkdownFileBackedMissingFileRuntimeFailure(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	configPath := writeFixtureConfig(t, tmp, "config.markdown.file.missing.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	code, stdout, stderr := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	if code != outcome.ExitCodeRuntimeFailure {
+		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeRuntimeFailure, code)
+	}
+	if stdout != "" {
+		t.Fatalf("expected empty stdout, got %q", stdout)
+	}
+	if stderr == "" {
+		t.Fatal("expected stderr")
+	}
+}
+
+func TestGenerateMarkdownFileBackedDeterministicAcrossRuns(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	configPath := writeFixtureBundle(t, tmp, "config.markdown.file.raw.json", []string{
+		"fixtures/data.csv",
+		"fixtures/diagram.png",
+		"fixtures/flow.mmd",
+	})
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	code1, stdout1, stderr1 := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	if code1 != 0 {
+		t.Fatalf("expected first exit code 0, got %d", code1)
+	}
+	first, err := os.ReadFile(filepath.Join(tmp, "out", "file.md"))
+	if err != nil {
+		t.Fatalf("read first file-backed report failed: %v", err)
+	}
+
+	code2, stdout2, stderr2 := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	if code2 != 0 {
+		t.Fatalf("expected second exit code 0, got %d", code2)
+	}
+	second, err := os.ReadFile(filepath.Join(tmp, "out", "file.md"))
+	if err != nil {
+		t.Fatalf("read second file-backed report failed: %v", err)
+	}
+
+	if stdout1 != stdout2 || stderr1 != stderr2 {
+		t.Fatalf("non-deterministic file-backed command output")
+	}
+	if string(first) != string(second) {
+		t.Fatalf("non-deterministic file-backed markdown\\nfirst: %q\\nsecond: %q", string(first), string(second))
+	}
+}
+
 func TestGenerateJSONBlockedOnErrorDiagnostic(t *testing.T) {
 	t.Parallel()
 
@@ -1097,6 +1182,26 @@ func writeFixtureConfig(t *testing.T, dir string, fixtureName string) string {
 		t.Fatalf("write fixture config %s: %v", fixtureName, err)
 	}
 	return dst
+}
+
+func writeFixtureBundle(t *testing.T, dir string, fixtureName string, relativePaths []string) string {
+	t.Helper()
+	configPath := writeFixtureConfig(t, dir, fixtureName)
+	for _, rel := range relativePaths {
+		src := filepath.Join("testdata", rel)
+		data, err := os.ReadFile(src)
+		if err != nil {
+			t.Fatalf("read fixture bundle file %s: %v", rel, err)
+		}
+		dst := filepath.Join(dir, rel)
+		if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+			t.Fatalf("mkdir fixture bundle file %s: %v", rel, err)
+		}
+		if err := os.WriteFile(dst, data, 0o644); err != nil {
+			t.Fatalf("write fixture bundle file %s: %v", rel, err)
+		}
+	}
+	return configPath
 }
 
 func assertOutput(t *testing.T, gotStdout, gotStderr, wantStdout, wantStderr string) {

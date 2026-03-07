@@ -550,6 +550,7 @@ func normalizeValidatedApp(raw domain.RawApp, registry domain.ArgumentRegistry, 
 			Label:        note.Title,
 			Title:        note.Title,
 			Markdown:     note.Markdown,
+			Filepath:     strings.TrimSpace(note.Filepath),
 			LabelsCSV:    strings.Join(ordering.Strings(note.Labels), ","),
 			ArgumentsCSV: strings.Join(ordering.Strings(note.Arguments), "\n"),
 		})

@@ -19,6 +19,7 @@ type RawNote struct {
 	Name      string   `json:"name"`
 	Title     string   `json:"title"`
 	Markdown  string   `json:"markdown"`
+	Filepath  string   `json:"filepath"`
 	Arguments []string `json:"arguments"`
 	Labels    []string `json:"labels"`
 }
@@ -113,6 +114,7 @@ type Note struct {
 	Label        string
 	Title        string
 	Markdown     string
+	Filepath     string
 	LabelsCSV    string
 	ArgumentsCSV string
 }

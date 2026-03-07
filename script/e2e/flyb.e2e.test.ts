@@ -7,7 +7,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 const rootDir = join(import.meta.dir, '..', '..');
 const binPath = join(rootDir, '.e2e-bin', 'flyb');
@@ -30,6 +30,11 @@ const markdownOrphansFixturePath = join(
   rootDir,
   'testdata',
   'markdown.orphans.raw.json',
+);
+const markdownFileFixturePath = join(
+  rootDir,
+  'testdata',
+  'markdown.file.raw.json',
 );
 
 function runFlyb(args: string[]) {
@@ -63,6 +68,17 @@ function makeTempFixture(sourcePath: string) {
   const configPath = join(dir, 'config.raw.json');
   writeFileSync(configPath, readFileSync(sourcePath));
   return { dir, configPath };
+}
+
+function makeTempFixtureWithFiles(sourcePath: string, relativePaths: string[]) {
+  const fixture = makeTempFixture(sourcePath);
+  for (const relPath of relativePaths) {
+    const srcPath = join(rootDir, 'testdata', relPath);
+    const dstPath = join(fixture.dir, relPath);
+    mkdirSync(dirname(dstPath), { recursive: true });
+    writeFileSync(dstPath, readFileSync(srcPath));
+  }
+  return fixture;
 }
 
 test('flyb validate stdout matches golden', () => {
@@ -219,6 +235,62 @@ test('flyb generate markdown renders orphan sections', () => {
     expect(bytesHex(got.stdout)).toBe('');
     expect(bytesHex(got.stderr)).toBe('');
     expect(bytesHex(gotOutput)).toBe(bytesHex(want));
+  } finally {
+    rmSync(fixture.dir, { recursive: true, force: true });
+  }
+});
+
+test('flyb generate markdown renders file-backed sections', () => {
+  const fixture = makeTempFixtureWithFiles(markdownFileFixturePath, [
+    'fixtures/data.csv',
+    'fixtures/diagram.png',
+    'fixtures/flow.mmd',
+  ]);
+  try {
+    const got = runFlyb([
+      'generate',
+      'markdown',
+      '--config',
+      fixture.configPath,
+    ]);
+    const want = readGolden('generate-markdown-file.golden');
+    const gotOutput = readFileSync(join(fixture.dir, 'out', 'file.md'));
+
+    expect(got.exitCode).toBe(0);
+    expect(bytesHex(got.stdout)).toBe('');
+    expect(bytesHex(got.stderr)).toBe('');
+    expect(bytesHex(gotOutput)).toBe(bytesHex(want));
+  } finally {
+    rmSync(fixture.dir, { recursive: true, force: true });
+  }
+});
+
+test('flyb generate markdown file-backed output is deterministic across runs', () => {
+  const fixture = makeTempFixtureWithFiles(markdownFileFixturePath, [
+    'fixtures/data.csv',
+    'fixtures/diagram.png',
+    'fixtures/flow.mmd',
+  ]);
+  try {
+    const first = runFlyb([
+      'generate',
+      'markdown',
+      '--config',
+      fixture.configPath,
+    ]);
+    const firstOutput = readFileSync(join(fixture.dir, 'out', 'file.md'));
+    const second = runFlyb([
+      'generate',
+      'markdown',
+      '--config',
+      fixture.configPath,
+    ]);
+    const secondOutput = readFileSync(join(fixture.dir, 'out', 'file.md'));
+
+    expect(second.exitCode).toBe(first.exitCode);
+    expect(bytesHex(second.stdout)).toBe(bytesHex(first.stdout));
+    expect(bytesHex(second.stderr)).toBe(bytesHex(first.stderr));
+    expect(bytesHex(secondOutput)).toBe(bytesHex(firstOutput));
   } finally {
     rmSync(fixture.dir, { recursive: true, force: true });
   }

@@ -1,0 +1,23 @@
+# File Report
+
+## Files
+
+### Renderers
+
+#### Flow
+
+```mermaid
+graph TD
+A-->B
+```
+
+#### CSV Data
+
+| kind | name | status |
+| --- | --- | --- |
+| note | cli.root | active |
+
+#### Diagram
+
+![Diagram](fixtures/diagram.png)
+

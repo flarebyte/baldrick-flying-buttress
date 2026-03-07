@@ -25,7 +25,10 @@ func TestRenderMarkdownPlainNote(t *testing.T) {
 	}
 	notes := map[string]domain.Note{"n.apple": {ID: "n.apple", Title: "Apple", Markdown: "Fresh apple."}}
 
-	got, diagnostics := renderMarkdownReport(report, notes, domain.ValidatedApp{}, renderer.ResolveRegistry())
+	got, diagnostics, err := renderMarkdownReport(report, notes, domain.ValidatedApp{}, renderer.ResolveRegistry())
+	if err != nil {
+		t.Fatalf("render markdown report failed: %v", err)
+	}
 	if len(diagnostics) != 0 {
 		t.Fatalf("expected no diagnostics, got %#v", diagnostics)
 	}
@@ -46,8 +49,11 @@ func TestRenderMarkdownDeterministicSections(t *testing.T) {
 		},
 	}
 
-	first, firstDiagnostics := renderMarkdownReport(report, map[string]domain.Note{}, domain.ValidatedApp{}, renderer.ResolveRegistry())
-	second, secondDiagnostics := renderMarkdownReport(report, map[string]domain.Note{}, domain.ValidatedApp{}, renderer.ResolveRegistry())
+	first, firstDiagnostics, firstErr := renderMarkdownReport(report, map[string]domain.Note{}, domain.ValidatedApp{}, renderer.ResolveRegistry())
+	second, secondDiagnostics, secondErr := renderMarkdownReport(report, map[string]domain.Note{}, domain.ValidatedApp{}, renderer.ResolveRegistry())
+	if firstErr != nil || secondErr != nil {
+		t.Fatalf("expected no render errors, got first=%v second=%v", firstErr, secondErr)
+	}
 	if len(firstDiagnostics) != 0 || len(secondDiagnostics) != 0 {
 		t.Fatalf("expected no diagnostics, got first=%#v second=%#v", firstDiagnostics, secondDiagnostics)
 	}
@@ -63,7 +69,10 @@ func TestRenderMarkdownDeterministicSections(t *testing.T) {
 func TestRenderMarkdownTrailingNewline(t *testing.T) {
 	t.Parallel()
 
-	got, diagnostics := renderMarkdownReport(domain.MarkdownReport{Title: "Title"}, map[string]domain.Note{}, domain.ValidatedApp{}, renderer.ResolveRegistry())
+	got, diagnostics, err := renderMarkdownReport(domain.MarkdownReport{Title: "Title"}, map[string]domain.Note{}, domain.ValidatedApp{}, renderer.ResolveRegistry())
+	if err != nil {
+		t.Fatalf("render markdown report failed: %v", err)
+	}
 	if len(diagnostics) != 0 {
 		t.Fatalf("expected no diagnostics, got %#v", diagnostics)
 	}
@@ -191,5 +200,101 @@ func TestOrphanRenderingWithFilters(t *testing.T) {
 	got := orphans.Find(app, query)
 	if len(got) != 2 || got[0].ID != "n.b" || got[1].ID != "n.d" {
 		t.Fatalf("unexpected filtered orphans: %#v", got)
+	}
+}
+
+func TestRenderFileCSVDeterministic(t *testing.T) {
+	t.Parallel()
+
+	data := []byte("name,kind,status\ncli.root,note,active\ncli.worker,note,inactive\n")
+	first, err := renderFileCSV(data, noteArgs{formatCSV: "table"})
+	if err != nil {
+		t.Fatalf("render csv failed: %v", err)
+	}
+	second, err := renderFileCSV(data, noteArgs{formatCSV: "table"})
+	if err != nil {
+		t.Fatalf("render csv second failed: %v", err)
+	}
+	want := "| kind | name | status |\n| --- | --- | --- |\n| note | cli.root | active |\n| note | cli.worker | inactive |"
+	if first != want {
+		t.Fatalf("csv table mismatch\nwant: %q\n got: %q", want, first)
+	}
+	if second != first {
+		t.Fatalf("csv rendering is non-deterministic\nfirst: %q\nsecond: %q", first, second)
+	}
+}
+
+func TestRenderFileCSVIncludeFilter(t *testing.T) {
+	t.Parallel()
+
+	data := []byte("name,kind,status\ncli.root,note,active\ncli.worker,note,inactive\n")
+	got, err := renderFileCSV(data, noteArgs{
+		formatCSV: "table",
+		include:   csvFilter{column: "status", value: "active"},
+	})
+	if err != nil {
+		t.Fatalf("render csv include failed: %v", err)
+	}
+	want := "| kind | name | status |\n| --- | --- | --- |\n| note | cli.root | active |"
+	if got != want {
+		t.Fatalf("csv include mismatch\nwant: %q\n got: %q", want, got)
+	}
+}
+
+func TestRenderFileCSVExcludeFilter(t *testing.T) {
+	t.Parallel()
+
+	data := []byte("name,kind,status\ncli.root,note,active\ncli.worker,note,inactive\n")
+	got, err := renderFileCSV(data, noteArgs{
+		formatCSV: "table",
+		exclude:   csvFilter{column: "status", value: "inactive"},
+	})
+	if err != nil {
+		t.Fatalf("render csv exclude failed: %v", err)
+	}
+	want := "| kind | name | status |\n| --- | --- | --- |\n| note | cli.root | active |"
+	if got != want {
+		t.Fatalf("csv exclude mismatch\nwant: %q\n got: %q", want, got)
+	}
+}
+
+func TestRenderFileCSVIncludeExcludeFilters(t *testing.T) {
+	t.Parallel()
+
+	data := []byte("name,kind,status\ncli.root,note,active\ncli.worker,note,inactive\ncli.jobs,note,active\n")
+	got, err := renderFileCSV(data, noteArgs{
+		formatCSV: "table",
+		include:   csvFilter{column: "status", value: "active"},
+		exclude:   csvFilter{column: "name", value: "cli.jobs"},
+	})
+	if err != nil {
+		t.Fatalf("render csv include/exclude failed: %v", err)
+	}
+	want := "| kind | name | status |\n| --- | --- | --- |\n| note | cli.root | active |"
+	if got != want {
+		t.Fatalf("csv include/exclude mismatch\nwant: %q\n got: %q", want, got)
+	}
+}
+
+func TestRenderFileMedia(t *testing.T) {
+	t.Parallel()
+
+	got, err := renderFileMedia(domain.Note{ID: "n.image", Title: "Architecture", Filepath: "assets/arch.png"})
+	if err != nil {
+		t.Fatalf("render media failed: %v", err)
+	}
+	want := "![Architecture](assets/arch.png)"
+	if got != want {
+		t.Fatalf("media mismatch\nwant: %q\n got: %q", want, got)
+	}
+}
+
+func TestRenderFileCode(t *testing.T) {
+	t.Parallel()
+
+	got := renderFileCode([]byte("graph TD\nA-->B\n"), ".mmd")
+	want := "```mermaid\ngraph TD\nA-->B\n```"
+	if got != want {
+		t.Fatalf("code mismatch\nwant: %q\n got: %q", want, got)
 	}
 }

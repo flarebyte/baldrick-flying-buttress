@@ -1,0 +1,30 @@
+{
+  "source": "markdown-file-app",
+  "name": "markdown-file-app",
+  "modules": ["core"],
+  "reports": [
+    {
+      "title": "File Report",
+      "filepath": "out/file.md",
+      "sections": [
+        {
+          "title": "Files",
+          "sections": [
+            {
+              "title": "Missing",
+              "notes": ["n.missing"]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "name": "n.missing",
+      "title": "Missing",
+      "filepath": "fixtures/missing.csv"
+    }
+  ],
+  "relationships": []
+}
