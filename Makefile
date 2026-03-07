@@ -3,7 +3,7 @@
 ## - No dynamic variables or shell logic
 ## - Real logic lives in scripts (TypeScript/Bun, bash)
 
-.PHONY: lint format test cov build typecheck e2e release clean complexity sec dup perf-smoke test-race help
+.PHONY: lint format test cov build typecheck e2e release clean complexity sec dup perf-smoke test-race contract-snapshots release-check help
 
 BIOME := npx @biomejs/biome
 BUN := bun
@@ -12,8 +12,8 @@ GOLINT := golangci-lint
 
 lint:
 	$(BIOME) check
-	$(GO) vet ./...
-	$(GOLINT) run
+	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache $(GO) vet ./...
+	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache GOLANGCI_LINT_CACHE=$(PWD)/.golangci-lint-cache $(GOLINT) run
 
 format:
 	git ls-files '*.go' | xargs gofmt -w
@@ -21,8 +21,8 @@ format:
 	$(BIOME) check --unsafe --write
 
 test:
-	$(GO) test -coverprofile=coverage.out ./...
-	$(GO) tool cover -func=coverage.out
+	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache $(GO) test -coverprofile=coverage.out ./...
+	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache $(GO) tool cover -func=coverage.out
 
 cov:
 	npm run test:cov
@@ -39,7 +39,7 @@ typecheck:
 
 e2e:
 	mkdir -p .e2e-bin
-	go build -o .e2e-bin/flyb ./cmd/flyb
+	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache go build -o .e2e-bin/flyb ./cmd/flyb
 	bun test script/e2e
 
 perf-smoke:
@@ -47,6 +47,17 @@ perf-smoke:
 
 test-race:
 	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache $(GO) test -race ./...
+
+contract-snapshots:
+	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache $(GO) test -run 'TestContract|TestContractSnapshot' ./internal/...
+
+release-check:
+	$(MAKE) lint
+	$(MAKE) test
+	$(MAKE) contract-snapshots
+	$(MAKE) test-race
+	$(MAKE) perf-smoke
+	$(MAKE) e2e
 
 release: build
 	$(BUN) run release-go.ts
@@ -76,6 +87,8 @@ help:
 	@printf "  e2e        Run Bun-powered end-to-end tests.\n"
 	@printf "  perf-smoke Run deterministic moderate-size Go smoke tests.\n"
 	@printf "  test-race  Run Go tests with the race detector.\n"
+	@printf "  contract-snapshots  Run contract snapshot and contract invariants.\n"
+	@printf "  release-check  Run deterministic release gates in fixed order.\n"
 	@printf "  release    Prepare release artifacts (depends on build).\n"
 	@printf "  clean      Remove dist/ artifacts.\n"
 	@printf "  complexity Show top TypeScript files by complexity via scc.\n"
