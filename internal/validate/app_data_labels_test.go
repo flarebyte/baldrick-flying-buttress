@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -22,7 +23,7 @@ func TestAppDataValidatorDatasetLabelsCollectedDeterministically(t *testing.T) {
 		},
 	}
 
-	app, _, err := AppDataValidator{}.Validate(raw)
+	app, _, err := AppDataValidator{}.Validate(context.Background(), raw)
 	if err != nil {
 		t.Fatalf("validate failed: %v", err)
 	}
@@ -52,7 +53,7 @@ func TestAppDataValidatorLabelReferenceValidation(t *testing.T) {
 		}},
 	}
 
-	_, report, err := AppDataValidator{}.Validate(raw)
+	_, report, err := AppDataValidator{}.Validate(context.Background(), raw)
 	if err != nil {
 		t.Fatalf("validate failed: %v", err)
 	}

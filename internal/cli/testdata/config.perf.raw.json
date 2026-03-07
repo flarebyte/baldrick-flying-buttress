@@ -1,0 +1,875 @@
+{
+  "source": "perf-app",
+  "name": "perf-app",
+  "modules": ["core"],
+  "reports": [
+    {
+      "title": "Report 0",
+      "filepath": "out/perf-0.md",
+      "sections": [
+        {
+          "title": "Section 0",
+          "sections": [
+            {
+              "title": "Notes",
+              "notes": ["n0", "n1", "n2", "n3", "n4", "n5", "n6", "n7"],
+              "arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Report 1",
+      "filepath": "out/perf-1.md",
+      "sections": [
+        {
+          "title": "Section 1",
+          "sections": [
+            {
+              "title": "Notes",
+              "notes": ["n8", "n9", "n10", "n11", "n12", "n13", "n14", "n15"],
+              "arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Report 2",
+      "filepath": "out/perf-2.md",
+      "sections": [
+        {
+          "title": "Section 2",
+          "sections": [
+            {
+              "title": "Notes",
+              "notes": ["n16", "n17", "n18", "n19", "n20", "n21", "n22", "n23"],
+              "arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Report 3",
+      "filepath": "out/perf-3.md",
+      "sections": [
+        {
+          "title": "Section 3",
+          "sections": [
+            {
+              "title": "Notes",
+              "notes": ["n24", "n25", "n26", "n27", "n28", "n29", "n30", "n31"],
+              "arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Report 4",
+      "filepath": "out/perf-4.md",
+      "sections": [
+        {
+          "title": "Section 4",
+          "sections": [
+            {
+              "title": "Notes",
+              "notes": ["n32", "n33", "n34", "n35", "n36", "n37", "n38", "n39"],
+              "arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Report 5",
+      "filepath": "out/perf-5.md",
+      "sections": [
+        {
+          "title": "Section 5",
+          "sections": [
+            {
+              "title": "Notes",
+              "notes": ["n40", "n41", "n42", "n43", "n44", "n45", "n46", "n47"],
+              "arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Report 6",
+      "filepath": "out/perf-6.md",
+      "sections": [
+        {
+          "title": "Section 6",
+          "sections": [
+            {
+              "title": "Notes",
+              "notes": ["n48", "n49", "n50", "n51", "n52", "n53", "n54", "n55"],
+              "arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Report 7",
+      "filepath": "out/perf-7.md",
+      "sections": [
+        {
+          "title": "Section 7",
+          "sections": [
+            {
+              "title": "Notes",
+              "notes": ["n56", "n57", "n58", "n59", "n60", "n61", "n62", "n63"],
+              "arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Report 8",
+      "filepath": "out/perf-8.md",
+      "sections": [
+        {
+          "title": "Section 8",
+          "sections": [
+            {
+              "title": "Notes",
+              "notes": ["n64", "n65", "n66", "n67", "n68", "n69", "n70", "n71"],
+              "arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Report 9",
+      "filepath": "out/perf-9.md",
+      "sections": [
+        {
+          "title": "Section 9",
+          "sections": [
+            {
+              "title": "Notes",
+              "notes": ["n72", "n73", "n74", "n75", "n76", "n77", "n78", "n79"],
+              "arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Report 10",
+      "filepath": "out/perf-10.md",
+      "sections": [
+        {
+          "title": "Section 10",
+          "sections": [
+            {
+              "title": "Notes",
+              "notes": ["n80", "n81", "n82", "n83", "n84", "n85", "n86", "n87"],
+              "arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Report 11",
+      "filepath": "out/perf-11.md",
+      "sections": [
+        {
+          "title": "Section 11",
+          "sections": [
+            {
+              "title": "Notes",
+              "notes": ["n88", "n89", "n90", "n91", "n92", "n93", "n94", "n95"],
+              "arguments": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "name": "n0",
+      "title": "Note 0",
+      "markdown": "Body 0",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n1",
+      "title": "Note 1",
+      "markdown": "Body 1",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n2",
+      "title": "Note 2",
+      "markdown": "Body 2",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n3",
+      "title": "Note 3",
+      "markdown": "Body 3",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n4",
+      "title": "Note 4",
+      "markdown": "Body 4",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n5",
+      "title": "Note 5",
+      "markdown": "Body 5",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n6",
+      "title": "Note 6",
+      "markdown": "Body 6",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n7",
+      "title": "Note 7",
+      "markdown": "Body 7",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n8",
+      "title": "Note 8",
+      "markdown": "Body 8",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n9",
+      "title": "Note 9",
+      "markdown": "Body 9",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n10",
+      "title": "Note 10",
+      "markdown": "Body 10",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n11",
+      "title": "Note 11",
+      "markdown": "Body 11",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n12",
+      "title": "Note 12",
+      "markdown": "Body 12",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n13",
+      "title": "Note 13",
+      "markdown": "Body 13",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n14",
+      "title": "Note 14",
+      "markdown": "Body 14",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n15",
+      "title": "Note 15",
+      "markdown": "Body 15",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n16",
+      "title": "Note 16",
+      "markdown": "Body 16",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n17",
+      "title": "Note 17",
+      "markdown": "Body 17",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n18",
+      "title": "Note 18",
+      "markdown": "Body 18",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n19",
+      "title": "Note 19",
+      "markdown": "Body 19",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n20",
+      "title": "Note 20",
+      "markdown": "Body 20",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n21",
+      "title": "Note 21",
+      "markdown": "Body 21",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n22",
+      "title": "Note 22",
+      "markdown": "Body 22",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n23",
+      "title": "Note 23",
+      "markdown": "Body 23",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n24",
+      "title": "Note 24",
+      "markdown": "Body 24",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n25",
+      "title": "Note 25",
+      "markdown": "Body 25",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n26",
+      "title": "Note 26",
+      "markdown": "Body 26",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n27",
+      "title": "Note 27",
+      "markdown": "Body 27",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n28",
+      "title": "Note 28",
+      "markdown": "Body 28",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n29",
+      "title": "Note 29",
+      "markdown": "Body 29",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n30",
+      "title": "Note 30",
+      "markdown": "Body 30",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n31",
+      "title": "Note 31",
+      "markdown": "Body 31",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n32",
+      "title": "Note 32",
+      "markdown": "Body 32",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n33",
+      "title": "Note 33",
+      "markdown": "Body 33",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n34",
+      "title": "Note 34",
+      "markdown": "Body 34",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n35",
+      "title": "Note 35",
+      "markdown": "Body 35",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n36",
+      "title": "Note 36",
+      "markdown": "Body 36",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n37",
+      "title": "Note 37",
+      "markdown": "Body 37",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n38",
+      "title": "Note 38",
+      "markdown": "Body 38",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n39",
+      "title": "Note 39",
+      "markdown": "Body 39",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n40",
+      "title": "Note 40",
+      "markdown": "Body 40",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n41",
+      "title": "Note 41",
+      "markdown": "Body 41",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n42",
+      "title": "Note 42",
+      "markdown": "Body 42",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n43",
+      "title": "Note 43",
+      "markdown": "Body 43",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n44",
+      "title": "Note 44",
+      "markdown": "Body 44",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n45",
+      "title": "Note 45",
+      "markdown": "Body 45",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n46",
+      "title": "Note 46",
+      "markdown": "Body 46",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n47",
+      "title": "Note 47",
+      "markdown": "Body 47",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n48",
+      "title": "Note 48",
+      "markdown": "Body 48",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n49",
+      "title": "Note 49",
+      "markdown": "Body 49",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n50",
+      "title": "Note 50",
+      "markdown": "Body 50",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n51",
+      "title": "Note 51",
+      "markdown": "Body 51",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n52",
+      "title": "Note 52",
+      "markdown": "Body 52",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n53",
+      "title": "Note 53",
+      "markdown": "Body 53",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n54",
+      "title": "Note 54",
+      "markdown": "Body 54",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n55",
+      "title": "Note 55",
+      "markdown": "Body 55",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n56",
+      "title": "Note 56",
+      "markdown": "Body 56",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n57",
+      "title": "Note 57",
+      "markdown": "Body 57",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n58",
+      "title": "Note 58",
+      "markdown": "Body 58",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n59",
+      "title": "Note 59",
+      "markdown": "Body 59",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n60",
+      "title": "Note 60",
+      "markdown": "Body 60",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n61",
+      "title": "Note 61",
+      "markdown": "Body 61",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n62",
+      "title": "Note 62",
+      "markdown": "Body 62",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n63",
+      "title": "Note 63",
+      "markdown": "Body 63",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n64",
+      "title": "Note 64",
+      "markdown": "Body 64",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n65",
+      "title": "Note 65",
+      "markdown": "Body 65",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n66",
+      "title": "Note 66",
+      "markdown": "Body 66",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n67",
+      "title": "Note 67",
+      "markdown": "Body 67",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n68",
+      "title": "Note 68",
+      "markdown": "Body 68",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n69",
+      "title": "Note 69",
+      "markdown": "Body 69",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n70",
+      "title": "Note 70",
+      "markdown": "Body 70",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n71",
+      "title": "Note 71",
+      "markdown": "Body 71",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n72",
+      "title": "Note 72",
+      "markdown": "Body 72",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n73",
+      "title": "Note 73",
+      "markdown": "Body 73",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n74",
+      "title": "Note 74",
+      "markdown": "Body 74",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n75",
+      "title": "Note 75",
+      "markdown": "Body 75",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n76",
+      "title": "Note 76",
+      "markdown": "Body 76",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n77",
+      "title": "Note 77",
+      "markdown": "Body 77",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n78",
+      "title": "Note 78",
+      "markdown": "Body 78",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n79",
+      "title": "Note 79",
+      "markdown": "Body 79",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n80",
+      "title": "Note 80",
+      "markdown": "Body 80",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n81",
+      "title": "Note 81",
+      "markdown": "Body 81",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n82",
+      "title": "Note 82",
+      "markdown": "Body 82",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n83",
+      "title": "Note 83",
+      "markdown": "Body 83",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n84",
+      "title": "Note 84",
+      "markdown": "Body 84",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n85",
+      "title": "Note 85",
+      "markdown": "Body 85",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n86",
+      "title": "Note 86",
+      "markdown": "Body 86",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n87",
+      "title": "Note 87",
+      "markdown": "Body 87",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n88",
+      "title": "Note 88",
+      "markdown": "Body 88",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n89",
+      "title": "Note 89",
+      "markdown": "Body 89",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n90",
+      "title": "Note 90",
+      "markdown": "Body 90",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n91",
+      "title": "Note 91",
+      "markdown": "Body 91",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n92",
+      "title": "Note 92",
+      "markdown": "Body 92",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n93",
+      "title": "Note 93",
+      "markdown": "Body 93",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n94",
+      "title": "Note 94",
+      "markdown": "Body 94",
+      "labels": ["perf"]
+    },
+    {
+      "name": "n95",
+      "title": "Note 95",
+      "markdown": "Body 95",
+      "labels": ["perf"]
+    }
+  ],
+  "relationships": [
+    { "from": "n0", "to": "n1", "label": "depends_on" },
+    { "from": "n1", "to": "n2", "label": "depends_on" },
+    { "from": "n2", "to": "n3", "label": "depends_on" },
+    { "from": "n3", "to": "n4", "label": "depends_on" },
+    { "from": "n4", "to": "n5", "label": "depends_on" },
+    { "from": "n5", "to": "n6", "label": "depends_on" },
+    { "from": "n6", "to": "n7", "label": "depends_on" },
+    { "from": "n7", "to": "n8", "label": "depends_on" },
+    { "from": "n8", "to": "n9", "label": "depends_on" },
+    { "from": "n9", "to": "n10", "label": "depends_on" },
+    { "from": "n10", "to": "n11", "label": "depends_on" },
+    { "from": "n11", "to": "n12", "label": "depends_on" },
+    { "from": "n12", "to": "n13", "label": "depends_on" },
+    { "from": "n13", "to": "n14", "label": "depends_on" },
+    { "from": "n14", "to": "n15", "label": "depends_on" },
+    { "from": "n15", "to": "n16", "label": "depends_on" },
+    { "from": "n16", "to": "n17", "label": "depends_on" },
+    { "from": "n17", "to": "n18", "label": "depends_on" },
+    { "from": "n18", "to": "n19", "label": "depends_on" },
+    { "from": "n19", "to": "n20", "label": "depends_on" },
+    { "from": "n20", "to": "n21", "label": "depends_on" },
+    { "from": "n21", "to": "n22", "label": "depends_on" },
+    { "from": "n22", "to": "n23", "label": "depends_on" },
+    { "from": "n23", "to": "n24", "label": "depends_on" },
+    { "from": "n24", "to": "n25", "label": "depends_on" },
+    { "from": "n25", "to": "n26", "label": "depends_on" },
+    { "from": "n26", "to": "n27", "label": "depends_on" },
+    { "from": "n27", "to": "n28", "label": "depends_on" },
+    { "from": "n28", "to": "n29", "label": "depends_on" },
+    { "from": "n29", "to": "n30", "label": "depends_on" },
+    { "from": "n30", "to": "n31", "label": "depends_on" },
+    { "from": "n31", "to": "n32", "label": "depends_on" },
+    { "from": "n32", "to": "n33", "label": "depends_on" },
+    { "from": "n33", "to": "n34", "label": "depends_on" },
+    { "from": "n34", "to": "n35", "label": "depends_on" },
+    { "from": "n35", "to": "n36", "label": "depends_on" },
+    { "from": "n36", "to": "n37", "label": "depends_on" },
+    { "from": "n37", "to": "n38", "label": "depends_on" },
+    { "from": "n38", "to": "n39", "label": "depends_on" },
+    { "from": "n39", "to": "n40", "label": "depends_on" },
+    { "from": "n40", "to": "n41", "label": "depends_on" },
+    { "from": "n41", "to": "n42", "label": "depends_on" },
+    { "from": "n42", "to": "n43", "label": "depends_on" },
+    { "from": "n43", "to": "n44", "label": "depends_on" },
+    { "from": "n44", "to": "n45", "label": "depends_on" },
+    { "from": "n45", "to": "n46", "label": "depends_on" },
+    { "from": "n46", "to": "n47", "label": "depends_on" },
+    { "from": "n47", "to": "n48", "label": "depends_on" },
+    { "from": "n48", "to": "n49", "label": "depends_on" },
+    { "from": "n49", "to": "n50", "label": "depends_on" },
+    { "from": "n50", "to": "n51", "label": "depends_on" },
+    { "from": "n51", "to": "n52", "label": "depends_on" },
+    { "from": "n52", "to": "n53", "label": "depends_on" },
+    { "from": "n53", "to": "n54", "label": "depends_on" },
+    { "from": "n54", "to": "n55", "label": "depends_on" },
+    { "from": "n55", "to": "n56", "label": "depends_on" },
+    { "from": "n56", "to": "n57", "label": "depends_on" },
+    { "from": "n57", "to": "n58", "label": "depends_on" },
+    { "from": "n58", "to": "n59", "label": "depends_on" },
+    { "from": "n59", "to": "n60", "label": "depends_on" },
+    { "from": "n60", "to": "n61", "label": "depends_on" },
+    { "from": "n61", "to": "n62", "label": "depends_on" },
+    { "from": "n62", "to": "n63", "label": "depends_on" },
+    { "from": "n63", "to": "n64", "label": "depends_on" },
+    { "from": "n64", "to": "n65", "label": "depends_on" },
+    { "from": "n65", "to": "n66", "label": "depends_on" },
+    { "from": "n66", "to": "n67", "label": "depends_on" },
+    { "from": "n67", "to": "n68", "label": "depends_on" },
+    { "from": "n68", "to": "n69", "label": "depends_on" },
+    { "from": "n69", "to": "n70", "label": "depends_on" },
+    { "from": "n70", "to": "n71", "label": "depends_on" },
+    { "from": "n71", "to": "n72", "label": "depends_on" },
+    { "from": "n72", "to": "n73", "label": "depends_on" },
+    { "from": "n73", "to": "n74", "label": "depends_on" },
+    { "from": "n74", "to": "n75", "label": "depends_on" },
+    { "from": "n75", "to": "n76", "label": "depends_on" },
+    { "from": "n76", "to": "n77", "label": "depends_on" },
+    { "from": "n77", "to": "n78", "label": "depends_on" },
+    { "from": "n78", "to": "n79", "label": "depends_on" },
+    { "from": "n79", "to": "n80", "label": "depends_on" },
+    { "from": "n80", "to": "n81", "label": "depends_on" },
+    { "from": "n81", "to": "n82", "label": "depends_on" },
+    { "from": "n82", "to": "n83", "label": "depends_on" },
+    { "from": "n83", "to": "n84", "label": "depends_on" },
+    { "from": "n84", "to": "n85", "label": "depends_on" },
+    { "from": "n85", "to": "n86", "label": "depends_on" },
+    { "from": "n86", "to": "n87", "label": "depends_on" },
+    { "from": "n87", "to": "n88", "label": "depends_on" },
+    { "from": "n88", "to": "n89", "label": "depends_on" },
+    { "from": "n89", "to": "n90", "label": "depends_on" },
+    { "from": "n90", "to": "n91", "label": "depends_on" },
+    { "from": "n91", "to": "n92", "label": "depends_on" },
+    { "from": "n92", "to": "n93", "label": "depends_on" },
+    { "from": "n93", "to": "n94", "label": "depends_on" },
+    { "from": "n94", "to": "n95", "label": "depends_on" },
+    { "from": "n0", "to": "n10", "label": "depends_on" }
+  ]
+}

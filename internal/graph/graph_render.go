@@ -1,15 +1,24 @@
 package graph
 
 import (
+	"context"
+	"fmt"
 	"strings"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/safety"
 )
 
-func RenderMarkdownText(selected Selected, shape Shape, policy CyclePolicy) string {
+func RenderMarkdownText(ctx context.Context, selected Selected, shape Shape, policy CyclePolicy) (string, error) {
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
 	adj := buildAdj(selected.Relationships)
 	noteByID := map[string]domain.Note{}
 	for _, note := range selected.Notes {
+		if err := ctx.Err(); err != nil {
+			return "", err
+		}
 		noteByID[note.ID] = note
 	}
 	roots := selected.Roots
@@ -18,42 +27,58 @@ func RenderMarkdownText(selected Selected, shape Shape, policy CyclePolicy) stri
 	}
 
 	var b strings.Builder
+	budget := renderBudget{}
 	switch shape {
 	case ShapeTree:
 		for _, root := range roots {
-			renderTree(&b, root, 0, adj, noteByID)
+			if err := renderTree(ctx, &b, root, 0, adj, noteByID, &budget); err != nil {
+				return "", err
+			}
 		}
 	case ShapeDAG:
 		visits := map[string]int{}
 		for _, root := range roots {
-			renderDAG(&b, root, 0, adj, noteByID, visits, 2)
+			if err := renderDAG(ctx, &b, root, 0, adj, noteByID, visits, 2, &budget); err != nil {
+				return "", err
+			}
 		}
 	case ShapeCyclic:
 		if policy == CyclePolicyAllow {
 			rendered := map[string]bool{}
 			for _, root := range roots {
-				renderCyclic(&b, root, 0, adj, noteByID, rendered, map[string]bool{})
+				if err := renderCyclic(ctx, &b, root, 0, adj, noteByID, rendered, map[string]bool{}, &budget); err != nil {
+					return "", err
+				}
 			}
 		}
 	}
-	return b.String()
+	return b.String(), nil
 }
 
-func renderTree(b *strings.Builder, nodeID string, depth int, adj map[string][]string, noteByID map[string]domain.Note) {
-	note, ok := noteByID[nodeID]
+func renderTree(ctx context.Context, b *strings.Builder, nodeID string, depth int, adj map[string][]string, noteByID map[string]domain.Note, budget *renderBudget) error {
+	note, ok, err := resolveRenderableNote(ctx, nodeID, noteByID, budget)
+	if err != nil {
+		return err
+	}
 	if !ok {
-		return
+		return nil
 	}
 	writeNodeLine(b, note, depth)
 	for _, child := range adj[nodeID] {
-		renderTree(b, child, depth+1, adj, noteByID)
+		if err := renderTree(ctx, b, child, depth+1, adj, noteByID, budget); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func renderDAG(b *strings.Builder, nodeID string, depth int, adj map[string][]string, noteByID map[string]domain.Note, visits map[string]int, maxVisits int) {
-	note, ok := noteByID[nodeID]
+func renderDAG(ctx context.Context, b *strings.Builder, nodeID string, depth int, adj map[string][]string, noteByID map[string]domain.Note, visits map[string]int, maxVisits int, budget *renderBudget) error {
+	note, ok, err := resolveRenderableNote(ctx, nodeID, noteByID, budget)
+	if err != nil {
+		return err
+	}
 	if !ok {
-		return
+		return nil
 	}
 	if visits[nodeID] >= maxVisits {
 		indent := strings.Repeat("  ", depth)
@@ -61,19 +86,25 @@ func renderDAG(b *strings.Builder, nodeID string, depth int, adj map[string][]st
 		b.WriteString("- *(repeat limit reached: ")
 		b.WriteString(note.Title)
 		b.WriteString(")*\n")
-		return
+		return nil
 	}
 	visits[nodeID]++
 	writeNodeLine(b, note, depth)
 	for _, child := range adj[nodeID] {
-		renderDAG(b, child, depth+1, adj, noteByID, visits, maxVisits)
+		if err := renderDAG(ctx, b, child, depth+1, adj, noteByID, visits, maxVisits, budget); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func renderCyclic(b *strings.Builder, nodeID string, depth int, adj map[string][]string, noteByID map[string]domain.Note, rendered map[string]bool, stack map[string]bool) {
-	note, ok := noteByID[nodeID]
+func renderCyclic(ctx context.Context, b *strings.Builder, nodeID string, depth int, adj map[string][]string, noteByID map[string]domain.Note, rendered map[string]bool, stack map[string]bool, budget *renderBudget) error {
+	note, ok, err := resolveRenderableNote(ctx, nodeID, noteByID, budget)
+	if err != nil {
+		return err
+	}
 	if !ok {
-		return
+		return nil
 	}
 	if stack[nodeID] {
 		indent := strings.Repeat("  ", depth)
@@ -81,18 +112,44 @@ func renderCyclic(b *strings.Builder, nodeID string, depth int, adj map[string][
 		b.WriteString("- *(cycle back to ")
 		b.WriteString(note.Title)
 		b.WriteString(")*\n")
-		return
+		return nil
 	}
 	if rendered[nodeID] {
-		return
+		return nil
 	}
 	rendered[nodeID] = true
 	writeNodeLine(b, note, depth)
 	stack[nodeID] = true
 	for _, child := range adj[nodeID] {
-		renderCyclic(b, child, depth+1, adj, noteByID, rendered, stack)
+		if err := renderCyclic(ctx, b, child, depth+1, adj, noteByID, rendered, stack, budget); err != nil {
+			return err
+		}
 	}
 	delete(stack, nodeID)
+	return nil
+}
+
+type renderBudget struct {
+	used int
+}
+
+func (b *renderBudget) use() error {
+	b.used++
+	if err := safety.CheckGraphRenderNodeCount(b.used); err != nil {
+		return fmt.Errorf("graph render limit exceeded: %w", err)
+	}
+	return nil
+}
+
+func resolveRenderableNote(ctx context.Context, nodeID string, noteByID map[string]domain.Note, budget *renderBudget) (domain.Note, bool, error) {
+	if err := ctx.Err(); err != nil {
+		return domain.Note{}, false, err
+	}
+	if err := budget.use(); err != nil {
+		return domain.Note{}, false, err
+	}
+	note, ok := noteByID[nodeID]
+	return note, ok, nil
 }
 
 func writeNodeLine(b *strings.Builder, note domain.Note, depth int) {

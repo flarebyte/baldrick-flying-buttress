@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"context"
 	"encoding/csv"
 	"fmt"
 	"os"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/ordering"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/safety"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/textutil"
 )
 
@@ -28,7 +30,10 @@ func (f csvFilter) empty() bool {
 	return f.column == "" && f.value == ""
 }
 
-func renderNoteBody(note domain.Note, configDir string) (string, error) {
+func renderNoteBody(ctx context.Context, note domain.Note, configDir string) (string, error) {
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
 	if strings.TrimSpace(note.Filepath) == "" {
 		return note.Markdown, nil
 	}
@@ -41,9 +46,12 @@ func renderNoteBody(note domain.Note, configDir string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("read note file %s: %w", note.Filepath, err)
 	}
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
 	ext := strings.ToLower(filepath.Ext(note.Filepath))
 	if ext == ".csv" {
-		return renderFileCSV(data, args)
+		return renderFileCSV(ctx, data, args)
 	}
 	if isMediaExt(ext) {
 		return renderFileMedia(note)
@@ -94,7 +102,13 @@ func parseCSVFilter(value string) (csvFilter, error) {
 	return csvFilter{column: column, value: target}, nil
 }
 
-func renderFileCSV(data []byte, args noteArgs) (string, error) {
+func renderFileCSV(ctx context.Context, data []byte, args noteArgs) (string, error) {
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
+	if err := safety.CheckCSVFileSize(len(data)); err != nil {
+		return "", err
+	}
 	if args.formatCSV == "" {
 		args.formatCSV = "table"
 	}
@@ -143,7 +157,11 @@ func renderFileCSV(data []byte, args noteArgs) (string, error) {
 	}
 	b.WriteString(" |\n")
 
+	renderedRows := 0
 	for _, row := range rows[1:] {
+		if err := ctx.Err(); err != nil {
+			return "", err
+		}
 		if includeIndex >= 0 {
 			if includeIndex >= len(row) || row[includeIndex] != args.include.value {
 				continue
@@ -169,6 +187,10 @@ func renderFileCSV(data []byte, args noteArgs) (string, error) {
 		b.WriteString("| ")
 		b.WriteString(strings.Join(values, " | "))
 		b.WriteString(" |\n")
+		renderedRows++
+		if err := safety.CheckCSVRenderedRows(renderedRows); err != nil {
+			return "", err
+		}
 	}
 	return strings.TrimSuffix(b.String(), "\n"), nil
 }

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -44,13 +45,13 @@ func runCommandWithFactory(args []string, loaderFactory LoaderFactory, validator
 }
 
 func stubLoader() pipeline.AppLoader {
-	return pipeline.LoaderFunc(func() (domain.RawApp, error) {
+	return pipeline.LoaderFunc(func(context.Context) (domain.RawApp, error) {
 		return domain.RawApp{Source: "in-memory-stub"}, nil
 	})
 }
 
 func validatorWith(app domain.ValidatedApp, report domain.ValidationReport, err error) pipeline.AppValidator {
-	return pipeline.ValidatorFunc(func(domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
+	return pipeline.ValidatorFunc(func(context.Context, domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 		return app, report, err
 	})
 }

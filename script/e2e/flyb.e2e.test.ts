@@ -12,6 +12,7 @@ import { dirname, join } from 'node:path';
 const rootDir = join(import.meta.dir, '..', '..');
 const binPath = join(rootDir, '.e2e-bin', 'flyb');
 const fixturePath = join(rootDir, 'testdata', 'app.raw.json');
+const cueFixturePath = join(rootDir, 'testdata', 'app.cue');
 const namesFixturePath = join(rootDir, 'testdata', 'names.raw.json');
 const lintFixturePath = join(rootDir, 'testdata', 'lint.raw.json');
 const orphansFixturePath = join(rootDir, 'testdata', 'orphans.raw.json');
@@ -102,6 +103,15 @@ function assertGenerateMarkdownOutput(
 
 test('flyb validate stdout matches golden', () => {
   const got = runFlyb(['validate', '--config', fixturePath]);
+  const wantStdout = readGolden('validate.stdout.golden');
+
+  expect(got.exitCode).toBe(1);
+  expect(bytesHex(got.stdout)).toBe(bytesHex(wantStdout));
+  expect(bytesHex(got.stderr)).toBe('');
+});
+
+test('flyb validate with cue fixture stdout matches golden', () => {
+  const got = runFlyb(['validate', '--config', cueFixturePath]);
   const wantStdout = readGolden('validate.stdout.golden');
 
   expect(got.exitCode).toBe(1);
@@ -331,6 +341,25 @@ test('flyb generate markdown is deterministic across repeated runs', () => {
     expect(bytesHex(second.stderr)).toBe(bytesHex(first.stderr));
     expect(bytesHex(secondAlpha)).toBe(bytesHex(firstAlpha));
     expect(bytesHex(secondBeta)).toBe(bytesHex(firstBeta));
+  } finally {
+    rmSync(fixture.dir, { recursive: true, force: true });
+  }
+});
+
+test('flyb validate oversized config fails deterministically', () => {
+  const fixture = makeTempFixture(fixturePath);
+  try {
+    const oversized = 'a'.repeat(1024 * 1024 + 1);
+    writeFileSync(fixture.configPath, oversized);
+
+    const first = runFlyb(['validate', '--config', fixture.configPath]);
+    const second = runFlyb(['validate', '--config', fixture.configPath]);
+
+    expect(first.exitCode).toBe(2);
+    expect(second.exitCode).toBe(2);
+    expect(bytesHex(first.stdout)).toBe('');
+    expect(bytesHex(second.stdout)).toBe('');
+    expect(bytesHex(second.stderr)).toBe(bytesHex(first.stderr));
   } finally {
     rmSync(fixture.dir, { recursive: true, force: true });
   }

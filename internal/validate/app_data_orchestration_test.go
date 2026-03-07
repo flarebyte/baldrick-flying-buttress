@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -15,14 +16,14 @@ func TestAppDataValidatorRunsSubstepsInOrder(t *testing.T) {
 		steps = append(steps, step)
 	}}
 
-	_, _, err := validator.Validate(domain.RawApp{Source: "app"})
+	_, _, err := validator.Validate(context.Background(), domain.RawApp{Source: "app"})
 	if err != nil {
 		t.Fatalf("validate failed: %v", err)
 	}
 
 	want := []string{
 		"raw_model_normalization_precheck",
-		"schema_structure_validation",
+		"validate_cue_schema",
 		"args_registry_resolve",
 		"args_registry_validate",
 		"args_validate_config",
@@ -52,11 +53,11 @@ func TestAppDataValidatorDeterministicAcrossRuns(t *testing.T) {
 		Registry:      domain.RawArgumentRegistry{Arguments: []domain.RawArgumentDefinition{{Name: "beta", ValueType: "string", Scopes: []string{"note"}}, {Name: "alpha", ValueType: "string", Scopes: []string{"renderer"}}}},
 	}
 
-	app1, report1, err1 := AppDataValidator{}.Validate(raw)
+	app1, report1, err1 := AppDataValidator{}.Validate(context.Background(), raw)
 	if err1 != nil {
 		t.Fatalf("first validate failed: %v", err1)
 	}
-	app2, report2, err2 := AppDataValidator{}.Validate(raw)
+	app2, report2, err2 := AppDataValidator{}.Validate(context.Background(), raw)
 	if err2 != nil {
 		t.Fatalf("second validate failed: %v", err2)
 	}

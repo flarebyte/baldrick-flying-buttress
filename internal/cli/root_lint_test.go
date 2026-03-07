@@ -61,15 +61,7 @@ func TestLintNamesRegexMissingPatternRuntimeFailure(t *testing.T) {
 	validator := validate.AppDataValidator{}
 
 	code, stdout, stderr := runCommandWithFactory([]string{"lint", "names", "--config", configPath, "--style", "regex"}, loaderFactory, validator)
-	if code != outcome.ExitCodeRuntimeFailure {
-		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeRuntimeFailure, code)
-	}
-	if stdout != "" {
-		t.Fatalf("expected empty stdout, got %q", stdout)
-	}
-	if stderr == "" {
-		t.Fatal("expected stderr")
-	}
+	assertRuntimeFailureOutput(t, code, stdout, stderr)
 }
 
 func TestLintNamesSeverityErrorProducesBlockingDiagnostics(t *testing.T) {
@@ -164,15 +156,7 @@ func TestLintOrphansInvalidDirectionRuntimeFailure(t *testing.T) {
 	validator := validate.AppDataValidator{}
 
 	code, stdout, stderr := runCommandWithFactory([]string{"lint", "orphans", "--config", configPath, "--subject-label", "ingredient", "--direction", "sideways"}, loaderFactory, validator)
-	if code != outcome.ExitCodeRuntimeFailure {
-		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeRuntimeFailure, code)
-	}
-	if stdout != "" {
-		t.Fatalf("expected empty stdout, got %q", stdout)
-	}
-	if stderr == "" {
-		t.Fatal("expected stderr")
-	}
+	assertRuntimeFailureOutput(t, code, stdout, stderr)
 }
 
 func TestLintOrphansBlockedOnValidationErrors(t *testing.T) {
@@ -197,6 +181,11 @@ func TestLintOrphansMissingSubjectLabelRuntimeFailure(t *testing.T) {
 		stubLoader(),
 		validatorWith(orphansValidatedApp(), domain.ValidationReport{}, nil),
 	)
+	assertRuntimeFailureOutput(t, code, stdout, stderr)
+}
+
+func assertRuntimeFailureOutput(t *testing.T, code int, stdout, stderr string) {
+	t.Helper()
 	if code != outcome.ExitCodeRuntimeFailure {
 		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeRuntimeFailure, code)
 	}

@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"context"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -29,9 +30,19 @@ func assertHasDiagnostics(t *testing.T, diagnostics []domain.Diagnostic, want []
 
 func validateRaw(t *testing.T, raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport) {
 	t.Helper()
-	app, report, err := AppDataValidator{}.Validate(raw)
+	app, report, err := AppDataValidator{}.Validate(context.Background(), raw)
 	if err != nil {
 		t.Fatalf("validate failed: %v", err)
 	}
 	return app, report
+}
+
+func rawAppWithMinimalShape(registry domain.RawArgumentRegistry) domain.RawApp {
+	return domain.RawApp{
+		Source:        "app",
+		Reports:       []domain.RawReport{{Title: "R", Filepath: "reports/r.md", Sections: []domain.RawReportSection{{Title: "S"}}}},
+		Notes:         []domain.RawNote{{Name: "n1", Title: "N1"}},
+		Relationships: []domain.RawRelationship{{FromID: "n1", ToID: "n2", Label: "L"}},
+		Registry:      registry,
+	}
 }

@@ -1,6 +1,8 @@
 package pipeline
 
 import (
+	"context"
+	"errors"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -20,11 +22,12 @@ func TestRunCallsLoadValidateAction(t *testing.T) {
 	}}}
 
 	err := Run(
-		LoaderFunc(func() (domain.RawApp, error) {
+		context.Background(),
+		LoaderFunc(func(context.Context) (domain.RawApp, error) {
 			calls = append(calls, "load")
 			return wantRaw, nil
 		}),
-		ValidatorFunc(func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
+		ValidatorFunc(func(_ context.Context, raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 			calls = append(calls, "validate")
 			if raw.Source != wantRaw.Source {
 				t.Fatalf("unexpected raw source: %#v", raw)
@@ -32,7 +35,7 @@ func TestRunCallsLoadValidateAction(t *testing.T) {
 			return wantValidated, wantReport, nil
 		}),
 		testAction{
-			run: func(validated domain.ValidatedApp, report domain.ValidationReport) error {
+			run: func(_ context.Context, validated domain.ValidatedApp, report domain.ValidationReport) error {
 				calls = append(calls, "action")
 				if validated.Name != wantValidated.Name {
 					t.Fatalf("unexpected app name: %s", validated.Name)
@@ -61,4 +64,34 @@ func TestRunShortCircuitsActionOnValidationErrorDiagnostic(t *testing.T) {
 
 	err, actionCalled := runWithValidationError(t, false)
 	assertValidationBlockedAndActionSkipped(t, err, actionCalled)
+}
+
+func TestRunPropagatesCancellationAcrossStages(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	calls := make([]string, 0)
+	err := Run(
+		ctx,
+		LoaderFunc(func(context.Context) (domain.RawApp, error) {
+			calls = append(calls, "load")
+			return domain.RawApp{Source: "x"}, nil
+		}),
+		ValidatorFunc(func(context.Context, domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
+			calls = append(calls, "validate")
+			return domain.ValidatedApp{}, domain.ValidationReport{}, nil
+		}),
+		testAction{run: func(context.Context, domain.ValidatedApp, domain.ValidationReport) error {
+			calls = append(calls, "action")
+			return nil
+		}},
+	)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("expected context canceled, got %v", err)
+	}
+	if len(calls) != 0 {
+		t.Fatalf("expected no stage calls after canceled context, got %#v", calls)
+	}
 }

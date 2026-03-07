@@ -3,26 +3,34 @@
 ## - No dynamic variables or shell logic
 ## - Real logic lives in scripts (TypeScript/Bun, bash)
 
-.PHONY: lint format test cov build typecheck e2e release clean complexity sec dup help
+.PHONY: lint format test cov build typecheck e2e release clean complexity sec dup perf-smoke test-race contract-snapshots release-check help
 
 BIOME := npx @biomejs/biome
 BUN := bun
 GO := go
 GOLINT := golangci-lint
+GO_ENV := GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache
+GOLINT_ENV := $(GO_ENV) GOLANGCI_LINT_CACHE=$(PWD)/.golangci-lint-cache
 
 lint:
 	$(BIOME) check
-	$(GO) vet ./...
-	$(GOLINT) run
+	$(GO_ENV) $(GO) vet ./...
+	$(GOLINT_ENV) $(GOLINT) run
 
 format:
-	git ls-files '*.go' | xargs gofmt -w
+	find . -type f -name '*.go' \
+		-not -path './.git/*' \
+		-not -path './.gocache/*' \
+		-not -path './.gomodcache/*' \
+		-not -path './.e2e-bin/*' \
+		-not -path './node_modules/*' \
+		-print0 | xargs -0 -r gofmt -w
 	$(BIOME) format --write .
 	$(BIOME) check --unsafe --write
 
 test:
-	$(GO) test -coverprofile=coverage.out ./...
-	$(GO) tool cover -func=coverage.out
+	$(GO_ENV) $(GO) test -coverprofile=coverage.out ./...
+	$(GO_ENV) $(GO) tool cover -func=coverage.out
 
 cov:
 	npm run test:cov
@@ -32,15 +40,32 @@ build:
 
 build-dev:
 	mkdir -p .e2e-bin
-	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache CGO_ENABLED=0 $(GO) build -o .e2e-bin/flyb ./cmd/flyb
+	$(GO_ENV) CGO_ENABLED=0 $(GO) build -o .e2e-bin/flyb ./cmd/flyb
 
 typecheck:
 	npm run typecheck
 
 e2e:
 	mkdir -p .e2e-bin
-	go build -o .e2e-bin/flyb ./cmd/flyb
-	bun test script/e2e
+	$(GO_ENV) $(GO) build -o .e2e-bin/flyb ./cmd/flyb
+	$(BUN) test script/e2e
+
+perf-smoke:
+	$(GO_ENV) $(GO) test -run PerfSmoke ./internal/cli
+
+test-race:
+	$(GO_ENV) $(GO) test -race ./...
+
+contract-snapshots:
+	$(GO_ENV) $(GO) test -run 'TestContract|TestContractSnapshot' ./internal/...
+
+release-check:
+	$(MAKE) lint
+	$(MAKE) test
+	$(MAKE) contract-snapshots
+	$(MAKE) test-race
+	$(MAKE) perf-smoke
+	$(MAKE) e2e
 
 release: build
 	$(BUN) run release-go.ts
@@ -68,6 +93,10 @@ help:
 	@printf "  build      Compile TypeScript to dist/.\n"
 	@printf "  typecheck  Run TypeScript type-check only.\n"
 	@printf "  e2e        Run Bun-powered end-to-end tests.\n"
+	@printf "  perf-smoke Run deterministic moderate-size Go smoke tests.\n"
+	@printf "  test-race  Run Go tests with the race detector.\n"
+	@printf "  contract-snapshots  Run contract snapshot and contract invariants.\n"
+	@printf "  release-check  Run deterministic release gates in fixed order.\n"
 	@printf "  release    Prepare release artifacts (depends on build).\n"
 	@printf "  clean      Remove dist/ artifacts.\n"
 	@printf "  complexity Show top TypeScript files by complexity via scc.\n"

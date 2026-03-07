@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -9,18 +11,25 @@ import (
 	"github.com/flarebyte/baldrick-flying-buttress/internal/ordering"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/orphans"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/renderer"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/safety"
 )
 
-func renderMarkdownReport(report domain.MarkdownReport, noteByID map[string]domain.Note, app domain.ValidatedApp, registry renderer.Registry) (string, []domain.Diagnostic, error) {
+func renderMarkdownReport(ctx context.Context, report domain.MarkdownReport, noteByID map[string]domain.Note, app domain.ValidatedApp, registry renderer.Registry) (string, []domain.Diagnostic, error) {
 	var b strings.Builder
 	diagnostics := make([]domain.Diagnostic, 0)
 	writeMarkdownHeading(&b, 1, report.Title)
 	writeMarkdownParagraph(&b, report.Description)
 
 	for _, h2 := range ordering.MarkdownH2Sections(report.Sections) {
+		if err := ctx.Err(); err != nil {
+			return "", nil, err
+		}
 		writeMarkdownHeading(&b, 2, h2.Title)
 		writeMarkdownParagraph(&b, h2.Description)
 		for _, h3 := range ordering.MarkdownH3Sections(h2.Sections) {
+			if err := ctx.Err(); err != nil {
+				return "", nil, err
+			}
 			writeMarkdownHeading(&b, 3, h3.Title)
 			writeMarkdownParagraph(&b, h3.Description)
 			orphanQuery, orphanMode, err := resolveOrphanQuery(h3.Arguments)
@@ -52,6 +61,9 @@ func renderMarkdownReport(report domain.MarkdownReport, noteByID map[string]doma
 			if graph.HasGraphArgs(h3.Arguments) {
 				query := graph.QueryFromArgs(h3.Arguments)
 				selected := graph.Select(app, query)
+				if err := safety.CheckGraphRenderNodeCount(len(selected.Notes)); err != nil {
+					return "", nil, err
+				}
 				shape := graph.DetectShape(selected)
 				cyclePolicy, err := graph.ResolveCyclePolicy(h3.Arguments)
 				if err != nil {
@@ -108,8 +120,11 @@ func renderMarkdownReport(report domain.MarkdownReport, noteByID map[string]doma
 					})
 					continue
 				}
-				graphText, err := capability.Render(selected, shape, resolvedArgs)
+				graphText, err := capability.Render(ctx, selected, shape, resolvedArgs)
 				if err != nil {
+					if safety.IsLimitError(err) || errors.Is(err, context.Canceled) {
+						return "", nil, err
+					}
 					diagnostics = append(diagnostics, domain.Diagnostic{
 						Code:         "GRAPH_RENDER_FAILED",
 						Severity:     domain.SeverityError,
@@ -132,12 +147,15 @@ func renderMarkdownReport(report domain.MarkdownReport, noteByID map[string]doma
 				continue
 			}
 			for _, noteID := range ordering.Strings(h3.NoteIDs) {
+				if err := ctx.Err(); err != nil {
+					return "", nil, err
+				}
 				note, ok := noteByID[noteID]
 				if !ok {
 					continue
 				}
 				writeMarkdownHeading(&b, 4, note.Title)
-				body, err := renderNoteBody(note, app.ConfigDir)
+				body, err := renderNoteBody(ctx, note, app.ConfigDir)
 				if err != nil {
 					return "", nil, fmt.Errorf("render note %s: %w", note.ID, err)
 				}

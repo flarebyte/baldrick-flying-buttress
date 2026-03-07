@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"regexp"
@@ -33,7 +34,7 @@ type lintNamesAction struct {
 	policy lintNamesPolicy
 }
 
-func (a lintNamesAction) Execute(validated domain.ValidatedApp, report domain.ValidationReport) error {
+func (a lintNamesAction) Execute(_ context.Context, validated domain.ValidatedApp, report domain.ValidationReport) error {
 	_ = report
 	return emitDiagnosticsOutcome(a.out, lintNames(validated, a.prefix, a.policy))
 }

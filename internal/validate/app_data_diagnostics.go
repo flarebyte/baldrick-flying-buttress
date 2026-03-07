@@ -55,14 +55,6 @@ func newGraphDiagnostic(policy domain.PolicySeverity, source, code, message, loc
 	return d
 }
 
-func reportLocation(i int, field string) string {
-	return fmt.Sprintf("reports[%d].%s", i, field)
-}
-
-func reportSectionLocation(reportIndex, sectionIndex int, field string) string {
-	return fmt.Sprintf("reports[%d].sections[%d].%s", reportIndex, sectionIndex, field)
-}
-
 func noteLocation(i int, field string) string {
 	return fmt.Sprintf("notes[%d].%s", i, field)
 }

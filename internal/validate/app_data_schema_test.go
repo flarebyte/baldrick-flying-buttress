@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"context"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -57,7 +58,7 @@ func TestAppDataValidatorSchemaDiagnostics(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			_, report, err := AppDataValidator{}.Validate(tc.raw)
+			_, report, err := AppDataValidator{}.Validate(context.Background(), tc.raw)
 			if err != nil {
 				t.Fatalf("validate failed: %v", err)
 			}
@@ -76,7 +77,7 @@ func TestAppDataValidatorCanonicalDiagnosticLocationAndMetadata(t *testing.T) {
 		Reports: []domain.RawReport{{Title: "", Filepath: "", Sections: []domain.RawReportSection{{Title: ""}}}},
 	}
 
-	_, report, err := AppDataValidator{}.Validate(raw)
+	_, report, err := AppDataValidator{}.Validate(context.Background(), raw)
 	if err != nil {
 		t.Fatalf("validate failed: %v", err)
 	}

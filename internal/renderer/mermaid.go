@@ -1,6 +1,7 @@
 package renderer
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -8,13 +9,16 @@ import (
 	"github.com/flarebyte/baldrick-flying-buttress/internal/ordering"
 )
 
-func renderMermaid(selected graph.Selected, shape graph.Shape, args Args) (string, error) {
+func renderMermaid(ctx context.Context, selected graph.Selected, shape graph.Shape, args Args) (string, error) {
 	_ = shape
 	nodes := ordering.Notes(selected.Notes)
 	rels := ordering.Relationships(selected.Relationships)
 
 	aliasByID := map[string]string{}
 	for i, note := range nodes {
+		if err := ctx.Err(); err != nil {
+			return "", err
+		}
 		aliasByID[note.ID] = fmt.Sprintf("N%d", i+1)
 	}
 
@@ -25,6 +29,9 @@ func renderMermaid(selected graph.Selected, shape graph.Shape, args Args) (strin
 	b.WriteByte('\n')
 
 	for _, note := range nodes {
+		if err := ctx.Err(); err != nil {
+			return "", err
+		}
 		alias := aliasByID[note.ID]
 		b.WriteString("    ")
 		b.WriteString(alias)
@@ -34,6 +41,9 @@ func renderMermaid(selected graph.Selected, shape graph.Shape, args Args) (strin
 	}
 
 	for _, rel := range rels {
+		if err := ctx.Err(); err != nil {
+			return "", err
+		}
 		from, okFrom := aliasByID[rel.FromID]
 		to, okTo := aliasByID[rel.ToID]
 		if !okFrom || !okTo {

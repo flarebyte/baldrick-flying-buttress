@@ -1,18 +1,19 @@
 package validate
 
 import (
+	"context"
 	"testing"
 )
 
 func TestValidateStubReturnsFullyPopulatedValidatedApp(t *testing.T) {
 	t.Parallel()
 
-	raw, err := LoadStub()
+	raw, err := LoadStub(context.Background())
 	if err != nil {
 		t.Fatalf("load stub failed: %v", err)
 	}
 
-	app, report, err := ValidateStub(raw)
+	app, report, err := ValidateStub(context.Background(), raw)
 	if err != nil {
 		t.Fatalf("validate stub failed: %v", err)
 	}

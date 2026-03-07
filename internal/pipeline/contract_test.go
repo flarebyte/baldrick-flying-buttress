@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"context"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -11,16 +12,16 @@ func TestContractPipelineStageOrder(t *testing.T) {
 
 	steps := ""
 	err := Run(
-		LoaderFunc(func() (domain.RawApp, error) {
+		context.Background(),
+		LoaderFunc(func(context.Context) (domain.RawApp, error) {
 			steps += "L"
 			return domain.RawApp{Source: "s"}, nil
 		}),
-		ValidatorFunc(func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
-			_ = raw
+		ValidatorFunc(func(context.Context, domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 			steps += "V"
 			return domain.ValidatedApp{}, domain.ValidationReport{}, nil
 		}),
-		testAction{run: func(domain.ValidatedApp, domain.ValidationReport) error {
+		testAction{run: func(context.Context, domain.ValidatedApp, domain.ValidationReport) error {
 			steps += "A"
 			return nil
 		}},

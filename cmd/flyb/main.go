@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"os"
+	"os/signal"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/cli"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/load"
@@ -10,7 +12,11 @@ import (
 )
 
 func main() {
-	os.Exit(cli.ExecuteWithFactory(
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
+	os.Exit(cli.ExecuteContextWithFactory(
+		ctx,
 		os.Args[1:],
 		os.Stdout,
 		os.Stderr,

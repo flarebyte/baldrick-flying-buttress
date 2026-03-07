@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"context"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -43,7 +44,7 @@ func TestValidatedAppIncludesResolvedGraphIntegrityPolicy(t *testing.T) {
 		},
 	}
 
-	app, _, err := AppDataValidator{}.Validate(raw)
+	app, _, err := AppDataValidator{}.Validate(context.Background(), raw)
 	if err != nil {
 		t.Fatalf("validate failed: %v", err)
 	}
@@ -88,7 +89,7 @@ func TestGraphIntegrityValidationChecks(t *testing.T) {
 		},
 	}
 
-	_, report, err := AppDataValidator{}.Validate(raw)
+	_, report, err := AppDataValidator{}.Validate(context.Background(), raw)
 	if err != nil {
 		t.Fatalf("validate failed: %v", err)
 	}
@@ -129,7 +130,7 @@ func TestGraphIntegritySeverityFollowsPolicy(t *testing.T) {
 		GraphIntegrityPolicy: domain.RawGraphIntegrityPolicy{MissingNode: "warning"},
 	}
 
-	_, report, err := AppDataValidator{}.Validate(raw)
+	_, report, err := AppDataValidator{}.Validate(context.Background(), raw)
 	if err != nil {
 		t.Fatalf("validate failed: %v", err)
 	}

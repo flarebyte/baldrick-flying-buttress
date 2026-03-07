@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -40,18 +41,28 @@ func NewRootCmdWithFactory(loaderFactory LoaderFactory, validator pipeline.AppVa
 }
 
 func Execute(args []string, out io.Writer, errOut io.Writer, loader pipeline.AppLoader, validator pipeline.AppValidator) int {
-	return ExecuteWithFactory(args, out, errOut, func(string) pipeline.AppLoader {
+	return ExecuteContextWithFactory(context.Background(), args, out, errOut, func(string) pipeline.AppLoader {
 		return loader
 	}, validator)
 }
 
 func ExecuteWithFactory(args []string, out io.Writer, errOut io.Writer, loaderFactory LoaderFactory, validator pipeline.AppValidator) int {
+	return ExecuteContextWithFactory(context.Background(), args, out, errOut, loaderFactory, validator)
+}
+
+func ExecuteContext(ctx context.Context, args []string, out io.Writer, errOut io.Writer, loader pipeline.AppLoader, validator pipeline.AppValidator) int {
+	return ExecuteContextWithFactory(ctx, args, out, errOut, func(string) pipeline.AppLoader {
+		return loader
+	}, validator)
+}
+
+func ExecuteContextWithFactory(ctx context.Context, args []string, out io.Writer, errOut io.Writer, loaderFactory LoaderFactory, validator pipeline.AppValidator) int {
 	cmd := NewRootCmdWithFactory(loaderFactory, validator)
 	cmd.SetOut(out)
 	cmd.SetErr(errOut)
 	cmd.SetArgs(args)
 
-	err := cmd.Execute()
+	err := cmd.ExecuteContext(ctx)
 	exec := outcome.FromError(err)
 	if exec.Kind == outcome.KindRuntimeFailure {
 		_, _ = fmt.Fprintln(errOut, exec.Err.Error())
@@ -64,7 +75,7 @@ func newValidateCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator
 		Use:   "validate",
 		Short: "Validate configuration",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runWithConfig(loaderFactory, validator, configPath, validateAction{out: cmd.OutOrStdout()})
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, validateAction{out: cmd.OutOrStdout()})
 		},
 	}
 }
@@ -84,7 +95,7 @@ func newListReportsCmd(loaderFactory LoaderFactory, validator pipeline.AppValida
 		Use:   "reports",
 		Short: "List reports",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runWithConfig(loaderFactory, validator, configPath, listReportsAction{out: cmd.OutOrStdout()})
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, listReportsAction{out: cmd.OutOrStdout()})
 		},
 	}
 }
@@ -104,7 +115,7 @@ func newListNamesCmd(loaderFactory LoaderFactory, validator pipeline.AppValidato
 			if err := validateNamesFormat(format); err != nil {
 				return err
 			}
-			return runWithConfig(loaderFactory, validator, configPath, namesAction{
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, namesAction{
 				out:    cmd.OutOrStdout(),
 				prefix: prefix,
 				kind:   kind,
@@ -154,7 +165,7 @@ func newLintNamesCmd(loaderFactory LoaderFactory, validator pipeline.AppValidato
 			if err != nil {
 				return err
 			}
-			return runWithConfig(loaderFactory, validator, configPath, lintNamesAction{
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, lintNamesAction{
 				out:    cmd.OutOrStdout(),
 				prefix: prefix,
 				policy: policy,
@@ -183,7 +194,7 @@ func newLintOrphansCmd(loaderFactory LoaderFactory, validator pipeline.AppValida
 			if err != nil {
 				return err
 			}
-			return runWithConfig(loaderFactory, validator, configPath, lintOrphansAction{
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, lintOrphansAction{
 				out:      cmd.OutOrStdout(),
 				query:    query,
 				severity: diagSeverity,
@@ -204,7 +215,7 @@ func newGenerateJSONCmd(loaderFactory LoaderFactory, validator pipeline.AppValid
 		Use:   "json",
 		Short: "Generate JSON",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runWithConfig(loaderFactory, validator, configPath, generateJSONAction{out: cmd.OutOrStdout()})
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, generateJSONAction{out: cmd.OutOrStdout()})
 		},
 	}
 }
@@ -214,12 +225,12 @@ func newGenerateMarkdownCmd(loaderFactory LoaderFactory, validator pipeline.AppV
 		Use:   "markdown",
 		Short: "Generate markdown reports",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runWithConfig(loaderFactory, validator, configPath, generateMarkdownAction{out: cmd.OutOrStdout()})
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, generateMarkdownAction{out: cmd.OutOrStdout()})
 		},
 	}
 }
 
-func runWithConfig(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string, action pipeline.CommandAction) error {
+func runWithConfig(ctx context.Context, loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string, action pipeline.CommandAction) error {
 	if loaderFactory == nil {
 		return errors.New("loader factory is required")
 	}
@@ -227,15 +238,14 @@ func runWithConfig(loaderFactory LoaderFactory, validator pipeline.AppValidator,
 		return errors.New("config path is required")
 	}
 	loader := loaderFactory(*configPath)
-	return pipeline.Run(loader, validator, action)
+	return pipeline.Run(ctx, loader, validator, action)
 }
 
 type validateAction struct {
 	out io.Writer
 }
 
-func (a validateAction) Execute(validated domain.ValidatedApp, report domain.ValidationReport) error {
-	_ = validated
+func (a validateAction) Execute(_ context.Context, _ domain.ValidatedApp, report domain.ValidationReport) error {
 	if err := clioutput.EmitDiagnostics(a.out, report); err != nil {
 		return err
 	}
@@ -253,7 +263,7 @@ type listReportsAction struct {
 	out io.Writer
 }
 
-func (a listReportsAction) Execute(validated domain.ValidatedApp, report domain.ValidationReport) error {
+func (a listReportsAction) Execute(_ context.Context, validated domain.ValidatedApp, report domain.ValidationReport) error {
 	_ = report
 	return clioutput.EmitReportList(a.out, validated)
 }
@@ -266,7 +276,7 @@ type generateJSONAction struct {
 	out io.Writer
 }
 
-func (a generateJSONAction) Execute(validated domain.ValidatedApp, report domain.ValidationReport) error {
+func (a generateJSONAction) Execute(_ context.Context, validated domain.ValidatedApp, report domain.ValidationReport) error {
 	_ = report
 	return clioutput.EmitGraphJSON(a.out, validated)
 }
