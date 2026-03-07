@@ -1,0 +1,78 @@
+{
+  "source": "orphans-counterpart",
+  "name": "orphans-counterpart",
+  "modules": ["core"],
+  "reports": [
+    {
+      "title": "Orphans Counterpart",
+      "filepath": "out/orphans-counterpart.md",
+      "sections": [
+        {
+          "title": "Orphans",
+          "sections": [
+            {
+              "title": "Counterpart",
+              "description": "Counterpart-filter orphan query.",
+              "arguments": [
+                "orphan-subject-label=ingredient",
+                "orphan-counterpart-label=tool"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "name": "n.a",
+      "title": "ingredient",
+      "markdown": "A",
+      "labels": ["ingredient", "fresh"]
+    },
+    {
+      "name": "n.b",
+      "title": "ingredient",
+      "markdown": "B",
+      "labels": ["ingredient"]
+    },
+    { "name": "n.c", "title": "tool", "markdown": "C", "labels": ["tool"] },
+    {
+      "name": "n.d",
+      "title": "ingredient",
+      "markdown": "D",
+      "labels": ["ingredient", "dry"]
+    }
+  ],
+  "relationships": [
+    { "from": "n.a", "to": "n.c", "label": "uses", "labels": ["uses"] },
+    { "from": "n.c", "to": "n.b", "label": "feeds", "labels": ["feeds"] }
+  ],
+  "argumentRegistry": {
+    "version": "1",
+    "arguments": [
+      {
+        "name": "orphan-subject-label",
+        "valueType": "string",
+        "scopes": ["h3-section"]
+      },
+      {
+        "name": "orphan-edge-label",
+        "valueType": "string",
+        "scopes": ["h3-section"]
+      },
+      {
+        "name": "orphan-counterpart-label",
+        "valueType": "string",
+        "scopes": ["h3-section"]
+      },
+      {
+        "name": "orphan-direction",
+        "valueType": "enum",
+        "scopes": ["h3-section"],
+        "allowedValues": ["in", "out", "either"],
+        "defaultValue": "either"
+      }
+    ]
+  }
+}

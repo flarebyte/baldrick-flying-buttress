@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/orphans"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/renderer"
 )
 
@@ -116,5 +117,79 @@ func TestWriteMarkdownReportsDeterministic(t *testing.T) {
 
 	if string(first) != string(second) {
 		t.Fatalf("non-deterministic file output\nfirst: %q\nsecond: %q", string(first), string(second))
+	}
+}
+
+func TestResolveOrphanQueryFromH3Arguments(t *testing.T) {
+	t.Parallel()
+
+	query, orphanMode, err := resolveOrphanQuery([]string{"orphan-subject-label=ingredient", "orphan-direction=out"})
+	if err != nil {
+		t.Fatalf("resolve orphan query failed: %v", err)
+	}
+	if !orphanMode {
+		t.Fatal("expected orphan mode")
+	}
+	if query.SubjectLabel != "ingredient" || query.Direction != "out" {
+		t.Fatalf("unexpected orphan query: %#v", query)
+	}
+}
+
+func TestRenderOrphanRowsDeterministic(t *testing.T) {
+	t.Parallel()
+
+	notes := []domain.Note{
+		{ID: "n.b", Title: "Note B", LabelsCSV: "beta, ingredient"},
+		{ID: "n.a", Title: "Note A", LabelsCSV: "alpha, ingredient"},
+	}
+	first := renderOrphanRows(notes)
+	second := renderOrphanRows(notes)
+	want := "| name | title | labels |\n| --- | --- | --- |\n| n.a | Note A | alpha, ingredient |\n| n.b | Note B | beta, ingredient |\n"
+	if first != want {
+		t.Fatalf("orphan rows mismatch\nwant: %q\n got: %q", want, first)
+	}
+	if second != first {
+		t.Fatalf("non-deterministic orphan rows\nfirst: %q\nsecond: %q", first, second)
+	}
+}
+
+func TestRenderOrphanRowsEmpty(t *testing.T) {
+	t.Parallel()
+
+	got := renderOrphanRows(nil)
+	want := "| name | title | labels |\n| --- | --- | --- |\n"
+	if got != want {
+		t.Fatalf("unexpected empty orphan rows\nwant: %q\n got: %q", want, got)
+	}
+}
+
+func TestOrphanRenderingWithFilters(t *testing.T) {
+	t.Parallel()
+
+	app := domain.ValidatedApp{
+		Notes: []domain.Note{
+			{ID: "n.a", Label: "ingredient", Title: "A", LabelsCSV: "ingredient"},
+			{ID: "n.b", Label: "ingredient", Title: "B", LabelsCSV: "ingredient"},
+			{ID: "n.c", Label: "tool", Title: "C", LabelsCSV: "tool"},
+			{ID: "n.d", Label: "ingredient", Title: "D", LabelsCSV: "ingredient"},
+		},
+		Relationships: []domain.Relationship{
+			{FromID: "n.a", ToID: "n.c", Label: "uses", LabelsCSV: "uses"},
+			{FromID: "n.c", ToID: "n.b", Label: "feeds", LabelsCSV: "feeds"},
+		},
+	}
+
+	query, _, err := resolveOrphanQuery([]string{
+		"orphan-subject-label=ingredient",
+		"orphan-edge-label=uses",
+		"orphan-counterpart-label=tool",
+		"orphan-direction=out",
+	})
+	if err != nil {
+		t.Fatalf("resolve orphan query failed: %v", err)
+	}
+	got := orphans.Find(app, query)
+	if len(got) != 2 || got[0].ID != "n.b" || got[1].ID != "n.d" {
+		t.Fatalf("unexpected filtered orphans: %#v", got)
 	}
 }

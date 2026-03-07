@@ -10,6 +10,7 @@ import (
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/graph"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/ordering"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/orphans"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
 	clioutput "github.com/flarebyte/baldrick-flying-buttress/internal/output"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/renderer"
@@ -77,6 +78,32 @@ func renderMarkdownReport(report domain.MarkdownReport, noteByID map[string]doma
 		for _, h3 := range ordering.MarkdownH3Sections(h2.Sections) {
 			writeMarkdownHeading(&b, 3, h3.Title)
 			writeMarkdownParagraph(&b, h3.Description)
+			orphanQuery, orphanMode, err := resolveOrphanQuery(h3.Arguments)
+			if err != nil {
+				diagnostics = append(diagnostics, domain.Diagnostic{
+					Code:         "ORPHAN_QUERY_ARGS_INVALID",
+					Severity:     domain.SeverityError,
+					Source:       "args.orphan.query.resolve",
+					Message:      err.Error(),
+					Location:     h3.Path,
+					Path:         h3.Path,
+					ReportTitle:  h3.ReportTitle,
+					SectionTitle: h3.H2Title,
+				})
+				continue
+			}
+			if orphanMode {
+				orphanNotes := orphans.Find(app, orphanQuery)
+				table := renderOrphanRows(orphanNotes)
+				if table != "" {
+					b.WriteString(table)
+					if !strings.HasSuffix(table, "\n") {
+						b.WriteByte('\n')
+					}
+					b.WriteByte('\n')
+				}
+				continue
+			}
 			if graph.HasGraphArgs(h3.Arguments) {
 				query := graph.QueryFromArgs(h3.Arguments)
 				selected := graph.Select(app, query)
@@ -192,4 +219,89 @@ func writeMarkdownParagraph(b *strings.Builder, text string) {
 	}
 	b.WriteString(text)
 	b.WriteString("\n\n")
+}
+
+func resolveOrphanQuery(arguments []string) (orphans.Query, bool, error) {
+	query := orphans.Query{Direction: orphans.DirectionEither}
+	hasOrphanArg := false
+	for _, entry := range ordering.Strings(arguments) {
+		key, value, ok := parseKVArg(entry)
+		if !ok {
+			continue
+		}
+		switch key {
+		case "orphan-subject-label":
+			hasOrphanArg = true
+			query.SubjectLabel = value
+		case "orphan-edge-label":
+			hasOrphanArg = true
+			query.EdgeLabel = value
+		case "orphan-counterpart-label":
+			hasOrphanArg = true
+			query.CounterpartLabel = value
+		case "orphan-direction":
+			hasOrphanArg = true
+			query.Direction = orphans.Direction(value)
+		}
+	}
+	if !hasOrphanArg {
+		return orphans.Query{}, false, nil
+	}
+	if strings.TrimSpace(query.SubjectLabel) == "" {
+		return orphans.Query{}, true, fmt.Errorf("orphan-subject-label is required")
+	}
+	if err := query.Validate(); err != nil {
+		return orphans.Query{}, true, err
+	}
+	return query, true, nil
+}
+
+func renderOrphanRows(notes []domain.Note) string {
+	var b strings.Builder
+	b.WriteString("| name | title | labels |\n")
+	b.WriteString("| --- | --- | --- |\n")
+	for _, note := range ordering.Notes(notes) {
+		labels := strings.Join(splitCSV(note.LabelsCSV), ", ")
+		b.WriteString("| ")
+		b.WriteString(escapeMarkdownCell(note.ID))
+		b.WriteString(" | ")
+		b.WriteString(escapeMarkdownCell(note.Title))
+		b.WriteString(" | ")
+		b.WriteString(escapeMarkdownCell(labels))
+		b.WriteString(" |\n")
+	}
+	return b.String()
+}
+
+func parseKVArg(entry string) (string, string, bool) {
+	parts := strings.SplitN(entry, "=", 2)
+	if len(parts) != 2 {
+		return "", "", false
+	}
+	key := strings.TrimSpace(parts[0])
+	value := strings.TrimSpace(parts[1])
+	if key == "" || value == "" {
+		return "", "", false
+	}
+	return key, value, true
+}
+
+func splitCSV(input string) []string {
+	if strings.TrimSpace(input) == "" {
+		return []string{}
+	}
+	items := strings.Split(input, ",")
+	out := make([]string, 0, len(items))
+	for _, item := range items {
+		v := strings.TrimSpace(item)
+		if v == "" {
+			continue
+		}
+		out = append(out, v)
+	}
+	return out
+}
+
+func escapeMarkdownCell(input string) string {
+	return strings.ReplaceAll(input, "|", "\\|")
 }

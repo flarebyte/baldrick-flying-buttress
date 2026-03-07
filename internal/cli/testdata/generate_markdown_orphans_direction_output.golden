@@ -1,0 +1,13 @@
+# Orphans Direction
+
+## Orphans
+
+### Direction
+
+Direction-filter orphan query.
+
+| name | title | labels |
+| --- | --- | --- |
+| n.b | ingredient | ingredient |
+| n.d | ingredient | dry, ingredient |
+

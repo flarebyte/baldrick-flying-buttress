@@ -26,6 +26,11 @@ const markdownRendererExplicitFixturePath = join(
   'testdata',
   'markdown.renderer.explicit.raw.json',
 );
+const markdownOrphansFixturePath = join(
+  rootDir,
+  'testdata',
+  'markdown.orphans.raw.json',
+);
 
 function runFlyb(args: string[]) {
   const result = Bun.spawnSync({
@@ -185,6 +190,29 @@ test('flyb generate markdown supports explicit mermaid renderer', () => {
     const want = readGolden('generate-markdown-renderer-explicit.golden');
     const gotOutput = readFileSync(
       join(fixture.dir, 'out', 'renderer-explicit.md'),
+    );
+
+    expect(got.exitCode).toBe(0);
+    expect(bytesHex(got.stdout)).toBe('');
+    expect(bytesHex(got.stderr)).toBe('');
+    expect(bytesHex(gotOutput)).toBe(bytesHex(want));
+  } finally {
+    rmSync(fixture.dir, { recursive: true, force: true });
+  }
+});
+
+test('flyb generate markdown renders orphan sections', () => {
+  const fixture = makeTempFixture(markdownOrphansFixturePath);
+  try {
+    const got = runFlyb([
+      'generate',
+      'markdown',
+      '--config',
+      fixture.configPath,
+    ]);
+    const want = readGolden('generate-markdown-orphans.golden');
+    const gotOutput = readFileSync(
+      join(fixture.dir, 'out', 'orphans-subject.md'),
     );
 
     expect(got.exitCode).toBe(0);
