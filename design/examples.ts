@@ -1,3 +1,7 @@
+import type { Diagnostic } from './common';
+
+export type { Diagnostic } from './common';
+
 export type Note = {
   name: string;
   title: string;
@@ -57,26 +61,6 @@ export type OrderingPolicy = {
   sections: 'by-name' | 'by-title' | 'by-label-then-name' | 'source-order';
   // Arguments: argument key/name.
   arguments: 'by-name' | 'by-title' | 'by-label-then-name' | 'source-order';
-};
-
-export type Diagnostic = {
-  code: string;
-  severity: 'error' | 'warning' | 'info';
-  source: string;
-  message: string;
-  location?: string;
-  reportTitle?: string;
-  sectionTitle?: string;
-  noteName?: string;
-  relationship?: {
-    from: string;
-    to: string;
-  };
-  argumentName?: string;
-  labelValue?: string;
-  subjectLabel?: string;
-  edgeLabel?: string;
-  counterpartLabel?: string;
 };
 
 export type GraphIntegrityPolicy = {

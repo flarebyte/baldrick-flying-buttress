@@ -64,14 +64,7 @@ func TestValidateGoldenOutput(t *testing.T) {
 func TestListReportsGoldenOutput(t *testing.T) {
 	t.Parallel()
 
-	report := domain.ValidationReport{Diagnostics: []domain.Diagnostic{{
-		Code:     "FBW01",
-		Severity: domain.SeverityWarning,
-		Message:  "warning only",
-		Path:     "module.stub",
-	}}}
-
-	exitCode, stdout, stderr := runCommand([]string{"list", "reports"}, stubLoader(), validatorWith(listValidatedApp(), report, nil))
+	exitCode, stdout, stderr := runCommand([]string{"list", "reports"}, stubLoader(), validatorWith(listValidatedApp(), warningOnlyReport(), nil))
 	if exitCode != 0 {
 		t.Fatalf("expected exit code 0, got %d", exitCode)
 	}
@@ -81,14 +74,7 @@ func TestListReportsGoldenOutput(t *testing.T) {
 func TestListReportsBlockedOnErrorDiagnostic(t *testing.T) {
 	t.Parallel()
 
-	report := domain.ValidationReport{Diagnostics: []domain.Diagnostic{{
-		Code:     "FBE01",
-		Severity: domain.SeverityError,
-		Message:  "error diagnostic",
-		Path:     "module.stub",
-	}}}
-
-	exitCode, stdout, stderr := runCommand([]string{"list", "reports"}, stubLoader(), validatorWith(listValidatedApp(), report, nil))
+	exitCode, stdout, stderr := runCommand([]string{"list", "reports"}, stubLoader(), validatorWith(listValidatedApp(), errorOnlyReport(), nil))
 	if exitCode != outcome.ExitCodeValidationBlocked {
 		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, exitCode)
 	}
@@ -98,14 +84,7 @@ func TestListReportsBlockedOnErrorDiagnostic(t *testing.T) {
 func TestGenerateJSONGoldenOutput(t *testing.T) {
 	t.Parallel()
 
-	report := domain.ValidationReport{Diagnostics: []domain.Diagnostic{{
-		Code:     "FBW01",
-		Severity: domain.SeverityWarning,
-		Message:  "warning only",
-		Path:     "module.stub",
-	}}}
-
-	exitCode, stdout, stderr := runCommand([]string{"generate", "json"}, stubLoader(), validatorWith(listValidatedApp(), report, nil))
+	exitCode, stdout, stderr := runCommand([]string{"generate", "json"}, stubLoader(), validatorWith(listValidatedApp(), warningOnlyReport(), nil))
 	if exitCode != 0 {
 		t.Fatalf("expected exit code 0, got %d", exitCode)
 	}
@@ -115,14 +94,7 @@ func TestGenerateJSONGoldenOutput(t *testing.T) {
 func TestGenerateJSONBlockedOnErrorDiagnostic(t *testing.T) {
 	t.Parallel()
 
-	report := domain.ValidationReport{Diagnostics: []domain.Diagnostic{{
-		Code:     "FBE01",
-		Severity: domain.SeverityError,
-		Message:  "error diagnostic",
-		Path:     "module.stub",
-	}}}
-
-	exitCode, stdout, stderr := runCommand([]string{"generate", "json"}, stubLoader(), validatorWith(listValidatedApp(), report, nil))
+	exitCode, stdout, stderr := runCommand([]string{"generate", "json"}, stubLoader(), validatorWith(listValidatedApp(), errorOnlyReport(), nil))
 	if exitCode != outcome.ExitCodeValidationBlocked {
 		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, exitCode)
 	}
@@ -261,59 +233,60 @@ func assertOutput(t *testing.T, gotStdout, gotStderr, wantStdout, wantStderr str
 }
 
 func listValidatedApp() domain.ValidatedApp {
+	return appFixture(
+		[]string{"core", "edge"},
+		[]domain.Report{{ID: "cpu-overview", Title: "CPU Overview"}, {ID: "memory-health", Title: "Memory Health"}},
+		[]domain.Note{{ID: "n1", Label: "service.api"}, {ID: "n2", Label: "service.db"}},
+		[]domain.Relationship{{FromID: "n1", ToID: "n2", Label: "depends_on"}},
+	)
+}
+
+func unorderedValidatedApp() domain.ValidatedApp {
+	return appFixture(
+		[]string{"edge", "core"},
+		[]domain.Report{{ID: "memory-health", Title: "Memory Health"}, {ID: "cpu-overview", Title: "CPU Overview"}},
+		[]domain.Note{{ID: "n2", Label: "service.db"}, {ID: "n1", Label: "service.api"}},
+		[]domain.Relationship{{FromID: "n1", ToID: "n2", Label: "depends_on"}, {FromID: "n1", ToID: "n2", Label: "owns"}},
+	)
+}
+
+func orderedValidatedAppForOrdering() domain.ValidatedApp {
+	return appFixture(
+		[]string{"core", "edge"},
+		[]domain.Report{{ID: "cpu-overview", Title: "CPU Overview"}, {ID: "memory-health", Title: "Memory Health"}},
+		[]domain.Note{{ID: "n1", Label: "service.api"}, {ID: "n2", Label: "service.db"}},
+		[]domain.Relationship{{FromID: "n1", ToID: "n2", Label: "depends_on"}, {FromID: "n1", ToID: "n2", Label: "owns"}},
+	)
+}
+
+func appFixture(modules []string, reports []domain.Report, notes []domain.Note, relationships []domain.Relationship) domain.ValidatedApp {
 	return domain.ValidatedApp{
-		Name:    "stub-app",
-		Modules: []string{"core", "edge"},
-		Reports: []domain.Report{
-			{ID: "cpu-overview", Title: "CPU Overview"},
-			{ID: "memory-health", Title: "Memory Health"},
-		},
-		Notes: []domain.Note{
-			{ID: "n1", Label: "service.api"},
-			{ID: "n2", Label: "service.db"},
-		},
-		Relationships: []domain.Relationship{{
-			FromID: "n1",
-			ToID:   "n2",
-			Label:  "depends_on",
+		Name:          "stub-app",
+		Modules:       modules,
+		Reports:       reports,
+		Notes:         notes,
+		Relationships: relationships,
+	}
+}
+
+func warningOnlyReport() domain.ValidationReport {
+	return domain.ValidationReport{
+		Diagnostics: []domain.Diagnostic{{
+			Code:     "FBW01",
+			Severity: domain.SeverityWarning,
+			Message:  "warning only",
+			Path:     "module.stub",
 		}},
 	}
 }
 
-func unorderedValidatedApp() domain.ValidatedApp {
-	return domain.ValidatedApp{
-		Name:    "stub-app",
-		Modules: []string{"edge", "core"},
-		Reports: []domain.Report{
-			{ID: "memory-health", Title: "Memory Health"},
-			{ID: "cpu-overview", Title: "CPU Overview"},
-		},
-		Notes: []domain.Note{
-			{ID: "n2", Label: "service.db"},
-			{ID: "n1", Label: "service.api"},
-		},
-		Relationships: []domain.Relationship{
-			{FromID: "n1", ToID: "n2", Label: "depends_on"},
-			{FromID: "n1", ToID: "n2", Label: "owns"},
-		},
-	}
-}
-
-func orderedValidatedAppForOrdering() domain.ValidatedApp {
-	return domain.ValidatedApp{
-		Name:    "stub-app",
-		Modules: []string{"core", "edge"},
-		Reports: []domain.Report{
-			{ID: "cpu-overview", Title: "CPU Overview"},
-			{ID: "memory-health", Title: "Memory Health"},
-		},
-		Notes: []domain.Note{
-			{ID: "n1", Label: "service.api"},
-			{ID: "n2", Label: "service.db"},
-		},
-		Relationships: []domain.Relationship{
-			{FromID: "n1", ToID: "n2", Label: "depends_on"},
-			{FromID: "n1", ToID: "n2", Label: "owns"},
-		},
+func errorOnlyReport() domain.ValidationReport {
+	return domain.ValidationReport{
+		Diagnostics: []domain.Diagnostic{{
+			Code:     "FBE01",
+			Severity: domain.SeverityError,
+			Message:  "error diagnostic",
+			Path:     "module.stub",
+		}},
 	}
 }
