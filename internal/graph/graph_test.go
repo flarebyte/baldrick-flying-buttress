@@ -29,7 +29,7 @@ func TestDetectTreeShapeAndRender(t *testing.T) {
 	if err != nil {
 		t.Fatalf("render failed: %v", err)
 	}
-	want := "- Root: root body\n  - Left: left body\n  - Right: right body\n"
+	want := "- <a id=\"graph-node-root\"></a> Root: root body\n  - <a id=\"graph-node-left\"></a> Left: left body\n  - <a id=\"graph-node-right\"></a> Right: right body\n"
 	if got != want {
 		t.Fatalf("tree render mismatch\nwant: %q\n got: %q", want, got)
 	}
@@ -45,7 +45,7 @@ func TestDetectDAGAndRenderRepetitionLimit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("render failed: %v", err)
 	}
-	want := "- A: a\n  - B: b\n    - D: d\n  - C: c\n    - D: d\n"
+	want := "- <a id=\"graph-node-a\"></a> A: a\n  - <a id=\"graph-node-b\"></a> B: b\n    - <a id=\"graph-node-d\"></a> D: d\n  - <a id=\"graph-node-c\"></a> C: c\n    - *(see [D](#graph-node-d))*\n"
 	if got != want {
 		t.Fatalf("dag render mismatch\nwant: %q\n got: %q", want, got)
 	}
@@ -61,7 +61,7 @@ func TestDetectCyclicAndRenderCycleBack(t *testing.T) {
 	if err != nil {
 		t.Fatalf("render failed: %v", err)
 	}
-	want := "- A: a\n  - B: b\n    - C: c\n      - *(cycle back to A)*\n"
+	want := "- <a id=\"graph-node-a\"></a> A: a\n  - <a id=\"graph-node-b\"></a> B: b\n    - <a id=\"graph-node-c\"></a> C: c\n      - *(cycle back to [A](#graph-node-a))*\n\nAdjacency summary:\n- [A](#graph-node-a) -> [B](#graph-node-b)\n- [B](#graph-node-b) -> [C](#graph-node-c)\n- [C](#graph-node-c) -> [A](#graph-node-a)\n"
 	if got != want {
 		t.Fatalf("cycle render mismatch\nwant: %q\n got: %q", want, got)
 	}
@@ -106,6 +106,31 @@ func TestRenderMarkdownTextNodeLimitExceeded(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "graph render limit exceeded") {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStableAnchorSlugDeterministic(t *testing.T) {
+	t.Parallel()
+
+	got := stableAnchorSlug("  CLI.Root::A/B  ")
+	want := "cli-root-a-b"
+	if got != want {
+		t.Fatalf("slug mismatch\nwant: %q\n got: %q", want, got)
+	}
+}
+
+func TestBuildNoteAnchorsWithCollisionDeterministic(t *testing.T) {
+	t.Parallel()
+
+	anchors := buildNoteAnchors([]domain.Note{
+		{ID: "n/a"},
+		{ID: "n-a"},
+	})
+	if anchors["n-a"] != "graph-node-n-a" {
+		t.Fatalf("unexpected anchor for n-a: %q", anchors["n-a"])
+	}
+	if anchors["n/a"] != "graph-node-n-a-2" {
+		t.Fatalf("unexpected anchor for n/a: %q", anchors["n/a"])
 	}
 }
 

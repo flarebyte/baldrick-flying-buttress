@@ -6,6 +6,6 @@
 
 Fallback markdown-text.
 
-- A: a
-  - B: b
+- <a id="graph-node-a"></a> A: a
+  - <a id="graph-node-b"></a> B: b
 

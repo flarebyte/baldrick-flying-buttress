@@ -10,26 +10,31 @@ Graph section.
 
 Cycle graph.
 
-- CyA: ca
-  - CyB: cb
-    - CyC: cc
-      - *(cycle back to CyA)*
+- <a id="graph-node-cy-a"></a> CyA: ca
+  - <a id="graph-node-cy-b"></a> CyB: cb
+    - <a id="graph-node-cy-c"></a> CyC: cc
+      - *(cycle back to [CyA](#graph-node-cy-a))*
+
+Adjacency summary:
+- [CyA](#graph-node-cy-a) -> [CyB](#graph-node-cy-b)
+- [CyB](#graph-node-cy-b) -> [CyC](#graph-node-cy-c)
+- [CyC](#graph-node-cy-c) -> [CyA](#graph-node-cy-a)
 
 ### DAG View
 
 Dag graph.
 
-- A: a
-  - B: b
-    - D: d
-  - C: c
-    - D: d
+- <a id="graph-node-dag-a"></a> A: a
+  - <a id="graph-node-dag-b"></a> B: b
+    - <a id="graph-node-dag-d"></a> D: d
+  - <a id="graph-node-dag-c"></a> C: c
+    - *(see [D](#graph-node-dag-d))*
 
 ### Tree View
 
 Tree graph.
 
-- Root: root body
-  - Left: left body
-  - Right: right body
+- <a id="graph-node-root"></a> Root: root body
+  - <a id="graph-node-left"></a> Left: left body
+  - <a id="graph-node-right"></a> Right: right body
 
