@@ -2,10 +2,14 @@ package validate
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/ordering"
 )
+
+const schemaValidationSource = "validate.app.data.schema"
 
 type AppDataValidator struct {
 	stepHook func(string)
@@ -37,15 +41,6 @@ func normalizeRaw(raw domain.RawApp) domain.RawApp {
 	if raw.Modules == nil {
 		raw.Modules = []string{}
 	}
-	if raw.Reports == nil {
-		raw.Reports = []domain.RawReport{}
-	}
-	if raw.Notes == nil {
-		raw.Notes = []domain.RawNote{}
-	}
-	if raw.Relationships == nil {
-		raw.Relationships = []domain.RawRelationship{}
-	}
 	return raw
 }
 
@@ -53,76 +48,118 @@ func validateStructure(raw domain.RawApp) []domain.Diagnostic {
 	diagnostics := make([]domain.Diagnostic, 0)
 
 	if raw.Source == "" {
-		diagnostics = append(diagnostics, domain.Diagnostic{
-			Code:     "FBV000",
-			Severity: domain.SeverityError,
-			Message:  "missing required field: source",
-			Path:     "source",
-		})
+		diagnostics = append(diagnostics, newDiagnostic(
+			"FBV000",
+			"missing required field: source",
+			"source",
+		))
+	}
+
+	if raw.Reports == nil {
+		diagnostics = append(diagnostics, newDiagnostic(
+			"FBV100",
+			"missing required collection: reports",
+			"reports",
+		))
+	}
+	if raw.Notes == nil {
+		diagnostics = append(diagnostics, newDiagnostic(
+			"FBV200",
+			"missing required collection: notes",
+			"notes",
+		))
+	}
+	if raw.Relationships == nil {
+		diagnostics = append(diagnostics, newDiagnostic(
+			"FBV300",
+			"missing required collection: relationships",
+			"relationships",
+		))
 	}
 
 	for i, report := range raw.Reports {
-		if report.ID == "" {
-			diagnostics = append(diagnostics, domain.Diagnostic{
-				Code:     "FBV101",
-				Severity: domain.SeverityError,
-				Message:  "missing required field: report id",
-				Path:     fmt.Sprintf("reports[%d].id", i),
-			})
-		}
+		reportCtx := report.Title
 		if report.Title == "" {
-			diagnostics = append(diagnostics, domain.Diagnostic{
-				Code:     "FBV102",
-				Severity: domain.SeverityError,
-				Message:  "missing required field: report title",
-				Path:     fmt.Sprintf("reports[%d].title", i),
-			})
+			diagnostics = append(diagnostics, newDiagnosticWithContext(
+				"FBV101",
+				"missing required field: report title",
+				reportLocation(i, "title"),
+				reportCtx,
+				"",
+				"",
+			))
+		}
+		if report.Filepath == "" {
+			diagnostics = append(diagnostics, newDiagnosticWithContext(
+				"FBV102",
+				"missing required field: report filepath",
+				reportLocation(i, "filepath"),
+				reportCtx,
+				"",
+				"",
+			))
+		}
+		if report.Sections == nil {
+			diagnostics = append(diagnostics, newDiagnosticWithContext(
+				"FBV103",
+				"missing required field: report sections",
+				reportLocation(i, "sections"),
+				reportCtx,
+				"",
+				"",
+			))
+		}
+		for j, section := range report.Sections {
+			if strings.TrimSpace(section.Title) == "" {
+				diagnostics = append(diagnostics, newDiagnosticWithContext(
+					"FBV104",
+					"missing required field: section title",
+					reportSectionLocation(i, j, "title"),
+					reportCtx,
+					section.Title,
+					"",
+				))
+			}
 		}
 	}
 
 	for i, note := range raw.Notes {
-		if note.ID == "" {
-			diagnostics = append(diagnostics, domain.Diagnostic{
-				Code:     "FBV201",
-				Severity: domain.SeverityError,
-				Message:  "missing required field: note id",
-				Path:     fmt.Sprintf("notes[%d].id", i),
-			})
+		if note.Name == "" {
+			diagnostics = append(diagnostics, newDiagnosticWithContext(
+				"FBV201",
+				"missing required field: note name",
+				noteLocation(i, "name"),
+				"",
+				"",
+				note.Name,
+			))
 		}
-		if note.Label == "" {
-			diagnostics = append(diagnostics, domain.Diagnostic{
-				Code:     "FBV202",
-				Severity: domain.SeverityError,
-				Message:  "missing required field: note label",
-				Path:     fmt.Sprintf("notes[%d].label", i),
-			})
+		if note.Title == "" {
+			diagnostics = append(diagnostics, newDiagnosticWithContext(
+				"FBV202",
+				"missing required field: note title",
+				noteLocation(i, "title"),
+				"",
+				"",
+				note.Name,
+			))
 		}
 	}
 
 	for i, relationship := range raw.Relationships {
 		if relationship.FromID == "" {
-			diagnostics = append(diagnostics, domain.Diagnostic{
-				Code:     "FBV301",
-				Severity: domain.SeverityError,
-				Message:  "missing required field: relationship from",
-				Path:     fmt.Sprintf("relationships[%d].from", i),
-			})
+			diagnostics = append(diagnostics, newDiagnostic(
+				"FBV301",
+				"missing required field: relationship from",
+				relationshipLocation(i, "from"),
+			))
 		}
 		if relationship.ToID == "" {
-			diagnostics = append(diagnostics, domain.Diagnostic{
-				Code:     "FBV302",
-				Severity: domain.SeverityError,
-				Message:  "missing required field: relationship to",
-				Path:     fmt.Sprintf("relationships[%d].to", i),
-			})
-		}
-		if relationship.Label == "" {
-			diagnostics = append(diagnostics, domain.Diagnostic{
-				Code:     "FBV303",
-				Severity: domain.SeverityError,
-				Message:  "missing required field: relationship label",
-				Path:     fmt.Sprintf("relationships[%d].label", i),
-			})
+			diagnostics = append(diagnostics, newDiagnostic(
+				"FBV302",
+				"missing required field: relationship to",
+				relationshipLocation(i, "to"),
+			))
 		}
 	}
 
@@ -139,12 +176,18 @@ func collectDiagnostics(diagnostics []domain.Diagnostic) []domain.Diagnostic {
 func normalizeValidatedApp(raw domain.RawApp) domain.ValidatedApp {
 	reports := make([]domain.Report, 0, len(raw.Reports))
 	for _, report := range raw.Reports {
-		reports = append(reports, domain.Report(report))
+		reports = append(reports, domain.Report{
+			ID:    reportIDFromFilepath(report.Filepath),
+			Title: report.Title,
+		})
 	}
 
 	notes := make([]domain.Note, 0, len(raw.Notes))
 	for _, note := range raw.Notes {
-		notes = append(notes, domain.Note(note))
+		notes = append(notes, domain.Note{
+			ID:    note.Name,
+			Label: note.Title,
+		})
 	}
 
 	relationships := make([]domain.Relationship, 0, len(raw.Relationships))
@@ -159,4 +202,46 @@ func normalizeValidatedApp(raw domain.RawApp) domain.ValidatedApp {
 		Notes:         ordering.Notes(notes),
 		Relationships: ordering.Relationships(relationships),
 	}
+}
+
+func reportIDFromFilepath(path string) string {
+	base := filepath.Base(path)
+	ext := filepath.Ext(base)
+	id := strings.TrimSuffix(base, ext)
+	return id
+}
+
+func newDiagnostic(code, message, location string) domain.Diagnostic {
+	return domain.Diagnostic{
+		Code:     code,
+		Severity: domain.SeverityError,
+		Source:   schemaValidationSource,
+		Message:  message,
+		Location: location,
+		Path:     location,
+	}
+}
+
+func newDiagnosticWithContext(code, message, location, reportTitle, sectionTitle, noteName string) domain.Diagnostic {
+	d := newDiagnostic(code, message, location)
+	d.ReportTitle = reportTitle
+	d.SectionTitle = sectionTitle
+	d.NoteName = noteName
+	return d
+}
+
+func reportLocation(i int, field string) string {
+	return fmt.Sprintf("reports[%d].%s", i, field)
+}
+
+func reportSectionLocation(reportIndex, sectionIndex int, field string) string {
+	return fmt.Sprintf("reports[%d].sections[%d].%s", reportIndex, sectionIndex, field)
+}
+
+func noteLocation(i int, field string) string {
+	return fmt.Sprintf("notes[%d].%s", i, field)
+}
+
+func relationshipLocation(i int, field string) string {
+	return fmt.Sprintf("relationships[%d].%s", i, field)
 }

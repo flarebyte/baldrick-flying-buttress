@@ -1,1 +1,1 @@
-{"diagnostics":[{"code":"FBV101","severity":"error","message":"missing required field: report id","path":"reports[0].id"}]}
+{"diagnostics":[{"code":"FBV101","severity":"error","message":"missing required field: report title","path":"reports[0].title"}]}

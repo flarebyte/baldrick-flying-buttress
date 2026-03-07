@@ -15,6 +15,12 @@ func Diagnostics(in []domain.Diagnostic) []domain.Diagnostic {
 		if v := cmpString(string(a.Severity), string(b.Severity)); v != 0 {
 			return v
 		}
+		if v := cmpString(a.Source, b.Source); v != 0 {
+			return v
+		}
+		if v := cmpString(a.Location, b.Location); v != 0 {
+			return v
+		}
 		if v := cmpString(a.Path, b.Path); v != 0 {
 			return v
 		}

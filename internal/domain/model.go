@@ -1,13 +1,18 @@
 package domain
 
 type RawReport struct {
-	ID    string `json:"id"`
+	Title    string             `json:"title"`
+	Filepath string             `json:"filepath"`
+	Sections []RawReportSection `json:"sections"`
+}
+
+type RawReportSection struct {
 	Title string `json:"title"`
 }
 
 type RawNote struct {
-	ID    string `json:"id"`
-	Label string `json:"label"`
+	Name  string `json:"name"`
+	Title string `json:"title"`
 }
 
 type RawRelationship struct {
@@ -34,10 +39,15 @@ const (
 )
 
 type Diagnostic struct {
-	Code     string   `json:"code"`
-	Severity Severity `json:"severity"`
-	Message  string   `json:"message"`
-	Path     string   `json:"path"`
+	Code         string   `json:"code"`
+	Severity     Severity `json:"severity"`
+	Source       string   `json:"source"`
+	Message      string   `json:"message"`
+	Location     string   `json:"location"`
+	Path         string   `json:"path"`
+	ReportTitle  string   `json:"reportTitle,omitempty"`
+	SectionTitle string   `json:"sectionTitle,omitempty"`
+	NoteName     string   `json:"noteName,omitempty"`
 }
 
 type ValidationReport struct {

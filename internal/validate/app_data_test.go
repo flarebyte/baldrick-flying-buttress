@@ -26,12 +26,161 @@ func TestAppDataValidatorRunsSubstepsInOrder(t *testing.T) {
 		"diagnostics_collection",
 		"validated_app_normalization",
 	}
-	if len(steps) != len(want) {
-		t.Fatalf("step count mismatch: got %d want %d", len(steps), len(want))
+	if !reflect.DeepEqual(steps, want) {
+		t.Fatalf("step order mismatch: got %#v want %#v", steps, want)
+	}
+}
+
+func TestAppDataValidatorSchemaDiagnostics(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		raw       domain.RawApp
+		wantCode  string
+		wantPath  string
+		wantCount int
+	}{
+		{
+			name: "missing report title",
+			raw: domain.RawApp{
+				Source:  "app",
+				Reports: []domain.RawReport{{Title: "", Filepath: "reports/r1.md", Sections: []domain.RawReportSection{{Title: "S"}}}},
+			},
+			wantCode:  "FBV101",
+			wantPath:  "reports[0].title",
+			wantCount: 3,
+		},
+		{
+			name: "missing report filepath",
+			raw: domain.RawApp{
+				Source:  "app",
+				Reports: []domain.RawReport{{Title: "R1", Filepath: "", Sections: []domain.RawReportSection{{Title: "S"}}}},
+			},
+			wantCode:  "FBV102",
+			wantPath:  "reports[0].filepath",
+			wantCount: 3,
+		},
+		{
+			name: "missing note name",
+			raw: domain.RawApp{
+				Source: "app",
+				Notes:  []domain.RawNote{{Name: "", Title: "Note"}},
+			},
+			wantCode:  "FBV201",
+			wantPath:  "notes[0].name",
+			wantCount: 3,
+		},
+		{
+			name: "missing note title",
+			raw: domain.RawApp{
+				Source: "app",
+				Notes:  []domain.RawNote{{Name: "n1", Title: ""}},
+			},
+			wantCode:  "FBV202",
+			wantPath:  "notes[0].title",
+			wantCount: 3,
+		},
+		{
+			name: "missing relationship from",
+			raw: domain.RawApp{
+				Source:        "app",
+				Relationships: []domain.RawRelationship{{FromID: "", ToID: "n2", Label: "depends_on"}},
+			},
+			wantCode:  "FBV301",
+			wantPath:  "relationships[0].from",
+			wantCount: 3,
+		},
+		{
+			name: "missing relationship to",
+			raw: domain.RawApp{
+				Source:        "app",
+				Relationships: []domain.RawRelationship{{FromID: "n1", ToID: "", Label: "depends_on"}},
+			},
+			wantCode:  "FBV302",
+			wantPath:  "relationships[0].to",
+			wantCount: 3,
+		},
+		{
+			name: "missing report sections shape",
+			raw: domain.RawApp{
+				Source:  "app",
+				Reports: []domain.RawReport{{Title: "R1", Filepath: "reports/r1.md", Sections: nil}},
+			},
+			wantCode:  "FBV103",
+			wantPath:  "reports[0].sections",
+			wantCount: 3,
+		},
+		{
+			name: "missing top level required collection",
+			raw: domain.RawApp{
+				Source:  "app",
+				Reports: []domain.RawReport{},
+				Notes:   []domain.RawNote{},
+			},
+			wantCode:  "FBV300",
+			wantPath:  "relationships",
+			wantCount: 1,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			validator := AppDataValidator{}
+			_, report, err := validator.Validate(tc.raw)
+			if err != nil {
+				t.Fatalf("validate failed: %v", err)
+			}
+			if len(report.Diagnostics) != tc.wantCount {
+				t.Fatalf("diagnostic count mismatch: got %d want %d (%#v)", len(report.Diagnostics), tc.wantCount, report.Diagnostics)
+			}
+			found := false
+			for _, d := range report.Diagnostics {
+				if d.Code == tc.wantCode && d.Path == tc.wantPath {
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Fatalf("expected diagnostic %s at %s, got %#v", tc.wantCode, tc.wantPath, report.Diagnostics)
+			}
+		})
+	}
+}
+
+func TestAppDataValidatorCanonicalDiagnosticLocationAndMetadata(t *testing.T) {
+	t.Parallel()
+
+	raw := domain.RawApp{
+		Source: "app",
+		Reports: []domain.RawReport{{
+			Title:    "",
+			Filepath: "",
+			Sections: []domain.RawReportSection{{Title: ""}},
+		}},
+	}
+
+	_, report, err := AppDataValidator{}.Validate(raw)
+	if err != nil {
+		t.Fatalf("validate failed: %v", err)
+	}
+
+	want := []domain.Diagnostic{
+		{Code: "FBV101", Severity: domain.SeverityError, Source: schemaValidationSource, Message: "missing required field: report title", Location: "reports[0].title", Path: "reports[0].title"},
+		{Code: "FBV102", Severity: domain.SeverityError, Source: schemaValidationSource, Message: "missing required field: report filepath", Location: "reports[0].filepath", Path: "reports[0].filepath"},
+		{Code: "FBV104", Severity: domain.SeverityError, Source: schemaValidationSource, Message: "missing required field: section title", Location: "reports[0].sections[0].title", Path: "reports[0].sections[0].title"},
+		{Code: "FBV200", Severity: domain.SeverityError, Source: schemaValidationSource, Message: "missing required collection: notes", Location: "notes", Path: "notes"},
+		{Code: "FBV300", Severity: domain.SeverityError, Source: schemaValidationSource, Message: "missing required collection: relationships", Location: "relationships", Path: "relationships"},
+	}
+	if len(report.Diagnostics) != len(want) {
+		t.Fatalf("diagnostic count mismatch: got %d want %d", len(report.Diagnostics), len(want))
 	}
 	for i := range want {
-		if steps[i] != want[i] {
-			t.Fatalf("step %d mismatch: got %q want %q", i, steps[i], want[i])
+		got := report.Diagnostics[i]
+		if got.Code != want[i].Code || got.Severity != want[i].Severity || got.Source != want[i].Source || got.Message != want[i].Message || got.Location != want[i].Location || got.Path != want[i].Path {
+			t.Fatalf("diagnostic %d mismatch: got %#v want %#v", i, got, want[i])
 		}
 	}
 }
@@ -41,9 +190,9 @@ func TestAppDataValidatorCollectsDiagnosticsDeterministically(t *testing.T) {
 
 	raw := domain.RawApp{
 		Source:        "app",
-		Reports:       []domain.RawReport{{ID: "", Title: ""}},
-		Notes:         []domain.RawNote{{ID: "", Label: ""}},
-		Relationships: []domain.RawRelationship{{FromID: "", ToID: "", Label: ""}},
+		Reports:       []domain.RawReport{{Title: "", Filepath: "", Sections: nil}},
+		Notes:         []domain.RawNote{{Name: "", Title: ""}},
+		Relationships: []domain.RawRelationship{{FromID: "", ToID: "", Label: "x"}},
 	}
 
 	validator := AppDataValidator{}
@@ -55,14 +204,8 @@ func TestAppDataValidatorCollectsDiagnosticsDeterministically(t *testing.T) {
 	if err2 != nil {
 		t.Fatalf("second validate failed: %v", err2)
 	}
-
-	if len(report1.Diagnostics) != len(report2.Diagnostics) {
-		t.Fatalf("diagnostic length mismatch: %d vs %d", len(report1.Diagnostics), len(report2.Diagnostics))
-	}
-	for i := range report1.Diagnostics {
-		if report1.Diagnostics[i] != report2.Diagnostics[i] {
-			t.Fatalf("diagnostic %d mismatch: %#v vs %#v", i, report1.Diagnostics[i], report2.Diagnostics[i])
-		}
+	if !reflect.DeepEqual(report1.Diagnostics, report2.Diagnostics) {
+		t.Fatalf("diagnostics mismatch: %#v vs %#v", report1.Diagnostics, report2.Diagnostics)
 	}
 }
 
@@ -70,31 +213,37 @@ func TestAppDataValidatorReturnsNormalizedValidatedAppWithDiagnostics(t *testing
 	t.Parallel()
 
 	raw := domain.RawApp{
-		Source:        "app",
-		Reports:       []domain.RawReport{{ID: "z", Title: "Z"}, {ID: "", Title: "Missing"}, {ID: "a", Title: "A"}},
-		Notes:         []domain.RawNote{{ID: "n2", Label: "service.db"}, {ID: "", Label: ""}, {ID: "n1", Label: "service.api"}},
-		Relationships: []domain.RawRelationship{{FromID: "n1", ToID: "n2", Label: "owns"}, {FromID: "", ToID: "", Label: ""}, {FromID: "n1", ToID: "n2", Label: "depends_on"}},
+		Source: "app",
+		Name:   "stub-app",
+		Reports: []domain.RawReport{
+			{Title: "Memory Health", Filepath: "reports/memory-health.md", Sections: []domain.RawReportSection{{Title: "S"}}},
+			{Title: "CPU Overview", Filepath: "reports/cpu-overview.md", Sections: []domain.RawReportSection{{Title: "S"}}},
+			{Title: "", Filepath: "", Sections: nil},
+		},
+		Notes: []domain.RawNote{
+			{Name: "n2", Title: "service.db"},
+			{Name: "", Title: ""},
+			{Name: "n1", Title: "service.api"},
+		},
+		Relationships: []domain.RawRelationship{
+			{FromID: "n1", ToID: "n2", Label: "owns"},
+			{FromID: "", ToID: "", Label: "x"},
+			{FromID: "n1", ToID: "n2", Label: "depends_on"},
+		},
 	}
 
-	validator := AppDataValidator{}
-	app, report, err := validator.Validate(raw)
+	app, report, err := AppDataValidator{}.Validate(raw)
 	if err != nil {
 		t.Fatalf("validate failed: %v", err)
 	}
 	if len(report.Diagnostics) == 0 {
 		t.Fatal("expected diagnostics")
 	}
-	if len(app.Reports) != 3 {
-		t.Fatalf("expected reports to be returned, got %d", len(app.Reports))
+	if len(app.Reports) != 3 || len(app.Notes) != 3 || len(app.Relationships) != 3 {
+		t.Fatalf("expected normalized app to include all entries, got %#v", app)
 	}
 	if app.Reports[0].ID != "" {
-		t.Fatalf("expected canonical sorted reports with empty id first, got %#v", app.Reports)
-	}
-	if len(app.Notes) != 3 {
-		t.Fatalf("expected notes to be returned, got %d", len(app.Notes))
-	}
-	if len(app.Relationships) != 3 {
-		t.Fatalf("expected relationships to be returned, got %d", len(app.Relationships))
+		t.Fatalf("expected report IDs to be derived/sorted canonically, got %#v", app.Reports)
 	}
 }
 
@@ -105,12 +254,12 @@ func TestAppDataValidatorDeterministicAcrossRuns(t *testing.T) {
 		Source: "app",
 		Name:   "stub-app",
 		Reports: []domain.RawReport{
-			{ID: "memory-health", Title: "Memory Health"},
-			{ID: "cpu-overview", Title: "CPU Overview"},
+			{Title: "Memory Health", Filepath: "reports/memory-health.md", Sections: []domain.RawReportSection{{Title: "S"}}},
+			{Title: "CPU Overview", Filepath: "reports/cpu-overview.md", Sections: []domain.RawReportSection{{Title: "S"}}},
 		},
 		Notes: []domain.RawNote{
-			{ID: "n2", Label: "service.db"},
-			{ID: "n1", Label: "service.api"},
+			{Name: "n2", Title: "service.db"},
+			{Name: "n1", Title: "service.api"},
 		},
 		Relationships: []domain.RawRelationship{
 			{FromID: "n1", ToID: "n2", Label: "owns"},
@@ -118,25 +267,18 @@ func TestAppDataValidatorDeterministicAcrossRuns(t *testing.T) {
 		},
 	}
 
-	validator := AppDataValidator{}
-	app1, report1, err1 := validator.Validate(raw)
+	app1, report1, err1 := AppDataValidator{}.Validate(raw)
 	if err1 != nil {
 		t.Fatalf("first validate failed: %v", err1)
 	}
-	app2, report2, err2 := validator.Validate(raw)
+	app2, report2, err2 := AppDataValidator{}.Validate(raw)
 	if err2 != nil {
 		t.Fatalf("second validate failed: %v", err2)
 	}
-
 	if !reflect.DeepEqual(app1, app2) {
-		t.Fatalf("non-deterministic app: %#v vs %#v", app1, app2)
+		t.Fatalf("app mismatch: %#v vs %#v", app1, app2)
 	}
-	if len(report1.Diagnostics) != len(report2.Diagnostics) {
-		t.Fatalf("non-deterministic diagnostics length: %d vs %d", len(report1.Diagnostics), len(report2.Diagnostics))
-	}
-	for i := range report1.Diagnostics {
-		if report1.Diagnostics[i] != report2.Diagnostics[i] {
-			t.Fatalf("non-deterministic diagnostic at %d: %#v vs %#v", i, report1.Diagnostics[i], report2.Diagnostics[i])
-		}
+	if !reflect.DeepEqual(report1.Diagnostics, report2.Diagnostics) {
+		t.Fatalf("diagnostics mismatch: %#v vs %#v", report1.Diagnostics, report2.Diagnostics)
 	}
 }

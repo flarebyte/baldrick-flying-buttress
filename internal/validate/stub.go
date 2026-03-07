@@ -13,12 +13,12 @@ func (StubAppLoader) Load() (domain.RawApp, error) {
 		Name:       "stub-app",
 		Modules:    []string{"core", "edge"},
 		Reports: []domain.RawReport{
-			{ID: "cpu-overview", Title: "CPU Overview"},
-			{ID: "memory-health", Title: "Memory Health"},
+			{Title: "CPU Overview", Filepath: "reports/cpu-overview.md", Sections: []domain.RawReportSection{{Title: "Overview"}}},
+			{Title: "Memory Health", Filepath: "reports/memory-health.md", Sections: []domain.RawReportSection{{Title: "Overview"}}},
 		},
 		Notes: []domain.RawNote{
-			{ID: "n1", Label: "service.api"},
-			{ID: "n2", Label: "service.db"},
+			{Name: "n1", Title: "service.api"},
+			{Name: "n2", Title: "service.db"},
 		},
 		Relationships: []domain.RawRelationship{
 			{FromID: "n1", ToID: "n2", Label: "depends_on"},

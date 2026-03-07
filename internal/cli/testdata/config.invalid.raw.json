@@ -4,29 +4,31 @@
   "modules": ["core", "edge"],
   "reports": [
     {
-      "id": "",
-      "title": "CPU Overview"
+      "title": "",
+      "filepath": "",
+      "sections": [{ "title": "" }]
     },
     {
-      "id": "memory-health",
-      "title": ""
+      "title": "Memory Health",
+      "filepath": "",
+      "sections": null
     }
   ],
   "notes": [
     {
-      "id": "",
-      "label": "service.api"
+      "name": "",
+      "title": "service.api"
     },
     {
-      "id": "n2",
-      "label": ""
+      "name": "n2",
+      "title": ""
     }
   ],
   "relationships": [
     {
       "from": "",
       "to": "",
-      "label": ""
+      "label": "depends_on"
     }
   ]
 }

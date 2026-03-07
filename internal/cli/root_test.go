@@ -189,9 +189,7 @@ func TestCommandsWithInvalidStructureConfigProduceValidationDiagnostics(t *testi
 	if validateStderr != "" {
 		t.Fatalf("expected empty validate stderr, got %q", validateStderr)
 	}
-	if validateStdout == "" {
-		t.Fatal("expected validate diagnostics output")
-	}
+	assertOutput(t, validateStdout, validateStderr, readGolden(t, "validate_invalid_output.golden"), "")
 
 	listCode, listStdout, listStderr := runCommandWithFactory(
 		[]string{"list", "reports", "--config", configPath},
