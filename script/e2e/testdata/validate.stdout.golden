@@ -1,0 +1,1 @@
+{"diagnostics":[{"code":"FB001","severity":"warning","message":"stub warning diagnostic","path":"module.stub"},{"code":"FB002","severity":"error","message":"stub error diagnostic","path":"module.stub"}]}

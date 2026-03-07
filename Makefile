@@ -28,7 +28,9 @@ typecheck:
 	npm run typecheck
 
 e2e:
-	npm run test:e2e
+	mkdir -p .e2e-bin
+	go build -o .e2e-bin/flyb ./cmd/flyb
+	bun test script/e2e
 
 release: build
 	@printf "Artifacts in ./build (checksums.txt included)\n"
