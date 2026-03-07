@@ -36,7 +36,7 @@ func TestRenderFileCSVIncludeFilter(t *testing.T) {
 	data := []byte("name,kind,status\ncli.root,note,active\ncli.worker,note,inactive\n")
 	got, err := renderFileCSV(context.Background(), data, noteArgs{
 		formatCSV: "table",
-		include:   csvFilter{column: "status", value: "active"},
+		includes:  []csvFilter{{column: "status", value: "active"}},
 	})
 	if err != nil {
 		t.Fatalf("render csv include failed: %v", err)
@@ -53,7 +53,7 @@ func TestRenderFileCSVExcludeFilter(t *testing.T) {
 	data := []byte("name,kind,status\ncli.root,note,active\ncli.worker,note,inactive\n")
 	got, err := renderFileCSV(context.Background(), data, noteArgs{
 		formatCSV: "table",
-		exclude:   csvFilter{column: "status", value: "inactive"},
+		excludes:  []csvFilter{{column: "status", value: "inactive"}},
 	})
 	if err != nil {
 		t.Fatalf("render csv exclude failed: %v", err)
@@ -70,8 +70,8 @@ func TestRenderFileCSVIncludeExcludeFilters(t *testing.T) {
 	data := []byte("name,kind,status\ncli.root,note,active\ncli.worker,note,inactive\ncli.jobs,note,active\n")
 	got, err := renderFileCSV(context.Background(), data, noteArgs{
 		formatCSV: "table",
-		include:   csvFilter{column: "status", value: "active"},
-		exclude:   csvFilter{column: "name", value: "cli.jobs"},
+		includes:  []csvFilter{{column: "status", value: "active"}},
+		excludes:  []csvFilter{{column: "name", value: "cli.jobs"}},
 	})
 	if err != nil {
 		t.Fatalf("render csv include/exclude failed: %v", err)
@@ -110,6 +110,128 @@ func TestRenderFileCSVRowsRenderedLimitExceeded(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "csv rendered rows") {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestRenderFileCSVMultipleIncludeFilters(t *testing.T) {
+	t.Parallel()
+
+	data := []byte("name,kind,status\ncli.root,note,active\ncli.root,task,active\n")
+	got, err := renderFileCSV(context.Background(), data, noteArgs{
+		formatCSV: "table",
+		includes: []csvFilter{
+			{column: "status", value: "active"},
+			{column: "kind", value: "note"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("render csv multiple includes failed: %v", err)
+	}
+	want := "| kind | name | status |\n| --- | --- | --- |\n| note | cli.root | active |"
+	if got != want {
+		t.Fatalf("csv multiple include mismatch\nwant: %q\n got: %q", want, got)
+	}
+}
+
+func TestRenderFileCSVMultipleExcludeFilters(t *testing.T) {
+	t.Parallel()
+
+	data := []byte("name,kind,status\ncli.root,note,active\ncli.jobs,note,active\ncli.worker,note,inactive\n")
+	got, err := renderFileCSV(context.Background(), data, noteArgs{
+		formatCSV: "table",
+		excludes: []csvFilter{
+			{column: "name", value: "cli.jobs"},
+			{column: "status", value: "inactive"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("render csv multiple excludes failed: %v", err)
+	}
+	want := "| kind | name | status |\n| --- | --- | --- |\n| note | cli.root | active |"
+	if got != want {
+		t.Fatalf("csv multiple exclude mismatch\nwant: %q\n got: %q", want, got)
+	}
+}
+
+func TestRenderFileCSVExactMatchOnly(t *testing.T) {
+	t.Parallel()
+
+	data := []byte("name,status\ncli.root,active\n")
+	got, err := renderFileCSV(context.Background(), data, noteArgs{
+		formatCSV: "table",
+		includes:  []csvFilter{{column: "status", value: "act"}},
+	})
+	if err != nil {
+		t.Fatalf("render csv exact-match failed: %v", err)
+	}
+	want := "| name | status |\n| --- | --- |"
+	if got != want {
+		t.Fatalf("csv exact-match mismatch\nwant: %q\n got: %q", want, got)
+	}
+}
+
+func TestRenderFileCSVUnknownIncludeColumnMatchesNoRows(t *testing.T) {
+	t.Parallel()
+
+	data := []byte("name,status\ncli.root,active\n")
+	got, err := renderFileCSV(context.Background(), data, noteArgs{
+		formatCSV: "table",
+		includes:  []csvFilter{{column: "missing", value: "x"}},
+	})
+	if err != nil {
+		t.Fatalf("render csv unknown include failed: %v", err)
+	}
+	want := "| name | status |\n| --- | --- |"
+	if got != want {
+		t.Fatalf("csv unknown include mismatch\nwant: %q\n got: %q", want, got)
+	}
+}
+
+func TestRenderFileCSVUnknownExcludeColumnIgnored(t *testing.T) {
+	t.Parallel()
+
+	data := []byte("name,status\ncli.root,active\n")
+	got, err := renderFileCSV(context.Background(), data, noteArgs{
+		formatCSV: "table",
+		excludes:  []csvFilter{{column: "missing", value: "x"}},
+	})
+	if err != nil {
+		t.Fatalf("render csv unknown exclude failed: %v", err)
+	}
+	want := "| name | status |\n| --- | --- |\n| cli.root | active |"
+	if got != want {
+		t.Fatalf("csv unknown exclude mismatch\nwant: %q\n got: %q", want, got)
+	}
+}
+
+func TestRenderFileCSVEmptyCellsAndEscaping(t *testing.T) {
+	t.Parallel()
+
+	data := []byte("name,desc\ncli.root,\"alpha|beta\"\ncli.worker,\n")
+	got, err := renderFileCSV(context.Background(), data, noteArgs{formatCSV: "table"})
+	if err != nil {
+		t.Fatalf("render csv escaping failed: %v", err)
+	}
+	want := "| desc | name |\n| --- | --- |\n| alpha\\|beta | cli.root |\n|  | cli.worker |"
+	if got != want {
+		t.Fatalf("csv escaping mismatch\nwant: %q\n got: %q", want, got)
+	}
+}
+
+func TestRenderFileCSVRawMode(t *testing.T) {
+	t.Parallel()
+
+	data := []byte("name,status\ncli.root,active\ncli.worker,inactive\n")
+	got, err := renderFileCSV(context.Background(), data, noteArgs{
+		formatCSV: "raw",
+		includes:  []csvFilter{{column: "status", value: "active"}},
+	})
+	if err != nil {
+		t.Fatalf("render csv raw failed: %v", err)
+	}
+	want := "```csv\nname,status\ncli.root,active\n```"
+	if got != want {
+		t.Fatalf("csv raw mismatch\nwant: %q\n got: %q", want, got)
 	}
 }
 

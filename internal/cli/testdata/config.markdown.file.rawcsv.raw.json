@@ -1,0 +1,43 @@
+{
+  "source": "markdown-file-rawcsv-app",
+  "name": "markdown-file-rawcsv-app",
+  "modules": ["core"],
+  "argumentRegistry": {
+    "version": "1",
+    "arguments": [
+      { "name": "format-csv", "valueType": "string", "scopes": ["note"] },
+      { "name": "csv-include", "valueType": "string", "scopes": ["note"] },
+      { "name": "csv-exclude", "valueType": "string", "scopes": ["note"] }
+    ]
+  },
+  "reports": [
+    {
+      "title": "CSV Raw Report",
+      "filepath": "out/file-rawcsv.md",
+      "sections": [
+        {
+          "title": "Raw",
+          "sections": [
+            {
+              "title": "CSV",
+              "notes": ["n.csv"]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "name": "n.csv",
+      "title": "CSV Raw",
+      "filepath": "fixtures/data.filters.csv",
+      "arguments": [
+        "format-csv=raw",
+        "csv-include=kind:note",
+        "csv-exclude=status:inactive"
+      ]
+    }
+  ],
+  "relationships": []
+}

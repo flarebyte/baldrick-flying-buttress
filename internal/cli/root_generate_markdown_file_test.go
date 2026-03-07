@@ -57,3 +57,29 @@ func TestGenerateMarkdownFileBackedDeterministicAcrossRuns(t *testing.T) {
 		t.Fatalf("non-deterministic file-backed markdown\\nfirst: %q\\nsecond: %q", first, second)
 	}
 }
+
+func TestGenerateMarkdownFileBackedMultipleFiltersRendering(t *testing.T) {
+	t.Parallel()
+
+	tmp, code, stdout, stderr := runGenerateMarkdownBundleFixture(t, "config.markdown.file.multifilter.raw.json", []string{
+		"fixtures/data.filters.csv",
+	})
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, "", "")
+	assertGeneratedMarkdownGolden(t, tmp, filepath.Join("out", "file-multifilter.md"), "generate_markdown_file_multifilter_output.golden")
+}
+
+func TestGenerateMarkdownFileBackedRawCSVRendering(t *testing.T) {
+	t.Parallel()
+
+	tmp, code, stdout, stderr := runGenerateMarkdownBundleFixture(t, "config.markdown.file.rawcsv.raw.json", []string{
+		"fixtures/data.filters.csv",
+	})
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, "", "")
+	assertGeneratedMarkdownGolden(t, tmp, filepath.Join("out", "file-rawcsv.md"), "generate_markdown_file_rawcsv_output.golden")
+}

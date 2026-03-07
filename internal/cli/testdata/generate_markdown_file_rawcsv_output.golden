@@ -1,0 +1,14 @@
+# CSV Raw Report
+
+## Raw
+
+### CSV
+
+#### CSV Raw
+
+```csv
+name,status,kind,owner,desc
+cli.root,active,note,team-a,alpha|beta
+cli.jobs,active,note,team-c,jobs
+```
+

@@ -37,6 +37,16 @@ const markdownFileFixturePath = join(
   'testdata',
   'markdown.file.raw.json',
 );
+const markdownFileMultiFilterFixturePath = join(
+  rootDir,
+  'testdata',
+  'markdown.file.multifilter.raw.json',
+);
+const markdownFileRawCSVFixturePath = join(
+  rootDir,
+  'testdata',
+  'markdown.file.rawcsv.raw.json',
+);
 
 function runFlyb(args: string[]) {
   const result = Bun.spawnSync({
@@ -260,6 +270,36 @@ test('flyb generate markdown renders file-backed sections', () => {
       fixture.dir,
       'file.md',
       'generate-markdown-file.golden',
+    );
+  } finally {
+    rmSync(fixture.dir, { recursive: true, force: true });
+  }
+});
+
+test('flyb generate markdown renders csv table with multiple filters', () => {
+  const fixture = makeTempFixtureWithFiles(markdownFileMultiFilterFixturePath, [
+    'fixtures/data.filters.csv',
+  ]);
+  try {
+    assertGenerateMarkdownOutput(
+      fixture.dir,
+      'file-multifilter.md',
+      'generate-markdown-file-multifilter.golden',
+    );
+  } finally {
+    rmSync(fixture.dir, { recursive: true, force: true });
+  }
+});
+
+test('flyb generate markdown renders raw csv mode', () => {
+  const fixture = makeTempFixtureWithFiles(markdownFileRawCSVFixturePath, [
+    'fixtures/data.filters.csv',
+  ]);
+  try {
+    assertGenerateMarkdownOutput(
+      fixture.dir,
+      'file-rawcsv.md',
+      'generate-markdown-file-rawcsv.golden',
     );
   } finally {
     rmSync(fixture.dir, { recursive: true, force: true });

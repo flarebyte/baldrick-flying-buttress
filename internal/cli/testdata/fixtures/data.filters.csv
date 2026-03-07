@@ -1,0 +1,5 @@
+name,status,kind,owner,desc
+cli.root,active,note,team-a,"alpha|beta"
+cli.worker,inactive,note,team-b,
+cli.jobs,active,note,team-c,jobs
+cli.root,active,task,team-a,task

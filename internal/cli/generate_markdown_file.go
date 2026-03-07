@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -17,17 +18,13 @@ import (
 
 type noteArgs struct {
 	formatCSV string
-	include   csvFilter
-	exclude   csvFilter
+	includes  []csvFilter
+	excludes  []csvFilter
 }
 
 type csvFilter struct {
 	column string
 	value  string
-}
-
-func (f csvFilter) empty() bool {
-	return f.column == "" && f.value == ""
 }
 
 func renderNoteBody(ctx context.Context, note domain.Note, configDir string) (string, error) {
@@ -77,15 +74,17 @@ func resolveNoteArgs(note domain.Note) (noteArgs, error) {
 			if err != nil {
 				return noteArgs{}, err
 			}
-			resolved.include = filter
+			resolved.includes = append(resolved.includes, filter)
 		case "csv-exclude":
 			filter, err := parseCSVFilter(value)
 			if err != nil {
 				return noteArgs{}, err
 			}
-			resolved.exclude = filter
+			resolved.excludes = append(resolved.excludes, filter)
 		}
 	}
+	resolved.includes = sortCSVFilters(resolved.includes)
+	resolved.excludes = sortCSVFilters(resolved.excludes)
 	return resolved, nil
 }
 
@@ -112,7 +111,7 @@ func renderFileCSV(ctx context.Context, data []byte, args noteArgs) (string, err
 	if args.formatCSV == "" {
 		args.formatCSV = "table"
 	}
-	if args.formatCSV != "table" {
+	if args.formatCSV != "table" && args.formatCSV != "raw" {
 		return "", fmt.Errorf("unsupported format-csv: %s", args.formatCSV)
 	}
 	reader := csv.NewReader(bytes.NewReader(data))
@@ -123,74 +122,72 @@ func renderFileCSV(ctx context.Context, data []byte, args noteArgs) (string, err
 	if len(rows) == 0 {
 		return "", nil
 	}
-	header := make([]string, len(rows[0]))
-	copy(header, rows[0])
-	header = ordering.Strings(header)
-	indexByColumn := map[string]int{}
-	for i, name := range rows[0] {
+	sourceHeader := make([]string, len(rows[0]))
+	copy(sourceHeader, rows[0])
+	sortedHeader := ordering.Strings(append([]string(nil), sourceHeader...))
+	indexByColumn := make(map[string]int, len(sourceHeader))
+	for i, name := range sourceHeader {
+		if _, exists := indexByColumn[name]; exists {
+			continue
+		}
 		indexByColumn[name] = i
 	}
-	includeIndex := -1
-	excludeIndex := -1
-	if !args.include.empty() {
-		i, ok := indexByColumn[args.include.column]
-		if ok {
-			includeIndex = i
+	includeChecks := make([]csvFilterCheck, 0, len(args.includes))
+	excludeChecks := make([]csvFilterCheck, 0, len(args.excludes))
+	includeImpossible := false
+	for _, filter := range args.includes {
+		i, ok := indexByColumn[filter.column]
+		if !ok {
+			includeImpossible = true
+			break
+		}
+		includeChecks = append(includeChecks, csvFilterCheck{index: i, value: filter.value})
+	}
+	for _, filter := range args.excludes {
+		i, ok := indexByColumn[filter.column]
+		if !ok {
+			continue
+		}
+		excludeChecks = append(excludeChecks, csvFilterCheck{index: i, value: filter.value})
+	}
+	filteredRows := make([][]string, 0, len(rows))
+	if !includeImpossible {
+		for _, row := range rows[1:] {
+			if err := ctx.Err(); err != nil {
+				return "", err
+			}
+			if !matchesAllFilters(row, includeChecks) || matchesAnyFilter(row, excludeChecks) {
+				continue
+			}
+			filteredRows = append(filteredRows, row)
+			if err := safety.CheckCSVRenderedRows(len(filteredRows)); err != nil {
+				return "", err
+			}
 		}
 	}
-	if !args.exclude.empty() {
-		i, ok := indexByColumn[args.exclude.column]
-		if ok {
-			excludeIndex = i
-		}
+	if args.formatCSV == "raw" {
+		return renderRawCSV(sourceHeader, filteredRows)
 	}
 	var b strings.Builder
 	b.WriteString("| ")
-	b.WriteString(strings.Join(escapeMarkdownCells(header), " | "))
+	b.WriteString(strings.Join(escapeMarkdownCells(sortedHeader), " | "))
 	b.WriteString(" |\n")
 	b.WriteString("| ")
-	for i := range header {
+	for i := range sortedHeader {
 		if i > 0 {
 			b.WriteString(" | ")
 		}
 		b.WriteString("---")
 	}
 	b.WriteString(" |\n")
-
-	renderedRows := 0
-	for _, row := range rows[1:] {
-		if err := ctx.Err(); err != nil {
-			return "", err
-		}
-		if includeIndex >= 0 {
-			if includeIndex >= len(row) || row[includeIndex] != args.include.value {
-				continue
-			}
-		}
-		if excludeIndex >= 0 {
-			if excludeIndex < len(row) && row[excludeIndex] == args.exclude.value {
-				continue
-			}
-		}
-		byColumn := map[string]string{}
-		for i, col := range rows[0] {
-			if i < len(row) {
-				byColumn[col] = row[i]
-			} else {
-				byColumn[col] = ""
-			}
-		}
-		values := make([]string, 0, len(header))
-		for _, col := range header {
-			values = append(values, escapeMarkdownCell(byColumn[col]))
+	for _, row := range filteredRows {
+		values := make([]string, 0, len(sortedHeader))
+		for _, col := range sortedHeader {
+			values = append(values, escapeMarkdownTableCell(valueAtColumn(row, indexByColumn[col])))
 		}
 		b.WriteString("| ")
 		b.WriteString(strings.Join(values, " | "))
 		b.WriteString(" |\n")
-		renderedRows++
-		if err := safety.CheckCSVRenderedRows(renderedRows); err != nil {
-			return "", err
-		}
 	}
 	return strings.TrimSuffix(b.String(), "\n"), nil
 }
@@ -198,9 +195,82 @@ func renderFileCSV(ctx context.Context, data []byte, args noteArgs) (string, err
 func escapeMarkdownCells(values []string) []string {
 	out := make([]string, 0, len(values))
 	for _, v := range values {
-		out = append(out, escapeMarkdownCell(v))
+		out = append(out, escapeMarkdownTableCell(v))
 	}
 	return out
+}
+
+type csvFilterCheck struct {
+	index int
+	value string
+}
+
+func sortCSVFilters(filters []csvFilter) []csvFilter {
+	if len(filters) == 0 {
+		return nil
+	}
+	sorted := append([]csvFilter(nil), filters...)
+	sort.SliceStable(sorted, func(i, j int) bool {
+		if sorted[i].column == sorted[j].column {
+			return sorted[i].value < sorted[j].value
+		}
+		return sorted[i].column < sorted[j].column
+	})
+	return sorted
+}
+
+func matchesAllFilters(row []string, checks []csvFilterCheck) bool {
+	for _, check := range checks {
+		if check.index >= len(row) || row[check.index] != check.value {
+			return false
+		}
+	}
+	return true
+}
+
+func matchesAnyFilter(row []string, checks []csvFilterCheck) bool {
+	for _, check := range checks {
+		if check.index < len(row) && row[check.index] == check.value {
+			return true
+		}
+	}
+	return false
+}
+
+func valueAtColumn(row []string, index int) string {
+	if index < 0 || index >= len(row) {
+		return ""
+	}
+	return row[index]
+}
+
+func escapeMarkdownTableCell(input string) string {
+	normalized := strings.ReplaceAll(input, "\r\n", "\n")
+	normalized = strings.ReplaceAll(normalized, "\r", "\n")
+	normalized = strings.ReplaceAll(normalized, "|", "\\|")
+	return strings.ReplaceAll(normalized, "\n", "<br/>")
+}
+
+func renderRawCSV(header []string, rows [][]string) (string, error) {
+	var b strings.Builder
+	b.WriteString("```csv\n")
+	writer := csv.NewWriter(&b)
+	if err := writer.Write(header); err != nil {
+		return "", fmt.Errorf("render raw csv header: %w", err)
+	}
+	for _, row := range rows {
+		normalized := make([]string, len(header))
+		copy(normalized, row)
+		if err := writer.Write(normalized); err != nil {
+			return "", fmt.Errorf("render raw csv row: %w", err)
+		}
+	}
+	writer.Flush()
+	if writer.Error() != nil {
+		return "", fmt.Errorf("render raw csv flush: %w", writer.Error())
+	}
+	b.WriteString("```")
+	return b.String(), nil
 }
 
 func renderFileMedia(note domain.Note) (string, error) {

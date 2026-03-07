@@ -1,0 +1,45 @@
+{
+  "source": "markdown-file-multifilter-app",
+  "name": "markdown-file-multifilter-app",
+  "modules": ["core"],
+  "argumentRegistry": {
+    "version": "1",
+    "arguments": [
+      { "name": "format-csv", "valueType": "string", "scopes": ["note"] },
+      { "name": "csv-include", "valueType": "string", "scopes": ["note"] },
+      { "name": "csv-exclude", "valueType": "string", "scopes": ["note"] }
+    ]
+  },
+  "reports": [
+    {
+      "title": "CSV Filters Report",
+      "filepath": "out/file-multifilter.md",
+      "sections": [
+        {
+          "title": "Filters",
+          "sections": [
+            {
+              "title": "CSV",
+              "notes": ["n.csv"]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "name": "n.csv",
+      "title": "CSV Data",
+      "filepath": "fixtures/data.filters.csv",
+      "arguments": [
+        "format-csv=table",
+        "csv-include=status:active",
+        "csv-include=kind:note",
+        "csv-exclude=name:cli.jobs",
+        "csv-exclude=owner:team-z"
+      ]
+    }
+  ],
+  "relationships": []
+}

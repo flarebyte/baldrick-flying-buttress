@@ -1,0 +1,12 @@
+# CSV Filters Report
+
+## Filters
+
+### CSV
+
+#### CSV Data
+
+| desc | kind | name | owner | status |
+| --- | --- | --- | --- | --- |
+| alpha\|beta | note | cli.root | team-a | active |
+
