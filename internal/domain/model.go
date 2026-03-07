@@ -21,14 +21,28 @@ type RawRelationship struct {
 	Label  string `json:"label"`
 }
 
+type RawArgumentDefinition struct {
+	Name          string   `json:"name"`
+	ValueType     string   `json:"valueType"`
+	Scopes        []string `json:"scopes"`
+	AllowedValues []string `json:"allowedValues"`
+	DefaultValue  any      `json:"defaultValue"`
+}
+
+type RawArgumentRegistry struct {
+	Version   string                  `json:"version"`
+	Arguments []RawArgumentDefinition `json:"arguments"`
+}
+
 type RawApp struct {
-	ConfigPath    string            `json:"-"`
-	Source        string            `json:"source"`
-	Name          string            `json:"name"`
-	Modules       []string          `json:"modules"`
-	Reports       []RawReport       `json:"reports"`
-	Notes         []RawNote         `json:"notes"`
-	Relationships []RawRelationship `json:"relationships"`
+	ConfigPath    string              `json:"-"`
+	Source        string              `json:"source"`
+	Name          string              `json:"name"`
+	Modules       []string            `json:"modules"`
+	Reports       []RawReport         `json:"reports"`
+	Notes         []RawNote           `json:"notes"`
+	Relationships []RawRelationship   `json:"relationships"`
+	Registry      RawArgumentRegistry `json:"argumentRegistry"`
 }
 
 type Severity string
@@ -86,10 +100,43 @@ type Report struct {
 	Title string
 }
 
+type ArgumentScope string
+
+const (
+	ArgumentScopeH3Section ArgumentScope = "h3-section"
+	ArgumentScopeNote      ArgumentScope = "note"
+	ArgumentScopeRenderer  ArgumentScope = "renderer"
+)
+
+type ArgumentValueType string
+
+const (
+	ArgumentValueTypeString  ArgumentValueType = "string"
+	ArgumentValueTypeStrings ArgumentValueType = "string[]"
+	ArgumentValueTypeBoolean ArgumentValueType = "boolean"
+	ArgumentValueTypeInt     ArgumentValueType = "int"
+	ArgumentValueTypeFloat   ArgumentValueType = "float"
+	ArgumentValueTypeEnum    ArgumentValueType = "enum"
+)
+
+type ArgumentDefinition struct {
+	Name          string
+	ValueType     ArgumentValueType
+	Scopes        []ArgumentScope
+	AllowedValues []string
+	DefaultValue  *string
+}
+
+type ArgumentRegistry struct {
+	Version   string
+	Arguments []ArgumentDefinition
+}
+
 type ValidatedApp struct {
 	Name          string
 	Modules       []string
 	Reports       []Report
 	Notes         []Note
 	Relationships []Relationship
+	Registry      ArgumentRegistry
 }
