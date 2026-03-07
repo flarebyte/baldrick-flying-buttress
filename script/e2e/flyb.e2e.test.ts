@@ -1,5 +1,12 @@
 import { expect, test } from 'bun:test';
-import { readFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const rootDir = join(import.meta.dir, '..', '..');
@@ -8,6 +15,7 @@ const fixturePath = join(rootDir, 'testdata', 'app.raw.json');
 const namesFixturePath = join(rootDir, 'testdata', 'names.raw.json');
 const lintFixturePath = join(rootDir, 'testdata', 'lint.raw.json');
 const orphansFixturePath = join(rootDir, 'testdata', 'orphans.raw.json');
+const markdownFixturePath = join(rootDir, 'testdata', 'markdown.raw.json');
 
 function runFlyb(args: string[]) {
   const result = Bun.spawnSync({
@@ -33,6 +41,13 @@ function readGolden(name: string) {
 
 function bytesHex(data: Uint8Array) {
   return Buffer.from(data).toString('hex');
+}
+
+function makeTempFixture(sourcePath: string) {
+  const dir = mkdtempSync(join(tmpdir(), 'flyb-e2e-'));
+  const configPath = join(dir, 'config.raw.json');
+  writeFileSync(configPath, readFileSync(sourcePath));
+  return { dir, configPath };
 }
 
 test('flyb validate stdout matches golden', () => {
@@ -103,6 +118,30 @@ test('flyb lint orphans stdout matches golden', () => {
   expect(bytesHex(got.stderr)).toBe('');
 });
 
+test('flyb generate markdown writes deterministic report files', () => {
+  const fixture = makeTempFixture(markdownFixturePath);
+  try {
+    const got = runFlyb([
+      'generate',
+      'markdown',
+      '--config',
+      fixture.configPath,
+    ]);
+    const wantAlpha = readGolden('generate-markdown-alpha.golden');
+    const wantBeta = readGolden('generate-markdown-beta.golden');
+    const gotAlpha = readFileSync(join(fixture.dir, 'out', 'alpha.md'));
+    const gotBeta = readFileSync(join(fixture.dir, 'out', 'beta.md'));
+
+    expect(got.exitCode).toBe(0);
+    expect(bytesHex(got.stdout)).toBe('');
+    expect(bytesHex(got.stderr)).toBe('');
+    expect(bytesHex(gotAlpha)).toBe(bytesHex(wantAlpha));
+    expect(bytesHex(gotBeta)).toBe(bytesHex(wantBeta));
+  } finally {
+    rmSync(fixture.dir, { recursive: true, force: true });
+  }
+});
+
 test('flyb outputs are deterministic across repeated runs', () => {
   const commands: string[][] = [
     ['validate', '--config', fixturePath],
@@ -127,5 +166,37 @@ test('flyb outputs are deterministic across repeated runs', () => {
     expect(second.exitCode).toBe(first.exitCode);
     expect(bytesHex(second.stdout)).toBe(bytesHex(first.stdout));
     expect(bytesHex(second.stderr)).toBe(bytesHex(first.stderr));
+  }
+});
+
+test('flyb generate markdown is deterministic across repeated runs', () => {
+  const fixture = makeTempFixture(markdownFixturePath);
+  try {
+    const first = runFlyb([
+      'generate',
+      'markdown',
+      '--config',
+      fixture.configPath,
+    ]);
+    const firstAlpha = readFileSync(join(fixture.dir, 'out', 'alpha.md'));
+    const firstBeta = readFileSync(join(fixture.dir, 'out', 'beta.md'));
+
+    mkdirSync(join(fixture.dir, 'out'), { recursive: true });
+    const second = runFlyb([
+      'generate',
+      'markdown',
+      '--config',
+      fixture.configPath,
+    ]);
+    const secondAlpha = readFileSync(join(fixture.dir, 'out', 'alpha.md'));
+    const secondBeta = readFileSync(join(fixture.dir, 'out', 'beta.md'));
+
+    expect(second.exitCode).toBe(first.exitCode);
+    expect(bytesHex(second.stdout)).toBe(bytesHex(first.stdout));
+    expect(bytesHex(second.stderr)).toBe(bytesHex(first.stderr));
+    expect(bytesHex(secondAlpha)).toBe(bytesHex(firstAlpha));
+    expect(bytesHex(secondBeta)).toBe(bytesHex(firstBeta));
+  } finally {
+    rmSync(fixture.dir, { recursive: true, force: true });
   }
 });

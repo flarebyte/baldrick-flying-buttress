@@ -80,6 +80,45 @@ func Relationships(in []domain.Relationship) []domain.Relationship {
 	return out
 }
 
+func MarkdownReports(in []domain.MarkdownReport) []domain.MarkdownReport {
+	out := slices.Clone(in)
+	slices.SortStableFunc(out, func(a, b domain.MarkdownReport) int {
+		if v := cmpString(a.Filepath, b.Filepath); v != 0 {
+			return v
+		}
+		return cmpString(a.Title, b.Title)
+	})
+	return out
+}
+
+func MarkdownH2Sections(in []domain.MarkdownH2Section) []domain.MarkdownH2Section {
+	out := slices.Clone(in)
+	slices.SortStableFunc(out, func(a, b domain.MarkdownH2Section) int {
+		if v := cmpString(a.Title, b.Title); v != 0 {
+			return v
+		}
+		return cmpString(a.Description, b.Description)
+	})
+	return out
+}
+
+func MarkdownH3Sections(in []domain.MarkdownH3Section) []domain.MarkdownH3Section {
+	out := slices.Clone(in)
+	slices.SortStableFunc(out, func(a, b domain.MarkdownH3Section) int {
+		if v := cmpString(a.Title, b.Title); v != 0 {
+			return v
+		}
+		return cmpString(a.Description, b.Description)
+	})
+	return out
+}
+
+func Strings(in []string) []string {
+	out := slices.Clone(in)
+	slices.Sort(out)
+	return out
+}
+
 func cmpString(a, b string) int {
 	if a < b {
 		return -1

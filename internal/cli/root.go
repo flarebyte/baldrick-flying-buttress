@@ -126,6 +126,7 @@ func newGenerateCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator
 		Short: "Generate artifacts",
 	}
 	cmd.AddCommand(newGenerateJSONCmd(loaderFactory, validator, configPath))
+	cmd.AddCommand(newGenerateMarkdownCmd(loaderFactory, validator, configPath))
 	return cmd
 }
 
@@ -204,6 +205,16 @@ func newGenerateJSONCmd(loaderFactory LoaderFactory, validator pipeline.AppValid
 		Short: "Generate JSON",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runWithConfig(loaderFactory, validator, configPath, generateJSONAction{out: cmd.OutOrStdout()})
+		},
+	}
+}
+
+func newGenerateMarkdownCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
+	return &cobra.Command{
+		Use:   "markdown",
+		Short: "Generate markdown reports",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runWithConfig(loaderFactory, validator, configPath, generateMarkdownAction{out: cmd.OutOrStdout()})
 		},
 	}
 }

@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -380,6 +381,122 @@ func TestGenerateJSONGoldenOutput(t *testing.T) {
 	assertOutput(t, stdout, stderr, readGolden(t, "generate_json_output.golden"), "")
 }
 
+func TestGenerateMarkdownSuccess(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	configPath := writeFixtureConfig(t, tmp, "config.markdown.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	code, stdout, stderr := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, "", "")
+
+	alpha, err := os.ReadFile(filepath.Join(tmp, "out", "alpha.md"))
+	if err != nil {
+		t.Fatalf("read alpha report failed: %v", err)
+	}
+	beta, err := os.ReadFile(filepath.Join(tmp, "out", "beta.md"))
+	if err != nil {
+		t.Fatalf("read beta report failed: %v", err)
+	}
+	if string(alpha) != readGolden(t, "generate_markdown_alpha_output.golden") {
+		t.Fatalf("alpha markdown mismatch\\nwant: %q\\n got: %q", readGolden(t, "generate_markdown_alpha_output.golden"), string(alpha))
+	}
+	if string(beta) != readGolden(t, "generate_markdown_beta_output.golden") {
+		t.Fatalf("beta markdown mismatch\\nwant: %q\\n got: %q", readGolden(t, "generate_markdown_beta_output.golden"), string(beta))
+	}
+}
+
+func TestGenerateMarkdownBlockedOnErrorDiagnostic(t *testing.T) {
+	t.Parallel()
+
+	app := domain.ValidatedApp{
+		ConfigDir:       t.TempDir(),
+		MarkdownReports: []domain.MarkdownReport{{Title: "Blocked", Filepath: "out/blocked.md"}},
+	}
+	code, stdout, stderr := runCommand([]string{"generate", "markdown"}, stubLoader(), validatorWith(app, errorOnlyReport(), nil))
+	if code != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, code)
+	}
+	assertOutput(t, stdout, stderr, "", "")
+}
+
+func TestGenerateMarkdownRuntimeFailureOnUnwritablePath(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(tmp, "out"), 0o755); err != nil {
+		t.Fatalf("create out dir failed: %v", err)
+	}
+	configPath := filepath.Join(tmp, "config.raw.json")
+	content := `{"source":"x","name":"x","modules":[],"reports":[{"title":"R","filepath":"out","sections":[{"title":"H2","sections":[{"title":"H3","notes":["n1"]}]}]}],"notes":[{"name":"n1","title":"N1","markdown":"Body"}],"relationships":[]}`
+	if err := os.WriteFile(configPath, []byte(content), 0o644); err != nil {
+		t.Fatalf("write config failed: %v", err)
+	}
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	code, stdout, stderr := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	if code != outcome.ExitCodeRuntimeFailure {
+		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeRuntimeFailure, code)
+	}
+	if stdout != "" {
+		t.Fatalf("expected empty stdout, got %q", stdout)
+	}
+	if stderr == "" {
+		t.Fatal("expected stderr")
+	}
+}
+
+func TestGenerateMarkdownDeterministicAcrossRuns(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	configPath := writeFixtureConfig(t, tmp, "config.markdown.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	code1, stdout1, stderr1 := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	if code1 != 0 {
+		t.Fatalf("expected first exit code 0, got %d", code1)
+	}
+	alpha1, err := os.ReadFile(filepath.Join(tmp, "out", "alpha.md"))
+	if err != nil {
+		t.Fatalf("read alpha first run failed: %v", err)
+	}
+	beta1, err := os.ReadFile(filepath.Join(tmp, "out", "beta.md"))
+	if err != nil {
+		t.Fatalf("read beta first run failed: %v", err)
+	}
+
+	code2, stdout2, stderr2 := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	if code2 != 0 {
+		t.Fatalf("expected second exit code 0, got %d", code2)
+	}
+	alpha2, err := os.ReadFile(filepath.Join(tmp, "out", "alpha.md"))
+	if err != nil {
+		t.Fatalf("read alpha second run failed: %v", err)
+	}
+	beta2, err := os.ReadFile(filepath.Join(tmp, "out", "beta.md"))
+	if err != nil {
+		t.Fatalf("read beta second run failed: %v", err)
+	}
+
+	if stdout1 != stdout2 || stderr1 != stderr2 {
+		t.Fatalf("non-deterministic command output")
+	}
+	if string(alpha1) != string(alpha2) {
+		t.Fatalf("non-deterministic alpha markdown\\nfirst: %q\\nsecond: %q", string(alpha1), string(alpha2))
+	}
+	if string(beta1) != string(beta2) {
+		t.Fatalf("non-deterministic beta markdown\\nfirst: %q\\nsecond: %q", string(beta1), string(beta2))
+	}
+}
+
 func TestGenerateJSONBlockedOnErrorDiagnostic(t *testing.T) {
 	t.Parallel()
 
@@ -661,6 +778,7 @@ func TestDeterministicOutputAcrossRuns(t *testing.T) {
 		{name: "lint names", args: []string{"lint", "names", "--style", "dot"}, loader: stubLoader(), validator: validatorWith(listNamesValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
 		{name: "lint orphans", args: []string{"lint", "orphans", "--subject-label", "ingredient"}, loader: stubLoader(), validator: validatorWith(orphansValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
 		{name: "generate json", args: []string{"generate", "json"}, loader: stubLoader(), validator: validatorWith(listValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
+		{name: "generate markdown", args: []string{"generate", "markdown"}, loader: stubLoader(), validator: validatorWith(domain.ValidatedApp{}, domain.ValidationReport{}, nil), exitCode: 0},
 	}
 
 	for _, tc := range tests {
@@ -724,6 +842,20 @@ func readGolden(t *testing.T, filename string) string {
 		t.Fatalf("read golden %s: %v", filename, err)
 	}
 	return string(b)
+}
+
+func writeFixtureConfig(t *testing.T, dir string, fixtureName string) string {
+	t.Helper()
+	src := filepath.Join("testdata", fixtureName)
+	data, err := os.ReadFile(src)
+	if err != nil {
+		t.Fatalf("read fixture %s: %v", fixtureName, err)
+	}
+	dst := filepath.Join(dir, fmt.Sprintf("%s.config.json", fixtureName))
+	if err := os.WriteFile(dst, data, 0o644); err != nil {
+		t.Fatalf("write fixture config %s: %v", fixtureName, err)
+	}
+	return dst
 }
 
 func assertOutput(t *testing.T, gotStdout, gotStderr, wantStdout, wantStderr string) {

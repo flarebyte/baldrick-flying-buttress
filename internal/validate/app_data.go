@@ -545,7 +545,12 @@ func normalizeValidatedApp(raw domain.RawApp, registry domain.ArgumentRegistry, 
 
 	notes := make([]domain.Note, 0, len(raw.Notes))
 	for _, note := range raw.Notes {
-		notes = append(notes, domain.Note{ID: note.Name, Label: note.Title})
+		notes = append(notes, domain.Note{
+			ID:       note.Name,
+			Label:    note.Title,
+			Title:    note.Title,
+			Markdown: note.Markdown,
+		})
 	}
 
 	relationships := make([]domain.Relationship, 0, len(raw.Relationships))
@@ -557,16 +562,54 @@ func normalizeValidatedApp(raw domain.RawApp, registry domain.ArgumentRegistry, 
 		})
 	}
 
+	configDir := "."
+	if raw.ConfigPath != "" {
+		configDir = filepath.Dir(raw.ConfigPath)
+	}
+
 	return domain.ValidatedApp{
 		Name:                 raw.Name,
+		ConfigDir:            configDir,
 		Modules:              raw.Modules,
 		Reports:              ordering.Reports(reports),
+		MarkdownReports:      normalizeMarkdownReports(raw),
 		Notes:                ordering.Notes(notes),
 		Relationships:        ordering.Relationships(relationships),
 		Registry:             registry,
 		DatasetLabels:        datasetLabels,
 		GraphIntegrityPolicy: graphPolicy,
 	}
+}
+
+func normalizeMarkdownReports(raw domain.RawApp) []domain.MarkdownReport {
+	reports := make([]domain.MarkdownReport, 0, len(raw.Reports))
+	for _, rawReport := range raw.Reports {
+		report := domain.MarkdownReport{
+			Title:       rawReport.Title,
+			Filepath:    rawReport.Filepath,
+			Description: rawReport.Description,
+			Sections:    make([]domain.MarkdownH2Section, 0, len(rawReport.Sections)),
+		}
+		for _, rawH2 := range rawReport.Sections {
+			h2 := domain.MarkdownH2Section{
+				Title:       rawH2.Title,
+				Description: rawH2.Description,
+				Sections:    make([]domain.MarkdownH3Section, 0, len(rawH2.Sections)),
+			}
+			for _, rawH3 := range rawH2.Sections {
+				h2.Sections = append(h2.Sections, domain.MarkdownH3Section{
+					Title:       rawH3.Title,
+					Description: rawH3.Description,
+					NoteIDs:     ordering.Strings(rawH3.Notes),
+				})
+			}
+			h2.Sections = ordering.MarkdownH3Sections(h2.Sections)
+			report.Sections = append(report.Sections, h2)
+		}
+		report.Sections = ordering.MarkdownH2Sections(report.Sections)
+		reports = append(reports, report)
+	}
+	return ordering.MarkdownReports(reports)
 }
 
 func reportIDFromFilepath(path string) string {

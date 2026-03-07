@@ -1,20 +1,24 @@
 package domain
 
 type RawReport struct {
-	Title    string             `json:"title"`
-	Filepath string             `json:"filepath"`
-	Sections []RawReportSection `json:"sections"`
+	Title       string             `json:"title"`
+	Filepath    string             `json:"filepath"`
+	Description string             `json:"description"`
+	Sections    []RawReportSection `json:"sections"`
 }
 
 type RawReportSection struct {
-	Title     string   `json:"title"`
-	Arguments []string `json:"arguments"`
-	Notes     []string `json:"notes"`
+	Description string             `json:"description"`
+	Title       string             `json:"title"`
+	Arguments   []string           `json:"arguments"`
+	Notes       []string           `json:"notes"`
+	Sections    []RawReportSection `json:"sections"`
 }
 
 type RawNote struct {
 	Name      string   `json:"name"`
 	Title     string   `json:"title"`
+	Markdown  string   `json:"markdown"`
 	Arguments []string `json:"arguments"`
 	Labels    []string `json:"labels"`
 }
@@ -105,8 +109,10 @@ func (r ValidationReport) HasErrors() bool {
 }
 
 type Note struct {
-	ID    string
-	Label string
+	ID       string
+	Label    string
+	Title    string
+	Markdown string
 }
 
 type Relationship struct {
@@ -118,6 +124,25 @@ type Relationship struct {
 type Report struct {
 	ID    string
 	Title string
+}
+
+type MarkdownReport struct {
+	Title       string
+	Filepath    string
+	Description string
+	Sections    []MarkdownH2Section
+}
+
+type MarkdownH2Section struct {
+	Title       string
+	Description string
+	Sections    []MarkdownH3Section
+}
+
+type MarkdownH3Section struct {
+	Title       string
+	Description string
+	NoteIDs     []string
 }
 
 type ArgumentScope string
@@ -176,8 +201,10 @@ type GraphIntegrityPolicy struct {
 
 type ValidatedApp struct {
 	Name                 string
+	ConfigDir            string
 	Modules              []string
 	Reports              []Report
+	MarkdownReports      []MarkdownReport
 	Notes                []Note
 	Relationships        []Relationship
 	Registry             ArgumentRegistry
