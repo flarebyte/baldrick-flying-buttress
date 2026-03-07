@@ -64,6 +64,17 @@ async function ensureGhAvailable() {
   if (!which) throw new Error('gh (GitHub CLI) is required');
 }
 
+async function ensureGhAuth() {
+  const proc = Bun.spawn(['gh', 'auth', 'status'], {
+    stdout: 'ignore',
+    stderr: 'ignore',
+  });
+  const code = await proc.exited;
+  if (code !== 0) {
+    throw new Error('gh is not authenticated. Run: gh auth login');
+  }
+}
+
 async function listBuildArtifacts(dir = 'build'): Promise<string[]> {
   try {
     const items = await fs.readdir(dir);
@@ -88,6 +99,7 @@ async function main() {
 
   if (!dryRun) {
     await ensureGhAvailable();
+    await ensureGhAuth();
   }
   const version = (await readVersionFromProjectYAML()).trim();
   if (!version)

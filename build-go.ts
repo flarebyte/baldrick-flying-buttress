@@ -19,6 +19,15 @@ async function ensureDir(p: string): Promise<void> {
   await fs.mkdir(p, { recursive: true });
 }
 
+function ensureGoEnv(baseEnv: Record<string, string>, cwd: string) {
+  if (!baseEnv.GOCACHE) {
+    baseEnv.GOCACHE = path.join(cwd, '.gocache');
+  }
+  if (!baseEnv.GOMODCACHE) {
+    baseEnv.GOMODCACHE = path.join(cwd, '.gomodcache');
+  }
+}
+
 async function readVersionFromProjectYAML(
   p = 'main.project.yaml',
 ): Promise<string> {
@@ -125,6 +134,8 @@ async function main() {
   ] as const;
 
   await ensureDir('build');
+  await ensureDir(path.join(currentDirectory, '.gocache'));
+  await ensureDir(path.join(currentDirectory, '.gomodcache'));
 
   const builtFiles: string[] = [];
 
@@ -134,6 +145,7 @@ async function main() {
       string,
       string
     >;
+    ensureGoEnv(env, currentDirectory);
     env.GOOS = p.os;
     env.GOARCH = p.arch;
     if (p.os === 'darwin') {
