@@ -1,0 +1,5 @@
+KIND	NAME	FROM	TO
+note	cli.root		
+note	cli.worker		
+relationship		app.db	cli.worker
+relationship		cli.root	app.db

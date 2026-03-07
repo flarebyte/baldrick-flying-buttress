@@ -82,6 +82,97 @@ func TestListReportsBlockedOnErrorDiagnostic(t *testing.T) {
 	assertOutput(t, stdout, stderr, "", "")
 }
 
+func TestListNamesDefaultTableOutput(t *testing.T) {
+	t.Parallel()
+
+	exitCode, stdout, stderr := runCommand(
+		[]string{"list", "names", "--prefix", "cli."},
+		stubLoader(),
+		validatorWith(listNamesValidatedApp(), domain.ValidationReport{}, nil),
+	)
+	if exitCode != 0 {
+		t.Fatalf("expected exit code 0, got %d", exitCode)
+	}
+	assertOutput(t, stdout, stderr, readGolden(t, "list_names_table_output.golden"), "")
+}
+
+func TestListNamesKindNotesOutput(t *testing.T) {
+	t.Parallel()
+
+	exitCode, stdout, stderr := runCommand(
+		[]string{"list", "names", "--prefix", "cli.", "--kind", "notes"},
+		stubLoader(),
+		validatorWith(listNamesValidatedApp(), domain.ValidationReport{}, nil),
+	)
+	if exitCode != 0 {
+		t.Fatalf("expected exit code 0, got %d", exitCode)
+	}
+	want := "KIND\tNAME\tFROM\tTO\nnote\tcli.root\t\t\nnote\tcli.worker\t\t\n"
+	assertOutput(t, stdout, stderr, want, "")
+}
+
+func TestListNamesKindRelationshipsOutput(t *testing.T) {
+	t.Parallel()
+
+	exitCode, stdout, stderr := runCommand(
+		[]string{"list", "names", "--prefix", "cli.", "--kind", "relationships"},
+		stubLoader(),
+		validatorWith(listNamesValidatedApp(), domain.ValidationReport{}, nil),
+	)
+	if exitCode != 0 {
+		t.Fatalf("expected exit code 0, got %d", exitCode)
+	}
+	want := "KIND\tNAME\tFROM\tTO\nrelationship\t\tapp.db\tcli.worker\nrelationship\t\tcli.root\tapp.db\n"
+	assertOutput(t, stdout, stderr, want, "")
+}
+
+func TestListNamesJSONOutput(t *testing.T) {
+	t.Parallel()
+
+	exitCode, stdout, stderr := runCommand(
+		[]string{"list", "names", "--prefix", "cli.", "--format", "json"},
+		stubLoader(),
+		validatorWith(listNamesValidatedApp(), domain.ValidationReport{}, nil),
+	)
+	if exitCode != 0 {
+		t.Fatalf("expected exit code 0, got %d", exitCode)
+	}
+	assertOutput(t, stdout, stderr, readGolden(t, "list_names_json_output.golden"), "")
+}
+
+func TestListNamesBlockedOnErrorDiagnostic(t *testing.T) {
+	t.Parallel()
+
+	exitCode, stdout, stderr := runCommand(
+		[]string{"list", "names", "--prefix", "cli."},
+		stubLoader(),
+		validatorWith(listNamesValidatedApp(), errorOnlyReport(), nil),
+	)
+	if exitCode != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, exitCode)
+	}
+	assertOutput(t, stdout, stderr, "", "")
+}
+
+func TestListNamesMissingPrefixReturnsRuntimeFailure(t *testing.T) {
+	t.Parallel()
+
+	exitCode, stdout, stderr := runCommand(
+		[]string{"list", "names"},
+		stubLoader(),
+		validatorWith(listNamesValidatedApp(), domain.ValidationReport{}, nil),
+	)
+	if exitCode != outcome.ExitCodeRuntimeFailure {
+		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeRuntimeFailure, exitCode)
+	}
+	if stdout != "" {
+		t.Fatalf("expected empty stdout, got %q", stdout)
+	}
+	if stderr == "" {
+		t.Fatal("expected stderr for missing required prefix")
+	}
+}
+
 func TestGenerateJSONGoldenOutput(t *testing.T) {
 	t.Parallel()
 
@@ -369,6 +460,7 @@ func TestDeterministicOutputAcrossRuns(t *testing.T) {
 	}{
 		{name: "validate", args: []string{"validate"}, loader: validate.StubAppLoader{}, validator: validate.StubAppValidator{}, exitCode: 0},
 		{name: "list reports", args: []string{"list", "reports"}, loader: stubLoader(), validator: validatorWith(listValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
+		{name: "list names", args: []string{"list", "names", "--prefix", "cli."}, loader: stubLoader(), validator: validatorWith(listNamesValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
 		{name: "generate json", args: []string{"generate", "json"}, loader: stubLoader(), validator: validatorWith(listValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
 	}
 

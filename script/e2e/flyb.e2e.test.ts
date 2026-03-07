@@ -5,6 +5,7 @@ import { join } from 'node:path';
 const rootDir = join(import.meta.dir, '..', '..');
 const binPath = join(rootDir, '.e2e-bin', 'flyb');
 const fixturePath = join(rootDir, 'testdata', 'app.raw.json');
+const namesFixturePath = join(rootDir, 'testdata', 'names.raw.json');
 
 function runFlyb(args: string[]) {
   const result = Bun.spawnSync({
@@ -59,11 +60,28 @@ test('flyb generate json stdout matches golden', () => {
   expect(bytesHex(got.stderr)).toBe('');
 });
 
+test('flyb list names stdout matches golden', () => {
+  const got = runFlyb([
+    'list',
+    'names',
+    '--config',
+    namesFixturePath,
+    '--prefix',
+    'cli.',
+  ]);
+  const wantStdout = readGolden('list-names.stdout.golden');
+
+  expect(got.exitCode).toBe(0);
+  expect(bytesHex(got.stdout)).toBe(bytesHex(wantStdout));
+  expect(bytesHex(got.stderr)).toBe('');
+});
+
 test('flyb outputs are deterministic across repeated runs', () => {
   const commands: string[][] = [
     ['validate', '--config', fixturePath],
     ['list', 'reports', '--config', fixturePath],
     ['generate', 'json', '--config', fixturePath],
+    ['list', 'names', '--config', namesFixturePath, '--prefix', 'cli.'],
   ];
 
   for (const args of commands) {

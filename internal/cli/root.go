@@ -74,6 +74,7 @@ func newListCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, co
 		Short: "List entities",
 	}
 	cmd.AddCommand(newListReportsCmd(loaderFactory, validator, configPath))
+	cmd.AddCommand(newListNamesCmd(loaderFactory, validator, configPath))
 	return cmd
 }
 
@@ -85,6 +86,37 @@ func newListReportsCmd(loaderFactory LoaderFactory, validator pipeline.AppValida
 			return runWithConfig(loaderFactory, validator, configPath, listReportsAction{out: cmd.OutOrStdout()})
 		},
 	}
+}
+
+func newListNamesCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
+	var prefix string
+	var kind string
+	var format string
+
+	cmd := &cobra.Command{
+		Use:   "names",
+		Short: "List names",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := validateNamesKind(kind); err != nil {
+				return err
+			}
+			if err := validateNamesFormat(format); err != nil {
+				return err
+			}
+			return runWithConfig(loaderFactory, validator, configPath, namesAction{
+				out:    cmd.OutOrStdout(),
+				prefix: prefix,
+				kind:   kind,
+				format: format,
+			})
+		},
+	}
+
+	cmd.Flags().StringVar(&prefix, "prefix", "", "Required name prefix filter")
+	cmd.Flags().StringVar(&kind, "kind", namesKindAll, "Filter kind: all|notes|relationships")
+	cmd.Flags().StringVar(&format, "format", namesFormatTable, "Output format: table|json")
+	_ = cmd.MarkFlagRequired("prefix")
+	return cmd
 }
 
 func newGenerateCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
