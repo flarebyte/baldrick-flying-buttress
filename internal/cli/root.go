@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/olivier/baldrick-flying-buttress/internal/app"
-	"github.com/olivier/baldrick-flying-buttress/internal/diagnostics"
-	"github.com/olivier/baldrick-flying-buttress/internal/pipeline"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/app"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/diagnostics"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/pipeline"
 	"github.com/spf13/cobra"
 )
 

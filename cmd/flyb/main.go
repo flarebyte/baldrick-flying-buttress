@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/olivier/baldrick-flying-buttress/internal/cli"
-	"github.com/olivier/baldrick-flying-buttress/internal/validate"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/cli"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/validate"
 )
 
 func main() {

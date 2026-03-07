@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/olivier/baldrick-flying-buttress/internal/app"
-	"github.com/olivier/baldrick-flying-buttress/internal/diagnostics"
-	"github.com/olivier/baldrick-flying-buttress/internal/validate"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/app"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/diagnostics"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/validate"
 )
 
 func TestValidateSuccessWarningsOnly(t *testing.T) {

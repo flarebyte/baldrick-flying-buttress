@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/olivier/baldrick-flying-buttress/internal/app"
-	"github.com/olivier/baldrick-flying-buttress/internal/diagnostics"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/app"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/diagnostics"
 )
 
 func emitDiagnostics(out io.Writer, report diagnostics.Report) error {

@@ -3,8 +3,8 @@ package pipeline
 import (
 	"errors"
 
-	"github.com/olivier/baldrick-flying-buttress/internal/app"
-	"github.com/olivier/baldrick-flying-buttress/internal/diagnostics"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/app"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/diagnostics"
 )
 
 type Loader func() (app.RawApp, error)

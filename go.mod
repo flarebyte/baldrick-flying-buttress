@@ -1,4 +1,4 @@
-module github.com/olivier/baldrick-flying-buttress
+module github.com/flarebyte/baldrick-flying-buttress
 
 go 1.22
 
