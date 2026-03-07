@@ -1,12 +1,16 @@
 package validate
 
-import "github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+import (
+	"context"
+
+	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+)
 
 type StubAppLoader struct{}
 
 type StubAppValidator struct{}
 
-func (StubAppLoader) Load() (domain.RawApp, error) {
+func (StubAppLoader) Load(context.Context) (domain.RawApp, error) {
 	return domain.RawApp{
 		ConfigPath: "in-memory-stub",
 		Source:     "in-memory-stub",
@@ -26,14 +30,14 @@ func (StubAppLoader) Load() (domain.RawApp, error) {
 	}, nil
 }
 
-func (StubAppValidator) Validate(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
-	return AppDataValidator{}.Validate(raw)
+func (StubAppValidator) Validate(ctx context.Context, raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
+	return AppDataValidator{}.Validate(ctx, raw)
 }
 
-func LoadStub() (domain.RawApp, error) {
-	return StubAppLoader{}.Load()
+func LoadStub(ctx context.Context) (domain.RawApp, error) {
+	return StubAppLoader{}.Load(ctx)
 }
 
-func ValidateStub(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
-	return StubAppValidator{}.Validate(raw)
+func ValidateStub(ctx context.Context, raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
+	return StubAppValidator{}.Validate(ctx, raw)
 }

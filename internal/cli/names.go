@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -26,7 +27,7 @@ type namesAction struct {
 	format string
 }
 
-func (a namesAction) Execute(validated domain.ValidatedApp, report domain.ValidationReport) error {
+func (a namesAction) Execute(_ context.Context, validated domain.ValidatedApp, report domain.ValidationReport) error {
 	_ = report
 	notes, relationships, err := filterNames(validated, a.prefix, a.kind)
 	if err != nil {

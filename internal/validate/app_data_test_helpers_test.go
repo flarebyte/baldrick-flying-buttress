@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"context"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -29,7 +30,7 @@ func assertHasDiagnostics(t *testing.T, diagnostics []domain.Diagnostic, want []
 
 func validateRaw(t *testing.T, raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport) {
 	t.Helper()
-	app, report, err := AppDataValidator{}.Validate(raw)
+	app, report, err := AppDataValidator{}.Validate(context.Background(), raw)
 	if err != nil {
 		t.Fatalf("validate failed: %v", err)
 	}

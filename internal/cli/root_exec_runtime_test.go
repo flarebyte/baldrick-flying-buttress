@@ -1,10 +1,14 @@
 package cli
 
 import (
+	"bytes"
+	"context"
 	"errors"
+	"path/filepath"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/load"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/pipeline"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/validate"
@@ -14,10 +18,10 @@ func TestRuntimeFailureMapsToDistinctExitCodeAndStderr(t *testing.T) {
 	t.Parallel()
 
 	runtimeErr := errors.New("runtime exploded")
-	loader := pipeline.LoaderFunc(func() (domain.RawApp, error) {
+	loader := pipeline.LoaderFunc(func(context.Context) (domain.RawApp, error) {
 		return domain.RawApp{}, runtimeErr
 	})
-	validator := pipeline.ValidatorFunc(func(domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
+	validator := pipeline.ValidatorFunc(func(context.Context, domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 		return domain.ValidatedApp{}, domain.ValidationReport{}, nil
 	})
 
@@ -83,5 +87,28 @@ func TestDeterministicOutputAcrossRuns(t *testing.T) {
 			t.Parallel()
 			assertDeterministic(t, tc.args, tc.loader, tc.validator, tc.exitCode)
 		})
+	}
+}
+
+func TestExecuteContextNormalPathMatchesExecuteWithFactory(t *testing.T) {
+	t.Parallel()
+
+	configPath := filepath.Join("testdata", "config.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader {
+		return load.FSAppLoader{ConfigPath: path}
+	}
+	validator := validate.AppDataValidator{}
+
+	codeA, stdoutA, stderrA := runCommandWithFactory([]string{"list", "reports", "--config", configPath}, loaderFactory, validator)
+
+	var outB bytes.Buffer
+	var errB bytes.Buffer
+	codeB := ExecuteContextWithFactory(context.Background(), []string{"list", "reports", "--config", configPath}, &outB, &errB, loaderFactory, validator)
+
+	if codeA != codeB {
+		t.Fatalf("exit code mismatch: %d vs %d", codeA, codeB)
+	}
+	if stdoutA != outB.String() || stderrA != errB.String() {
+		t.Fatalf("output mismatch between ExecuteWithFactory and ExecuteContextWithFactory")
 	}
 }

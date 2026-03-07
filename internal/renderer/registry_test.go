@@ -1,6 +1,7 @@
 package renderer
 
 import (
+	"context"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -52,7 +53,7 @@ func TestMermaidRenderingTreeDAGCyclic(t *testing.T) {
 		Notes:         []domain.Note{{ID: "a", Title: "A"}, {ID: "b", Title: "B"}, {ID: "c", Title: "C"}},
 		Relationships: []domain.Relationship{{FromID: "a", ToID: "b"}, {FromID: "b", ToID: "c"}, {FromID: "c", ToID: "a"}},
 	}
-	got, err := renderMermaid(selected, graph.ShapeCyclic, Args{MermaidDirection: "TD"})
+	got, err := renderMermaid(context.Background(), selected, graph.ShapeCyclic, Args{MermaidDirection: "TD"})
 	if err != nil {
 		t.Fatalf("render mermaid failed: %v", err)
 	}

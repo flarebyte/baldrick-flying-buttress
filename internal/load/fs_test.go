@@ -1,6 +1,7 @@
 package load
 
 import (
+	"context"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -10,7 +11,7 @@ func TestFSAppLoaderLoadSuccess(t *testing.T) {
 	t.Parallel()
 
 	path := filepath.Join("testdata", "app.raw.json")
-	got, err := FSAppLoader{ConfigPath: path}.Load()
+	got, err := FSAppLoader{ConfigPath: path}.Load(context.Background())
 	if err != nil {
 		t.Fatalf("load failed: %v", err)
 	}
@@ -26,7 +27,7 @@ func TestFSAppLoaderLoadSuccess(t *testing.T) {
 func TestFSAppLoaderMissingFile(t *testing.T) {
 	t.Parallel()
 
-	_, err := FSAppLoader{ConfigPath: filepath.Join("testdata", "missing.raw.json")}.Load()
+	_, err := FSAppLoader{ConfigPath: filepath.Join("testdata", "missing.raw.json")}.Load(context.Background())
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -38,7 +39,7 @@ func TestFSAppLoaderMissingFile(t *testing.T) {
 func TestFSAppLoaderMalformedInput(t *testing.T) {
 	t.Parallel()
 
-	_, err := FSAppLoader{ConfigPath: filepath.Join("testdata", "app.malformed.txt")}.Load()
+	_, err := FSAppLoader{ConfigPath: filepath.Join("testdata", "app.malformed.txt")}.Load(context.Background())
 	if err == nil {
 		t.Fatal("expected error")
 	}

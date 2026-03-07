@@ -1,6 +1,7 @@
 package renderer
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -19,7 +20,7 @@ type Capability struct {
 	Name            string
 	SupportedShapes []graph.Shape
 	SupportedArgs   []string
-	Render          func(graph.Selected, graph.Shape, Args) (string, error)
+	Render          func(context.Context, graph.Selected, graph.Shape, Args) (string, error)
 }
 
 type Registry struct {
@@ -32,9 +33,9 @@ func ResolveRegistry() Registry {
 			Name:            "markdown-text",
 			SupportedShapes: []graph.Shape{graph.ShapeTree, graph.ShapeDAG, graph.ShapeCyclic},
 			SupportedArgs:   []string{"graph-renderer"},
-			Render: func(selected graph.Selected, shape graph.Shape, args Args) (string, error) {
+			Render: func(ctx context.Context, selected graph.Selected, shape graph.Shape, args Args) (string, error) {
 				_ = args
-				return graph.RenderMarkdownText(selected, shape, graph.CyclePolicyAllow), nil
+				return graph.RenderMarkdownText(ctx, selected, shape, graph.CyclePolicyAllow)
 			},
 		},
 		{

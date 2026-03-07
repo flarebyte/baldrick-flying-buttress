@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -17,7 +18,7 @@ type lintOrphansAction struct {
 	severity domain.Severity
 }
 
-func (a lintOrphansAction) Execute(validated domain.ValidatedApp, report domain.ValidationReport) error {
+func (a lintOrphansAction) Execute(_ context.Context, validated domain.ValidatedApp, report domain.ValidationReport) error {
 	_ = report
 	return emitDiagnosticsOutcome(a.out, a.diagnostics(validated))
 }

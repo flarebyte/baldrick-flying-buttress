@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -17,10 +18,10 @@ type generateMarkdownAction struct {
 	out io.Writer
 }
 
-func (a generateMarkdownAction) Execute(validated domain.ValidatedApp, report domain.ValidationReport) error {
+func (a generateMarkdownAction) Execute(ctx context.Context, validated domain.ValidatedApp, report domain.ValidationReport) error {
 	_ = a.out
 	_ = report
-	diagnostics, err := writeMarkdownReports(validated)
+	diagnostics, err := writeMarkdownReports(ctx, validated)
 	if err != nil {
 		return err
 	}
@@ -41,17 +42,26 @@ func (generateMarkdownAction) AllowOnValidationErrors() bool {
 	return false
 }
 
-func writeMarkdownReports(app domain.ValidatedApp) ([]domain.Diagnostic, error) {
+func writeMarkdownReports(ctx context.Context, app domain.ValidatedApp) ([]domain.Diagnostic, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	noteByID := map[string]domain.Note{}
 	for _, note := range ordering.Notes(app.Notes) {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
 		noteByID[note.ID] = note
 	}
 	diagnostics := make([]domain.Diagnostic, 0)
 	registry := renderer.ResolveRegistry()
 
 	for _, report := range ordering.MarkdownReports(app.MarkdownReports) {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
 		destination := filepath.Join(app.ConfigDir, report.Filepath)
-		content, sectionDiagnostics, err := renderMarkdownReport(report, noteByID, app, registry)
+		content, sectionDiagnostics, err := renderMarkdownReport(ctx, report, noteByID, app, registry)
 		if err != nil {
 			return nil, err
 		}
@@ -59,9 +69,24 @@ func writeMarkdownReports(app domain.ValidatedApp) ([]domain.Diagnostic, error) 
 		if err := os.MkdirAll(filepath.Dir(destination), 0o755); err != nil {
 			return nil, fmt.Errorf("create report directory %s: %w", filepath.Dir(destination), err)
 		}
-		if err := os.WriteFile(destination, []byte(content), 0o644); err != nil {
+		if err := writeFileAtomically(ctx, destination, []byte(content), 0o644); err != nil {
 			return nil, fmt.Errorf("write report %s: %w", destination, err)
 		}
 	}
 	return ordering.Diagnostics(diagnostics), nil
+}
+
+func writeFileAtomically(ctx context.Context, destination string, data []byte, perm os.FileMode) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	tmp := destination + ".tmp"
+	if err := os.WriteFile(tmp, data, perm); err != nil {
+		return err
+	}
+	if err := ctx.Err(); err != nil {
+		_ = os.Remove(tmp)
+		return err
+	}
+	return os.Rename(tmp, destination)
 }

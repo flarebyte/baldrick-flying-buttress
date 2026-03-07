@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -25,7 +27,7 @@ func TestRenderMarkdownPlainNote(t *testing.T) {
 	}
 	notes := map[string]domain.Note{"n.apple": {ID: "n.apple", Title: "Apple", Markdown: "Fresh apple."}}
 
-	got, diagnostics, err := renderMarkdownReport(report, notes, domain.ValidatedApp{}, renderer.ResolveRegistry())
+	got, diagnostics, err := renderMarkdownReport(context.Background(), report, notes, domain.ValidatedApp{}, renderer.ResolveRegistry())
 	if err != nil {
 		t.Fatalf("render markdown report failed: %v", err)
 	}
@@ -49,8 +51,8 @@ func TestRenderMarkdownDeterministicSections(t *testing.T) {
 		},
 	}
 
-	first, firstDiagnostics, firstErr := renderMarkdownReport(report, map[string]domain.Note{}, domain.ValidatedApp{}, renderer.ResolveRegistry())
-	second, secondDiagnostics, secondErr := renderMarkdownReport(report, map[string]domain.Note{}, domain.ValidatedApp{}, renderer.ResolveRegistry())
+	first, firstDiagnostics, firstErr := renderMarkdownReport(context.Background(), report, map[string]domain.Note{}, domain.ValidatedApp{}, renderer.ResolveRegistry())
+	second, secondDiagnostics, secondErr := renderMarkdownReport(context.Background(), report, map[string]domain.Note{}, domain.ValidatedApp{}, renderer.ResolveRegistry())
 	if firstErr != nil || secondErr != nil {
 		t.Fatalf("expected no render errors, got first=%v second=%v", firstErr, secondErr)
 	}
@@ -69,7 +71,7 @@ func TestRenderMarkdownDeterministicSections(t *testing.T) {
 func TestRenderMarkdownTrailingNewline(t *testing.T) {
 	t.Parallel()
 
-	got, diagnostics, err := renderMarkdownReport(domain.MarkdownReport{Title: "Title"}, map[string]domain.Note{}, domain.ValidatedApp{}, renderer.ResolveRegistry())
+	got, diagnostics, err := renderMarkdownReport(context.Background(), domain.MarkdownReport{Title: "Title"}, map[string]domain.Note{}, domain.ValidatedApp{}, renderer.ResolveRegistry())
 	if err != nil {
 		t.Fatalf("render markdown report failed: %v", err)
 	}
@@ -104,7 +106,7 @@ func TestWriteMarkdownReportsDeterministic(t *testing.T) {
 		}},
 	}
 
-	if diagnostics, err := writeMarkdownReports(app); err != nil {
+	if diagnostics, err := writeMarkdownReports(context.Background(), app); err != nil {
 		t.Fatalf("first write failed: %v", err)
 	} else if len(diagnostics) != 0 {
 		t.Fatalf("expected no diagnostics on first write, got %#v", diagnostics)
@@ -114,7 +116,7 @@ func TestWriteMarkdownReportsDeterministic(t *testing.T) {
 		t.Fatalf("read first output failed: %v", err)
 	}
 
-	if diagnostics, err := writeMarkdownReports(app); err != nil {
+	if diagnostics, err := writeMarkdownReports(context.Background(), app); err != nil {
 		t.Fatalf("second write failed: %v", err)
 	} else if len(diagnostics) != 0 {
 		t.Fatalf("expected no diagnostics on second write, got %#v", diagnostics)
@@ -207,11 +209,11 @@ func TestRenderFileCSVDeterministic(t *testing.T) {
 	t.Parallel()
 
 	data := []byte("name,kind,status\ncli.root,note,active\ncli.worker,note,inactive\n")
-	first, err := renderFileCSV(data, noteArgs{formatCSV: "table"})
+	first, err := renderFileCSV(context.Background(), data, noteArgs{formatCSV: "table"})
 	if err != nil {
 		t.Fatalf("render csv failed: %v", err)
 	}
-	second, err := renderFileCSV(data, noteArgs{formatCSV: "table"})
+	second, err := renderFileCSV(context.Background(), data, noteArgs{formatCSV: "table"})
 	if err != nil {
 		t.Fatalf("render csv second failed: %v", err)
 	}
@@ -228,7 +230,7 @@ func TestRenderFileCSVIncludeFilter(t *testing.T) {
 	t.Parallel()
 
 	data := []byte("name,kind,status\ncli.root,note,active\ncli.worker,note,inactive\n")
-	got, err := renderFileCSV(data, noteArgs{
+	got, err := renderFileCSV(context.Background(), data, noteArgs{
 		formatCSV: "table",
 		include:   csvFilter{column: "status", value: "active"},
 	})
@@ -245,7 +247,7 @@ func TestRenderFileCSVExcludeFilter(t *testing.T) {
 	t.Parallel()
 
 	data := []byte("name,kind,status\ncli.root,note,active\ncli.worker,note,inactive\n")
-	got, err := renderFileCSV(data, noteArgs{
+	got, err := renderFileCSV(context.Background(), data, noteArgs{
 		formatCSV: "table",
 		exclude:   csvFilter{column: "status", value: "inactive"},
 	})
@@ -262,7 +264,7 @@ func TestRenderFileCSVIncludeExcludeFilters(t *testing.T) {
 	t.Parallel()
 
 	data := []byte("name,kind,status\ncli.root,note,active\ncli.worker,note,inactive\ncli.jobs,note,active\n")
-	got, err := renderFileCSV(data, noteArgs{
+	got, err := renderFileCSV(context.Background(), data, noteArgs{
 		formatCSV: "table",
 		include:   csvFilter{column: "status", value: "active"},
 		exclude:   csvFilter{column: "name", value: "cli.jobs"},
@@ -296,5 +298,39 @@ func TestRenderFileCode(t *testing.T) {
 	want := "```mermaid\ngraph TD\nA-->B\n```"
 	if got != want {
 		t.Fatalf("code mismatch\nwant: %q\n got: %q", want, got)
+	}
+}
+
+func TestWriteMarkdownReportsCancelledContextNoOutputFile(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	app := domain.ValidatedApp{
+		ConfigDir: tmp,
+		Notes: []domain.Note{
+			{ID: "n.a", Title: "A", Markdown: "Body A"},
+		},
+		MarkdownReports: []domain.MarkdownReport{{
+			Title:    "Report",
+			Filepath: "out/report.md",
+			Sections: []domain.MarkdownH2Section{{
+				Title: "H2",
+				Sections: []domain.MarkdownH3Section{{
+					Title:   "H3",
+					NoteIDs: []string{"n.a"},
+				}},
+			}},
+		}},
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := writeMarkdownReports(ctx, app)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("expected context canceled, got %v", err)
+	}
+	if _, statErr := os.Stat(filepath.Join(tmp, "out", "report.md")); !os.IsNotExist(statErr) {
+		t.Fatalf("expected no generated file, stat err: %v", statErr)
 	}
 }

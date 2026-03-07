@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"context"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -21,7 +22,10 @@ func TestDetectTreeShapeAndRender(t *testing.T) {
 	if shape := DetectShape(selected); shape != ShapeTree {
 		t.Fatalf("expected tree shape, got %s", shape)
 	}
-	got := RenderMarkdownText(selected, ShapeTree, CyclePolicyDisallow)
+	got, err := RenderMarkdownText(context.Background(), selected, ShapeTree, CyclePolicyDisallow)
+	if err != nil {
+		t.Fatalf("render failed: %v", err)
+	}
 	want := "- Root: root body\n  - Left: left body\n  - Right: right body\n"
 	if got != want {
 		t.Fatalf("tree render mismatch\nwant: %q\n got: %q", want, got)
@@ -34,7 +38,10 @@ func TestDetectDAGAndRenderRepetitionLimit(t *testing.T) {
 	if shape := DetectShape(selected); shape != ShapeDAG {
 		t.Fatalf("expected dag shape, got %s", shape)
 	}
-	got := RenderMarkdownText(selected, ShapeDAG, CyclePolicyDisallow)
+	got, err := RenderMarkdownText(context.Background(), selected, ShapeDAG, CyclePolicyDisallow)
+	if err != nil {
+		t.Fatalf("render failed: %v", err)
+	}
 	want := "- A: a\n  - B: b\n    - D: d\n  - C: c\n    - D: d\n"
 	if got != want {
 		t.Fatalf("dag render mismatch\nwant: %q\n got: %q", want, got)
@@ -47,7 +54,10 @@ func TestDetectCyclicAndRenderCycleBack(t *testing.T) {
 	if shape := DetectShape(selected); shape != ShapeCyclic {
 		t.Fatalf("expected cyclic shape, got %s", shape)
 	}
-	got := RenderMarkdownText(selected, ShapeCyclic, CyclePolicyAllow)
+	got, err := RenderMarkdownText(context.Background(), selected, ShapeCyclic, CyclePolicyAllow)
+	if err != nil {
+		t.Fatalf("render failed: %v", err)
+	}
 	want := "- A: a\n  - B: b\n    - C: c\n      - *(cycle back to A)*\n"
 	if got != want {
 		t.Fatalf("cycle render mismatch\nwant: %q\n got: %q", want, got)
@@ -65,7 +75,10 @@ func TestResolveCyclePolicy(t *testing.T) {
 func TestCyclePolicyDisallowSkipsCyclicRendering(t *testing.T) {
 	t.Parallel()
 	selected := Select(fixtureCycleApp(), Query{SubjectLabel: "graph", StartNode: "a"})
-	got := RenderMarkdownText(selected, ShapeCyclic, CyclePolicyDisallow)
+	got, err := RenderMarkdownText(context.Background(), selected, ShapeCyclic, CyclePolicyDisallow)
+	if err != nil {
+		t.Fatalf("render failed: %v", err)
+	}
 	if got != "" {
 		t.Fatalf("expected empty render when cycle-policy disallow, got %q", got)
 	}

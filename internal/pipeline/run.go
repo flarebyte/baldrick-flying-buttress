@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"context"
 	"errors"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -8,31 +9,31 @@ import (
 )
 
 type AppLoader interface {
-	Load() (domain.RawApp, error)
+	Load(context.Context) (domain.RawApp, error)
 }
 
 type AppValidator interface {
-	Validate(domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error)
+	Validate(context.Context, domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error)
 }
 
 type CommandAction interface {
-	Execute(domain.ValidatedApp, domain.ValidationReport) error
+	Execute(context.Context, domain.ValidatedApp, domain.ValidationReport) error
 	AllowOnValidationErrors() bool
 }
 
-type LoaderFunc func() (domain.RawApp, error)
+type LoaderFunc func(context.Context) (domain.RawApp, error)
 
-func (f LoaderFunc) Load() (domain.RawApp, error) {
-	return f()
+func (f LoaderFunc) Load(ctx context.Context) (domain.RawApp, error) {
+	return f(ctx)
 }
 
-type ValidatorFunc func(domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error)
+type ValidatorFunc func(context.Context, domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error)
 
-func (f ValidatorFunc) Validate(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
-	return f(raw)
+func (f ValidatorFunc) Validate(ctx context.Context, raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
+	return f(ctx, raw)
 }
 
-func Run(loader AppLoader, validator AppValidator, action CommandAction) error {
+func Run(ctx context.Context, loader AppLoader, validator AppValidator, action CommandAction) error {
 	if loader == nil {
 		return errors.New("loader is required")
 	}
@@ -42,14 +43,26 @@ func Run(loader AppLoader, validator AppValidator, action CommandAction) error {
 	if action == nil {
 		return errors.New("action is required")
 	}
-
-	raw, err := loader.Load()
-	if err != nil {
+	if ctx == nil {
+		return errors.New("context is required")
+	}
+	if err := ctx.Err(); err != nil {
 		return err
 	}
 
-	validated, report, err := validator.Validate(raw)
+	raw, err := loader.Load(ctx)
 	if err != nil {
+		return err
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	validated, report, err := validator.Validate(ctx, raw)
+	if err != nil {
+		return err
+	}
+	if err := ctx.Err(); err != nil {
 		return err
 	}
 
@@ -57,5 +70,5 @@ func Run(loader AppLoader, validator AppValidator, action CommandAction) error {
 		return outcome.ValidationBlockedError()
 	}
 
-	return action.Execute(validated, report)
+	return action.Execute(ctx, validated, report)
 }

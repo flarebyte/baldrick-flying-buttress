@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"context"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -62,7 +63,7 @@ func TestAppDataValidatorConfiguredArgumentsContextFields(t *testing.T) {
 		Registry:      domain.RawArgumentRegistry{Arguments: []domain.RawArgumentDefinition{}},
 	}
 
-	_, report, err := AppDataValidator{}.Validate(raw)
+	_, report, err := AppDataValidator{}.Validate(context.Background(), raw)
 	if err != nil {
 		t.Fatalf("validate failed: %v", err)
 	}
