@@ -43,11 +43,8 @@ func TestWriteFileAtomicRenameFailureLeavesOriginalUnchanged(t *testing.T) {
 		t.Fatalf("seed file failed: %v", err)
 	}
 
-	originalRename := renameFn
-	renameFn = func(string, string) error {
-		return errors.New("rename failed")
-	}
-	defer func() { renameFn = originalRename }()
+	restore := withRenameFailure()
+	defer restore()
 
 	err := WriteFileAtomic(context.Background(), destination, []byte("new\n"), 0o644)
 	if err == nil {
@@ -67,11 +64,8 @@ func TestWriteFileAtomicFailureCleansTempFileBestEffort(t *testing.T) {
 	dir := t.TempDir()
 	destination := filepath.Join(dir, "report.md")
 
-	originalRename := renameFn
-	renameFn = func(string, string) error {
-		return errors.New("rename failed")
-	}
-	defer func() { renameFn = originalRename }()
+	restore := withRenameFailure()
+	defer restore()
 
 	err := WriteFileAtomic(context.Background(), destination, []byte("new\n"), 0o644)
 	if err == nil {
@@ -79,6 +73,14 @@ func TestWriteFileAtomicFailureCleansTempFileBestEffort(t *testing.T) {
 	}
 
 	assertNoAtomicTempFiles(t, dir)
+}
+
+func withRenameFailure() func() {
+	originalRename := renameFn
+	renameFn = func(string, string) error {
+		return errors.New("rename failed")
+	}
+	return func() { renameFn = originalRename }
 }
 
 func TestWriteFileAtomicCancellationNoDestinationAndNoTempFile(t *testing.T) {
