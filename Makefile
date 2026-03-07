@@ -3,7 +3,7 @@
 ## - No dynamic variables or shell logic
 ## - Real logic lives in scripts (TypeScript/Bun, bash)
 
-.PHONY: lint format test cov build typecheck e2e release clean complexity sec dup perf-smoke test-race contract-snapshots release-check help
+.PHONY: lint format test cov build typecheck e2e release clean complexity sec dup perf-smoke test-race contract-snapshots release-check doc-design help
 
 BIOME := npx @biomejs/biome
 BUN := bun
@@ -50,6 +50,11 @@ e2e:
 	$(GO_ENV) $(GO) build -o .e2e-bin/flyb ./cmd/flyb
 	$(BUN) test script/e2e
 
+doc-design: build-dev
+	mkdir -p doc/design
+	./.e2e-bin/flyb validate --config doc/design-meta/app.cue
+	./.e2e-bin/flyb generate markdown --config doc/design-meta/app.cue
+
 perf-smoke:
 	$(GO_ENV) $(GO) test -run PerfSmoke ./internal/cli
 
@@ -93,6 +98,7 @@ help:
 	@printf "  build      Build Go release binaries into build/.\n"
 	@printf "  typecheck  Run TypeScript type-check only.\n"
 	@printf "  e2e        Run Bun-powered end-to-end tests.\n"
+	@printf "  doc-design Generate design docs in doc/design from doc/design-meta CUE.\n"
 	@printf "  perf-smoke Run deterministic moderate-size Go smoke tests.\n"
 	@printf "  test-race  Run Go tests with the race detector.\n"
 	@printf "  contract-snapshots  Run contract snapshot and contract invariants.\n"
