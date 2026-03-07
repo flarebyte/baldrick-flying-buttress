@@ -16,6 +16,16 @@ func ValidateStub(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) 
 	return app.ValidatedApp{
 			Name:    "stub-app",
 			Modules: []string{"core", "edge"},
+			Reports: []app.Report{
+				{
+					ID:    "cpu-overview",
+					Title: "CPU Overview",
+				},
+				{
+					ID:    "memory-health",
+					Title: "Memory Health",
+				},
+			},
 		}, diagnostics.Report{
 			Diagnostics: []diagnostics.Diagnostic{
 				{

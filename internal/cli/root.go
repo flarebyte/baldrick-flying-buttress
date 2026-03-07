@@ -23,6 +23,7 @@ func NewRootCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra.Com
 	}
 
 	cmd.AddCommand(newValidateCmd(loader, validator))
+	cmd.AddCommand(newListCmd(loader, validator))
 	return cmd
 }
 
@@ -57,7 +58,6 @@ func newValidateCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra
 				if _, err := cmd.OutOrStdout().Write(append(payload, '\n')); err != nil {
 					return err
 				}
-
 				if report.HasErrors() {
 					return errValidationFailed
 				}
@@ -65,4 +65,48 @@ func newValidateCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra
 			})
 		},
 	}
+}
+
+func newListCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List entities",
+	}
+	cmd.AddCommand(newListReportsCmd(loader, validator))
+	return cmd
+}
+
+func newListReportsCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra.Command {
+	return &cobra.Command{
+		Use:   "reports",
+		Short: "List reports",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return pipeline.Run(loader, validator, func(validated app.ValidatedApp, report diagnostics.Report) error {
+				if report.HasErrors() {
+					return errValidationFailed
+				}
+				out := listReportsOutput{Reports: make([]listReport, 0, len(validated.Reports))}
+				for _, r := range validated.Reports {
+					out.Reports = append(out.Reports, listReport{ID: r.ID, Title: r.Title})
+				}
+				payload, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				if _, err := cmd.OutOrStdout().Write(append(payload, '\n')); err != nil {
+					return err
+				}
+				return nil
+			})
+		},
+	}
+}
+
+type listReportsOutput struct {
+	Reports []listReport `json:"reports"`
+}
+
+type listReport struct {
+	ID    string `json:"id"`
+	Title string `json:"title"`
 }
