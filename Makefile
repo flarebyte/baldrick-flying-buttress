@@ -7,41 +7,56 @@
 
 BIOME := npx @biomejs/biome
 BUN := bun
+GO := go
+GOLINT := golangci-lint
 
 lint:
 	$(BIOME) check
+	$(GO) vet ./...
+	$(GOLINT) run
 
 format:
+	gofmt -w .
 	$(BIOME) format --write .
 	$(BIOME) check --unsafe --write
 
 test:
-	npm run test
+	$(GO) test -coverprofile=coverage.out ./...
+	$(GO) tool cover -func=coverage.out
 
 cov:
 	npm run test:cov
 
 build:
-	npm run build
+	$(BUN) run build-go.ts
+
+build-dev:
+	mkdir -p .e2e-bin
+	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache CGO_ENABLED=0 $(GO) build -o .e2e-bin/flyb ./cmd/flyb
 
 typecheck:
 	npm run typecheck
 
 e2e:
-	npm run test:e2e
+	mkdir -p .e2e-bin
+	go build -o .e2e-bin/flyb ./cmd/flyb
+	bun test script/e2e
 
 release: build
-	@printf "Artifacts in ./build (checksums.txt included)\n"
+	$(BUN) run release-go.ts
 
 clean:
 	npm run clean
 
 complexity:
+	scc --sort complexity --by-file -i go . | head -n 15
 	scc --sort complexity --by-file -i ts . | head -n 15
 
 sec:
 	semgrep scan --config auto
+
 dup:
+	npx jscpd --format go --min-lines 10 --gitignore .
 	npx jscpd --format typescript --min-lines 10 --gitignore .
 
 help:

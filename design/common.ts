@@ -288,6 +288,18 @@ export const appendToReport = async (line: string) => {
   await appendFile('doc/FLOW_DESIGN.md', `${line}\n`, 'utf8');
 };
 
+const skipChildSubtree = (
+  calls: ComponentCall[],
+  currentIndex: number,
+  parentLevel: number,
+) => {
+  let i = currentIndex;
+  while (i + 1 < calls.length && calls[i + 1].level > parentLevel) {
+    i += 1;
+  }
+  return i;
+};
+
 /**
  * Render the flow-tree as indented lines of titles.
  */
@@ -299,10 +311,7 @@ export const displayCallsAsText = async (calls: ComponentCall[]) => {
 
     if (call.displayOnce && seen.has(call.name)) {
       await appendToReport(`${spaces}${call.title} [${call.name}] (ref)`);
-      const startLevel = call.level;
-      while (i + 1 < calls.length && calls[i + 1].level > startLevel) {
-        i += 1;
-      }
+      i = skipChildSubtree(calls, i, call.level);
       continue;
     }
 
@@ -328,10 +337,7 @@ export const displayCallsDetailed = async (calls: ComponentCall[]) => {
       await appendToReport(
         `${base}  - ref: see first occurrence above for full subtree`,
       );
-      const startLevel = call.level;
-      while (i + 1 < calls.length && calls[i + 1].level > startLevel) {
-        i += 1;
-      }
+      i = skipChildSubtree(calls, i, call.level);
       continue;
     }
 
