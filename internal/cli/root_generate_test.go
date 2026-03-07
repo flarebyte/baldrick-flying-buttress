@@ -3,6 +3,7 @@ package cli
 import (
 	"os"
 	"path/filepath"
+	"sync/atomic"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -11,6 +12,14 @@ import (
 	"github.com/flarebyte/baldrick-flying-buttress/internal/pipeline"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/validate"
 )
+
+func setMarkdownReportWorkersForTest(workers int) func() {
+	previous := int(atomic.LoadInt32(&markdownReportWorkers))
+	atomic.StoreInt32(&markdownReportWorkers, int32(workers))
+	return func() {
+		atomic.StoreInt32(&markdownReportWorkers, int32(previous))
+	}
+}
 
 func TestGenerateJSONGoldenOutput(t *testing.T) {
 	t.Parallel()
@@ -215,6 +224,65 @@ func TestGenerateMarkdownDeterministicAcrossRuns(t *testing.T) {
 	}
 	if string(beta1) != string(beta2) {
 		t.Fatalf("non-deterministic beta markdown\\nfirst: %q\\nsecond: %q", string(beta1), string(beta2))
+	}
+}
+
+func TestGenerateMarkdownSingleWorkerEqualsMultiWorker(t *testing.T) {
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	tmpSingle := t.TempDir()
+	configSingle := writeFixtureConfig(t, tmpSingle, "config.markdown.raw.json")
+	var code1 int
+	var stdout1 string
+	var stderr1 string
+	func() {
+		restoreSingle := setMarkdownReportWorkersForTest(1)
+		defer restoreSingle()
+		code1, stdout1, stderr1 = runCommandWithFactory([]string{"generate", "markdown", "--config", configSingle}, loaderFactory, validator)
+	}()
+	if code1 != 0 {
+		t.Fatalf("expected single-worker exit code 0, got %d", code1)
+	}
+	alpha1, err := os.ReadFile(filepath.Join(tmpSingle, "out", "alpha.md"))
+	if err != nil {
+		t.Fatalf("read single-worker alpha failed: %v", err)
+	}
+	beta1, err := os.ReadFile(filepath.Join(tmpSingle, "out", "beta.md"))
+	if err != nil {
+		t.Fatalf("read single-worker beta failed: %v", err)
+	}
+
+	tmpMulti := t.TempDir()
+	configMulti := writeFixtureConfig(t, tmpMulti, "config.markdown.raw.json")
+	var code2 int
+	var stdout2 string
+	var stderr2 string
+	func() {
+		restoreMulti := setMarkdownReportWorkersForTest(4)
+		defer restoreMulti()
+		code2, stdout2, stderr2 = runCommandWithFactory([]string{"generate", "markdown", "--config", configMulti}, loaderFactory, validator)
+	}()
+	if code2 != 0 {
+		t.Fatalf("expected multi-worker exit code 0, got %d", code2)
+	}
+	alpha2, err := os.ReadFile(filepath.Join(tmpMulti, "out", "alpha.md"))
+	if err != nil {
+		t.Fatalf("read multi-worker alpha failed: %v", err)
+	}
+	beta2, err := os.ReadFile(filepath.Join(tmpMulti, "out", "beta.md"))
+	if err != nil {
+		t.Fatalf("read multi-worker beta failed: %v", err)
+	}
+
+	if stdout1 != stdout2 || stderr1 != stderr2 {
+		t.Fatalf("single-worker and multi-worker command output mismatch")
+	}
+	if string(alpha1) != string(alpha2) {
+		t.Fatalf("single-worker and multi-worker alpha mismatch")
+	}
+	if string(beta1) != string(beta2) {
+		t.Fatalf("single-worker and multi-worker beta mismatch")
 	}
 }
 
