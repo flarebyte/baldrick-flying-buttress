@@ -123,6 +123,56 @@ func TestGenerateMarkdownRuntimeFailureOnUnwritablePath(t *testing.T) {
 	}
 }
 
+func TestGenerateMarkdownFailureLeavesExistingFileUnchanged(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	outDir := filepath.Join(tmp, "out")
+	if err := os.MkdirAll(outDir, 0o755); err != nil {
+		t.Fatalf("create out dir failed: %v", err)
+	}
+	reportPath := filepath.Join(outDir, "report.md")
+	original := "ORIGINAL\n"
+	if err := os.WriteFile(reportPath, []byte(original), 0o644); err != nil {
+		t.Fatalf("seed report failed: %v", err)
+	}
+
+	configPath := filepath.Join(tmp, "config.raw.json")
+	content := `{"source":"x","name":"x","modules":[],"reports":[{"title":"R","filepath":"out/report.md","sections":[{"title":"H2","sections":[{"title":"H3","notes":["n1"]}]}]}],"notes":[{"name":"n1","title":"N1","markdown":"Body"}],"relationships":[]}`
+	if err := os.WriteFile(configPath, []byte(content), 0o644); err != nil {
+		t.Fatalf("write config failed: %v", err)
+	}
+
+	if err := os.Chmod(outDir, 0o555); err != nil {
+		t.Fatalf("chmod out dir failed: %v", err)
+	}
+	defer func() {
+		_ = os.Chmod(outDir, 0o755)
+	}()
+
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	code, stdout, stderr := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	if code != outcome.ExitCodeRuntimeFailure {
+		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeRuntimeFailure, code)
+	}
+	if stdout != "" {
+		t.Fatalf("expected empty stdout, got %q", stdout)
+	}
+	if stderr == "" {
+		t.Fatal("expected stderr")
+	}
+
+	got, err := os.ReadFile(reportPath)
+	if err != nil {
+		t.Fatalf("read report failed: %v", err)
+	}
+	if string(got) != original {
+		t.Fatalf("expected original report to remain unchanged\\nwant: %q\\ngot: %q", original, string(got))
+	}
+}
+
 func TestGenerateMarkdownDeterministicAcrossRuns(t *testing.T) {
 	t.Parallel()
 

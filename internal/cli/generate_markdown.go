@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/fsio"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/ordering"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
 	clioutput "github.com/flarebyte/baldrick-flying-buttress/internal/output"
@@ -66,27 +66,9 @@ func writeMarkdownReports(ctx context.Context, app domain.ValidatedApp) ([]domai
 			return nil, err
 		}
 		diagnostics = append(diagnostics, sectionDiagnostics...)
-		if err := os.MkdirAll(filepath.Dir(destination), 0o755); err != nil {
-			return nil, fmt.Errorf("create report directory %s: %w", filepath.Dir(destination), err)
-		}
-		if err := writeFileAtomically(ctx, destination, []byte(content), 0o644); err != nil {
+		if err := fsio.WriteFileAtomic(ctx, destination, []byte(content), 0o644); err != nil {
 			return nil, fmt.Errorf("write report %s: %w", destination, err)
 		}
 	}
 	return ordering.Diagnostics(diagnostics), nil
-}
-
-func writeFileAtomically(ctx context.Context, destination string, data []byte, perm os.FileMode) error {
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-	tmp := destination + ".tmp"
-	if err := os.WriteFile(tmp, data, perm); err != nil {
-		return err
-	}
-	if err := ctx.Err(); err != nil {
-		_ = os.Remove(tmp)
-		return err
-	}
-	return os.Rename(tmp, destination)
 }
