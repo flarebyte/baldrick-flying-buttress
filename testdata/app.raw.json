@@ -1,1 +1,32 @@
-{ "source": "default-app" }
+{
+  "source": "default-app",
+  "name": "stub-app",
+  "modules": ["core", "edge"],
+  "reports": [
+    {
+      "id": "",
+      "title": "CPU Overview"
+    },
+    {
+      "id": "memory-health",
+      "title": "Memory Health"
+    }
+  ],
+  "notes": [
+    {
+      "id": "n1",
+      "label": "service.api"
+    },
+    {
+      "id": "n2",
+      "label": "service.db"
+    }
+  ],
+  "relationships": [
+    {
+      "from": "n1",
+      "to": "n2",
+      "label": "depends_on"
+    }
+  ]
+}

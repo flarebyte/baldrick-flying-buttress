@@ -1,32 +1,32 @@
 {
-  "source": "cli-test-app",
+  "source": "cli-invalid",
   "name": "stub-app",
   "modules": ["core", "edge"],
   "reports": [
     {
-      "id": "cpu-overview",
+      "id": "",
       "title": "CPU Overview"
     },
     {
       "id": "memory-health",
-      "title": "Memory Health"
+      "title": ""
     }
   ],
   "notes": [
     {
-      "id": "n1",
+      "id": "",
       "label": "service.api"
     },
     {
       "id": "n2",
-      "label": "service.db"
+      "label": ""
     }
   ],
   "relationships": [
     {
-      "from": "n1",
-      "to": "n2",
-      "label": "depends_on"
+      "from": "",
+      "to": "",
+      "label": ""
     }
   ]
 }

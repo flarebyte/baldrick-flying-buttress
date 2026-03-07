@@ -17,6 +17,6 @@ func main() {
 		func(configPath string) pipeline.AppLoader {
 			return load.FSAppLoader{ConfigPath: configPath}
 		},
-		validate.StubAppValidator{},
+		validate.AppDataValidator{},
 	))
 }

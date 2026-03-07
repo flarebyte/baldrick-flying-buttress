@@ -16,7 +16,7 @@ lint:
 	$(GOLINT) run
 
 format:
-	gofmt -w .
+	git ls-files '*.go' | xargs gofmt -w
 	$(BIOME) format --write .
 	$(BIOME) check --unsafe --write
 

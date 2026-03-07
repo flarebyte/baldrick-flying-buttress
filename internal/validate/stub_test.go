@@ -2,14 +2,17 @@ package validate
 
 import (
 	"testing"
-
-	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 )
 
 func TestValidateStubReturnsFullyPopulatedValidatedApp(t *testing.T) {
 	t.Parallel()
 
-	app, report, err := ValidateStub(domain.RawApp{Source: "in-memory-stub"})
+	raw, err := LoadStub()
+	if err != nil {
+		t.Fatalf("load stub failed: %v", err)
+	}
+
+	app, report, err := ValidateStub(raw)
 	if err != nil {
 		t.Fatalf("validate stub failed: %v", err)
 	}
@@ -29,7 +32,7 @@ func TestValidateStubReturnsFullyPopulatedValidatedApp(t *testing.T) {
 	if len(app.Relationships) == 0 {
 		t.Fatal("expected relationships")
 	}
-	if len(report.Diagnostics) == 0 {
-		t.Fatal("expected diagnostics")
+	if report.Diagnostics == nil {
+		t.Fatal("expected non-nil diagnostics slice")
 	}
 }

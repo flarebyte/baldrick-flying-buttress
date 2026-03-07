@@ -1,8 +1,29 @@
 package domain
 
+type RawReport struct {
+	ID    string `json:"id"`
+	Title string `json:"title"`
+}
+
+type RawNote struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+}
+
+type RawRelationship struct {
+	FromID string `json:"from"`
+	ToID   string `json:"to"`
+	Label  string `json:"label"`
+}
+
 type RawApp struct {
-	ConfigPath string
-	Source     string
+	ConfigPath    string            `json:"-"`
+	Source        string            `json:"source"`
+	Name          string            `json:"name"`
+	Modules       []string          `json:"modules"`
+	Reports       []RawReport       `json:"reports"`
+	Notes         []RawNote         `json:"notes"`
+	Relationships []RawRelationship `json:"relationships"`
 }
 
 type Severity string

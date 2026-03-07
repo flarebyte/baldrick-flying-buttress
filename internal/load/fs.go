@@ -12,10 +12,6 @@ type FSAppLoader struct {
 	ConfigPath string
 }
 
-type rawAppFile struct {
-	Source string `json:"source"`
-}
-
 func (l FSAppLoader) Load() (domain.RawApp, error) {
 	if l.ConfigPath == "" {
 		return domain.RawApp{}, fmt.Errorf("config path is required")
@@ -26,16 +22,11 @@ func (l FSAppLoader) Load() (domain.RawApp, error) {
 		return domain.RawApp{}, fmt.Errorf("read config %s: %w", l.ConfigPath, err)
 	}
 
-	var raw rawAppFile
+	var raw domain.RawApp
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return domain.RawApp{}, fmt.Errorf("parse config %s: %w", l.ConfigPath, err)
 	}
-	if raw.Source == "" {
-		return domain.RawApp{}, fmt.Errorf("parse config %s: missing source", l.ConfigPath)
-	}
 
-	return domain.RawApp{
-		ConfigPath: l.ConfigPath,
-		Source:     raw.Source,
-	}, nil
+	raw.ConfigPath = l.ConfigPath
+	return raw, nil
 }

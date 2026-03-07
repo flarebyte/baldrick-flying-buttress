@@ -56,8 +56,8 @@ func TestValidateGoldenOutput(t *testing.T) {
 	t.Parallel()
 
 	exitCode, stdout, stderr := runCommand([]string{"validate"}, validate.StubAppLoader{}, validate.StubAppValidator{})
-	if exitCode != outcome.ExitCodeValidationBlocked {
-		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, exitCode)
+	if exitCode != 0 {
+		t.Fatalf("expected exit code 0, got %d", exitCode)
 	}
 	assertOutput(t, stdout, stderr, readGolden(t, "validate_output.golden"), "")
 }
@@ -127,7 +127,7 @@ func TestCommandsWorkWithConfigFlagAndFilesystemLoader(t *testing.T) {
 	loaderFactory := func(path string) pipeline.AppLoader {
 		return load.FSAppLoader{ConfigPath: path}
 	}
-	validator := validatorWith(listValidatedApp(), warningOnlyReport(), nil)
+	validator := validate.AppDataValidator{}
 	tests := []struct {
 		name       string
 		args       []string
@@ -138,7 +138,7 @@ func TestCommandsWorkWithConfigFlagAndFilesystemLoader(t *testing.T) {
 			name:       "validate",
 			args:       []string{"validate", "--config", configPath},
 			wantCode:   0,
-			wantStdout: "{\"diagnostics\":[{\"code\":\"FBW01\",\"severity\":\"warning\",\"message\":\"warning only\",\"path\":\"module.stub\"}]}\n",
+			wantStdout: "{\"diagnostics\":[]}\n",
 		},
 		{
 			name:       "list reports",
@@ -169,6 +169,41 @@ func TestCommandsWorkWithConfigFlagAndFilesystemLoader(t *testing.T) {
 	}
 }
 
+func TestCommandsWithInvalidStructureConfigProduceValidationDiagnostics(t *testing.T) {
+	t.Parallel()
+
+	configPath := filepath.Join("testdata", "config.invalid.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader {
+		return load.FSAppLoader{ConfigPath: path}
+	}
+	validator := validate.AppDataValidator{}
+
+	validateCode, validateStdout, validateStderr := runCommandWithFactory(
+		[]string{"validate", "--config", configPath},
+		loaderFactory,
+		validator,
+	)
+	if validateCode != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected validate exit code %d, got %d", outcome.ExitCodeValidationBlocked, validateCode)
+	}
+	if validateStderr != "" {
+		t.Fatalf("expected empty validate stderr, got %q", validateStderr)
+	}
+	if validateStdout == "" {
+		t.Fatal("expected validate diagnostics output")
+	}
+
+	listCode, listStdout, listStderr := runCommandWithFactory(
+		[]string{"list", "reports", "--config", configPath},
+		loaderFactory,
+		validator,
+	)
+	if listCode != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected list exit code %d, got %d", outcome.ExitCodeValidationBlocked, listCode)
+	}
+	assertOutput(t, listStdout, listStderr, "", "")
+}
+
 func TestFilesystemLoaderDeterministicOutputAcrossRuns(t *testing.T) {
 	t.Parallel()
 
@@ -176,7 +211,7 @@ func TestFilesystemLoaderDeterministicOutputAcrossRuns(t *testing.T) {
 	loaderFactory := func(path string) pipeline.AppLoader {
 		return load.FSAppLoader{ConfigPath: path}
 	}
-	validator := validatorWith(listValidatedApp(), warningOnlyReport(), nil)
+	validator := validate.AppDataValidator{}
 
 	var out1 bytes.Buffer
 	var err1 bytes.Buffer
@@ -244,7 +279,7 @@ func TestDeterministicOutputAcrossRuns(t *testing.T) {
 		validator pipeline.AppValidator
 		exitCode  int
 	}{
-		{name: "validate", args: []string{"validate"}, loader: validate.StubAppLoader{}, validator: validate.StubAppValidator{}, exitCode: outcome.ExitCodeValidationBlocked},
+		{name: "validate", args: []string{"validate"}, loader: validate.StubAppLoader{}, validator: validate.StubAppValidator{}, exitCode: 0},
 		{name: "list reports", args: []string{"list", "reports"}, loader: stubLoader(), validator: validatorWith(listValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
 		{name: "generate json", args: []string{"generate", "json"}, loader: stubLoader(), validator: validatorWith(listValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
 	}
@@ -278,9 +313,15 @@ func assertDeterministic(t *testing.T, args []string, loader pipeline.AppLoader,
 }
 
 func runCommand(args []string, loader pipeline.AppLoader, validator pipeline.AppValidator) (int, string, string) {
+	return runCommandWithFactory(args, func(string) pipeline.AppLoader {
+		return loader
+	}, validator)
+}
+
+func runCommandWithFactory(args []string, loaderFactory LoaderFactory, validator pipeline.AppValidator) (int, string, string) {
 	var out bytes.Buffer
 	var errOut bytes.Buffer
-	code := Execute(args, &out, &errOut, loader, validator)
+	code := ExecuteWithFactory(args, &out, &errOut, loaderFactory, validator)
 	return code, out.String(), errOut.String()
 }
 

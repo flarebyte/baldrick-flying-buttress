@@ -1,1 +1,1 @@
-{"diagnostics":[{"code":"FB001","severity":"warning","message":"stub warning diagnostic","path":"module.stub"},{"code":"FB002","severity":"error","message":"stub error diagnostic","path":"module.stub"}]}
+{"diagnostics":[{"code":"FBV101","severity":"error","message":"missing required field: report id","path":"reports[0].id"}]}
