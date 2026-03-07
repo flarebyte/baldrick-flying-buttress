@@ -12,6 +12,7 @@ import (
 	"github.com/flarebyte/baldrick-flying-buttress/internal/ordering"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
 	clioutput "github.com/flarebyte/baldrick-flying-buttress/internal/output"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/renderer"
 )
 
 type generateMarkdownAction struct {
@@ -48,10 +49,11 @@ func writeMarkdownReports(app domain.ValidatedApp) ([]domain.Diagnostic, error) 
 		noteByID[note.ID] = note
 	}
 	diagnostics := make([]domain.Diagnostic, 0)
+	registry := renderer.ResolveRegistry()
 
 	for _, report := range ordering.MarkdownReports(app.MarkdownReports) {
 		destination := filepath.Join(app.ConfigDir, report.Filepath)
-		content, sectionDiagnostics := renderMarkdownReport(report, noteByID, app)
+		content, sectionDiagnostics := renderMarkdownReport(report, noteByID, app, registry)
 		diagnostics = append(diagnostics, sectionDiagnostics...)
 		if err := os.MkdirAll(filepath.Dir(destination), 0o755); err != nil {
 			return nil, fmt.Errorf("create report directory %s: %w", filepath.Dir(destination), err)
@@ -63,7 +65,7 @@ func writeMarkdownReports(app domain.ValidatedApp) ([]domain.Diagnostic, error) 
 	return ordering.Diagnostics(diagnostics), nil
 }
 
-func renderMarkdownReport(report domain.MarkdownReport, noteByID map[string]domain.Note, app domain.ValidatedApp) (string, []domain.Diagnostic) {
+func renderMarkdownReport(report domain.MarkdownReport, noteByID map[string]domain.Note, app domain.ValidatedApp, registry renderer.Registry) (string, []domain.Diagnostic) {
 	var b strings.Builder
 	diagnostics := make([]domain.Diagnostic, 0)
 	writeMarkdownHeading(&b, 1, report.Title)
@@ -106,7 +108,48 @@ func renderMarkdownReport(report domain.MarkdownReport, noteByID map[string]doma
 					})
 					continue
 				}
-				graphText := graph.RenderMarkdownText(selected, shape, cyclePolicy)
+				resolvedArgs, err := renderer.ResolveArgs(app, h3, noteByID)
+				if err != nil {
+					diagnostics = append(diagnostics, domain.Diagnostic{
+						Code:         "GRAPH_RENDERER_ARGS_INVALID",
+						Severity:     domain.SeverityError,
+						Source:       "args.renderer.resolve",
+						Message:      err.Error(),
+						Location:     h3.Path,
+						Path:         h3.Path,
+						ReportTitle:  h3.ReportTitle,
+						SectionTitle: h3.H2Title,
+					})
+					continue
+				}
+				capability, err := registry.Select(resolvedArgs.Renderer, shape)
+				if err != nil {
+					diagnostics = append(diagnostics, domain.Diagnostic{
+						Code:         "GRAPH_RENDERER_UNSUPPORTED",
+						Severity:     domain.SeverityError,
+						Source:       "renderer.registry.resolve",
+						Message:      err.Error(),
+						Location:     h3.Path,
+						Path:         h3.Path,
+						ReportTitle:  h3.ReportTitle,
+						SectionTitle: h3.H2Title,
+					})
+					continue
+				}
+				graphText, err := capability.Render(selected, shape, resolvedArgs)
+				if err != nil {
+					diagnostics = append(diagnostics, domain.Diagnostic{
+						Code:         "GRAPH_RENDER_FAILED",
+						Severity:     domain.SeverityError,
+						Source:       "render.graph." + capability.Name,
+						Message:      err.Error(),
+						Location:     h3.Path,
+						Path:         h3.Path,
+						ReportTitle:  h3.ReportTitle,
+						SectionTitle: h3.H2Title,
+					})
+					continue
+				}
 				if graphText != "" {
 					b.WriteString(graphText)
 					if !strings.HasSuffix(graphText, "\n") {

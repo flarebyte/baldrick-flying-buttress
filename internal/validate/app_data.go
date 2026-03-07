@@ -546,11 +546,12 @@ func normalizeValidatedApp(raw domain.RawApp, registry domain.ArgumentRegistry, 
 	notes := make([]domain.Note, 0, len(raw.Notes))
 	for _, note := range raw.Notes {
 		notes = append(notes, domain.Note{
-			ID:        note.Name,
-			Label:     note.Title,
-			Title:     note.Title,
-			Markdown:  note.Markdown,
-			LabelsCSV: strings.Join(ordering.Strings(note.Labels), ","),
+			ID:           note.Name,
+			Label:        note.Title,
+			Title:        note.Title,
+			Markdown:     note.Markdown,
+			LabelsCSV:    strings.Join(ordering.Strings(note.Labels), ","),
+			ArgumentsCSV: strings.Join(ordering.Strings(note.Arguments), "\n"),
 		})
 	}
 

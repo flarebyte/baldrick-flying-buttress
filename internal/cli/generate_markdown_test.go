@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/renderer"
 )
 
 func TestRenderMarkdownPlainNote(t *testing.T) {
@@ -23,7 +24,7 @@ func TestRenderMarkdownPlainNote(t *testing.T) {
 	}
 	notes := map[string]domain.Note{"n.apple": {ID: "n.apple", Title: "Apple", Markdown: "Fresh apple."}}
 
-	got, diagnostics := renderMarkdownReport(report, notes, domain.ValidatedApp{})
+	got, diagnostics := renderMarkdownReport(report, notes, domain.ValidatedApp{}, renderer.ResolveRegistry())
 	if len(diagnostics) != 0 {
 		t.Fatalf("expected no diagnostics, got %#v", diagnostics)
 	}
@@ -44,8 +45,8 @@ func TestRenderMarkdownDeterministicSections(t *testing.T) {
 		},
 	}
 
-	first, firstDiagnostics := renderMarkdownReport(report, map[string]domain.Note{}, domain.ValidatedApp{})
-	second, secondDiagnostics := renderMarkdownReport(report, map[string]domain.Note{}, domain.ValidatedApp{})
+	first, firstDiagnostics := renderMarkdownReport(report, map[string]domain.Note{}, domain.ValidatedApp{}, renderer.ResolveRegistry())
+	second, secondDiagnostics := renderMarkdownReport(report, map[string]domain.Note{}, domain.ValidatedApp{}, renderer.ResolveRegistry())
 	if len(firstDiagnostics) != 0 || len(secondDiagnostics) != 0 {
 		t.Fatalf("expected no diagnostics, got first=%#v second=%#v", firstDiagnostics, secondDiagnostics)
 	}
@@ -61,7 +62,7 @@ func TestRenderMarkdownDeterministicSections(t *testing.T) {
 func TestRenderMarkdownTrailingNewline(t *testing.T) {
 	t.Parallel()
 
-	got, diagnostics := renderMarkdownReport(domain.MarkdownReport{Title: "Title"}, map[string]domain.Note{}, domain.ValidatedApp{})
+	got, diagnostics := renderMarkdownReport(domain.MarkdownReport{Title: "Title"}, map[string]domain.Note{}, domain.ValidatedApp{}, renderer.ResolveRegistry())
 	if len(diagnostics) != 0 {
 		t.Fatalf("expected no diagnostics, got %#v", diagnostics)
 	}

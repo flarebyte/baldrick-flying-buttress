@@ -1,0 +1,61 @@
+{
+  "source": "renderer-fallback",
+  "name": "renderer-fallback",
+  "modules": ["core"],
+  "reports": [
+    {
+      "title": "Renderer Fallback",
+      "filepath": "out/renderer-fallback.md",
+      "sections": [
+        {
+          "title": "Topology",
+          "sections": [
+            {
+              "title": "Graph",
+              "description": "Fallback markdown-text.",
+              "arguments": [
+                "graph-subject-label=graph",
+                "graph-edge-label=edge",
+                "graph-start-node=a"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    { "name": "a", "title": "A", "markdown": "a", "labels": ["graph"] },
+    { "name": "b", "title": "B", "markdown": "b", "labels": ["graph"] }
+  ],
+  "relationships": [
+    { "from": "a", "to": "b", "label": "edge", "labels": ["edge"] }
+  ],
+  "argumentRegistry": {
+    "version": "1",
+    "arguments": [
+      {
+        "name": "graph-subject-label",
+        "valueType": "string",
+        "scopes": ["h3-section"]
+      },
+      {
+        "name": "graph-edge-label",
+        "valueType": "string",
+        "scopes": ["h3-section"]
+      },
+      {
+        "name": "graph-start-node",
+        "valueType": "string",
+        "scopes": ["h3-section"]
+      },
+      {
+        "name": "graph-renderer",
+        "valueType": "enum",
+        "scopes": ["h3-section", "note"],
+        "allowedValues": ["markdown-text", "mermaid"],
+        "defaultValue": "markdown-text"
+      }
+    ]
+  }
+}
