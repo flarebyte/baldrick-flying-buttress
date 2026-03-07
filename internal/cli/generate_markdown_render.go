@@ -106,7 +106,7 @@ func renderMarkdownReport(ctx context.Context, report domain.MarkdownReport, not
 					})
 					continue
 				}
-				capability, err := registry.Select(resolvedArgs.Renderer, shape)
+				capability, err := registry.SelectResolved(resolvedArgs, shape)
 				if err != nil {
 					diagnostics = append(diagnostics, domain.Diagnostic{
 						Code:         "GRAPH_RENDERER_UNSUPPORTED",

@@ -14,6 +14,7 @@ import (
 type Args struct {
 	Renderer         string
 	MermaidDirection string
+	RendererExplicit bool
 }
 
 type Capability struct {
@@ -64,6 +65,28 @@ func (r Registry) Select(name string, shape graph.Shape) (Capability, error) {
 	return Capability{}, fmt.Errorf("unsupported renderer: %s", target)
 }
 
+func (r Registry) SelectResolved(args Args, shape graph.Shape) (Capability, error) {
+	target := strings.TrimSpace(args.Renderer)
+	if !args.RendererExplicit {
+		target = fallbackRendererForShape(shape)
+	}
+	if target == "" {
+		target = fallbackRendererForShape(shape)
+	}
+	return r.Select(target, shape)
+}
+
+func fallbackRendererForShape(shape graph.Shape) string {
+	switch shape {
+	case graph.ShapeCyclic:
+		return "mermaid"
+	case graph.ShapeTree, graph.ShapeDAG:
+		return "markdown-text"
+	default:
+		return "markdown-text"
+	}
+}
+
 func ResolveArgs(app domain.ValidatedApp, h3 domain.MarkdownH3Section, noteByID map[string]domain.Note) (Args, error) {
 	resolved := Args{Renderer: "markdown-text", MermaidDirection: "TD"}
 
@@ -88,6 +111,7 @@ func ResolveArgs(app domain.ValidatedApp, h3 domain.MarkdownH3Section, noteByID 
 			switch key {
 			case "graph-renderer":
 				resolved.Renderer = value
+				resolved.RendererExplicit = true
 			case "mermaid-direction":
 				resolved.MermaidDirection = value
 			}

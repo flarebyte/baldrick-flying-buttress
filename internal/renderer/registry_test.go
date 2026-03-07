@@ -45,6 +45,9 @@ func TestDeterministicFallbackWhenRendererUnspecified(t *testing.T) {
 	if args.Renderer != "markdown-text" {
 		t.Fatalf("expected markdown-text fallback, got %s", args.Renderer)
 	}
+	if args.RendererExplicit {
+		t.Fatal("expected renderer to be non-explicit")
+	}
 }
 
 func TestMermaidRenderingTreeDAGCyclic(t *testing.T) {
@@ -69,5 +72,50 @@ func TestShapeCompatibilityHandling(t *testing.T) {
 	_, err := r.Select("x", graph.ShapeDAG)
 	if err == nil {
 		t.Fatal("expected shape incompatibility error")
+	}
+}
+
+func TestSelectResolvedFallbackByShape(t *testing.T) {
+	t.Parallel()
+
+	r := ResolveRegistry()
+	args := Args{Renderer: "markdown-text", MermaidDirection: "TD", RendererExplicit: false}
+
+	treeCap, err := r.SelectResolved(args, graph.ShapeTree)
+	if err != nil {
+		t.Fatalf("select tree fallback failed: %v", err)
+	}
+	if treeCap.Name != "markdown-text" {
+		t.Fatalf("expected markdown-text for tree fallback, got %s", treeCap.Name)
+	}
+
+	dagCap, err := r.SelectResolved(args, graph.ShapeDAG)
+	if err != nil {
+		t.Fatalf("select dag fallback failed: %v", err)
+	}
+	if dagCap.Name != "markdown-text" {
+		t.Fatalf("expected markdown-text for dag fallback, got %s", dagCap.Name)
+	}
+
+	cyclicCap, err := r.SelectResolved(args, graph.ShapeCyclic)
+	if err != nil {
+		t.Fatalf("select cyclic fallback failed: %v", err)
+	}
+	if cyclicCap.Name != "mermaid" {
+		t.Fatalf("expected mermaid for cyclic fallback, got %s", cyclicCap.Name)
+	}
+}
+
+func TestSelectResolvedExplicitRendererOverridesFallback(t *testing.T) {
+	t.Parallel()
+
+	r := ResolveRegistry()
+	args := Args{Renderer: "markdown-text", MermaidDirection: "TD", RendererExplicit: true}
+	capability, err := r.SelectResolved(args, graph.ShapeCyclic)
+	if err != nil {
+		t.Fatalf("select explicit renderer failed: %v", err)
+	}
+	if capability.Name != "markdown-text" {
+		t.Fatalf("expected explicit markdown-text override, got %s", capability.Name)
 	}
 }

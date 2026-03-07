@@ -10,15 +10,15 @@ Graph section.
 
 Cycle graph.
 
-- <a id="graph-node-cy-a"></a> CyA: ca
-  - <a id="graph-node-cy-b"></a> CyB: cb
-    - <a id="graph-node-cy-c"></a> CyC: cc
-      - *(cycle back to [CyA](#graph-node-cy-a))*
-
-Adjacency summary:
-- [CyA](#graph-node-cy-a) -> [CyB](#graph-node-cy-b)
-- [CyB](#graph-node-cy-b) -> [CyC](#graph-node-cy-c)
-- [CyC](#graph-node-cy-c) -> [CyA](#graph-node-cy-a)
+```mermaid
+graph TD
+    N1[CyA]
+    N2[CyB]
+    N3[CyC]
+    N1 --> N2
+    N2 --> N3
+    N3 --> N1
+```
 
 ### DAG View
 
