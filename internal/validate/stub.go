@@ -26,6 +26,23 @@ func ValidateStub(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) 
 					Title: "Memory Health",
 				},
 			},
+			Notes: []app.Note{
+				{
+					ID:    "n1",
+					Label: "service.api",
+				},
+				{
+					ID:    "n2",
+					Label: "service.db",
+				},
+			},
+			Relationships: []app.Relationship{
+				{
+					FromID: "n1",
+					ToID:   "n2",
+					Label:  "depends_on",
+				},
+			},
 		}, diagnostics.Report{
 			Diagnostics: []diagnostics.Diagnostic{
 				{
