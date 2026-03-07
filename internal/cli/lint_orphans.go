@@ -31,7 +31,7 @@ func (a lintOrphansAction) diagnostics(validated domain.ValidatedApp) []domain.D
 	orphanNotes := orphans.Find(validated, a.query)
 	diagnostics := make([]domain.Diagnostic, 0, len(orphanNotes))
 	for _, note := range orphanNotes {
-		diagnostics = append(diagnostics, domain.Diagnostic{
+		diagnostics = append(diagnostics, withDiagnosticContextMessage(domain.Diagnostic{
 			Code:             "ORPHAN_QUERY_MISSING_LINK",
 			Severity:         a.severity,
 			Source:           "orphans.query.find",
@@ -42,7 +42,7 @@ func (a lintOrphansAction) diagnostics(validated domain.ValidatedApp) []domain.D
 			SubjectLabel:     a.query.SubjectLabel,
 			EdgeLabel:        a.query.EdgeLabel,
 			CounterpartLabel: a.query.CounterpartLabel,
-		})
+		}))
 	}
 	return diagnostics
 }

@@ -84,7 +84,7 @@ func lintNames(app domain.ValidatedApp, prefix string, policy lintNamesPolicy) [
 		if policy.matcher(note.ID) {
 			continue
 		}
-		diagnostics = append(diagnostics, domain.Diagnostic{
+		diagnostics = append(diagnostics, withDiagnosticContextMessage(domain.Diagnostic{
 			Code:     "NAME_STYLE_VIOLATION",
 			Severity: policy.severity,
 			Source:   "lint.names.notes",
@@ -92,7 +92,7 @@ func lintNames(app domain.ValidatedApp, prefix string, policy lintNamesPolicy) [
 			Location: fmt.Sprintf("notes[name=%q]", note.ID),
 			Path:     fmt.Sprintf("notes[name=%q]", note.ID),
 			NoteName: note.ID,
-		})
+		}))
 	}
 
 	for i, rel := range orderedRelationships {
@@ -100,7 +100,7 @@ func lintNames(app domain.ValidatedApp, prefix string, policy lintNamesPolicy) [
 			continue
 		}
 		if !policy.matcher(rel.FromID) {
-			diagnostics = append(diagnostics, domain.Diagnostic{
+			diagnostics = append(diagnostics, withDiagnosticContextMessage(domain.Diagnostic{
 				Code:             "NAME_STYLE_VIOLATION",
 				Severity:         policy.severity,
 				Source:           "lint.names.relationships",
@@ -109,10 +109,10 @@ func lintNames(app domain.ValidatedApp, prefix string, policy lintNamesPolicy) [
 				Path:             fmt.Sprintf("relationships[%d].from", i),
 				RelationshipFrom: rel.FromID,
 				RelationshipTo:   rel.ToID,
-			})
+			}))
 		}
 		if !policy.matcher(rel.ToID) {
-			diagnostics = append(diagnostics, domain.Diagnostic{
+			diagnostics = append(diagnostics, withDiagnosticContextMessage(domain.Diagnostic{
 				Code:             "NAME_STYLE_VIOLATION",
 				Severity:         policy.severity,
 				Source:           "lint.names.relationships",
@@ -121,7 +121,7 @@ func lintNames(app domain.ValidatedApp, prefix string, policy lintNamesPolicy) [
 				Path:             fmt.Sprintf("relationships[%d].to", i),
 				RelationshipFrom: rel.FromID,
 				RelationshipTo:   rel.ToID,
-			})
+			}))
 		}
 	}
 

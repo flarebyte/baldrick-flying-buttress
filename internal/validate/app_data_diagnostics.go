@@ -2,6 +2,7 @@ package validate
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 )
@@ -23,6 +24,7 @@ func newArgumentDiagnostic(code, message, location, reportTitle, sectionTitle, n
 	d.SectionTitle = sectionTitle
 	d.NoteName = noteName
 	d.ArgumentName = argumentName
+	d.Message = formatDiagnosticMessage(d.Message, d)
 	return d
 }
 
@@ -34,6 +36,7 @@ func newLabelReferenceDiagnostic(code, message, location, reportTitle, sectionTi
 	d.NoteName = noteName
 	d.ArgumentName = argumentName
 	d.LabelValue = labelValue
+	d.Message = formatDiagnosticMessage(d.Message, d)
 	return d
 }
 
@@ -52,6 +55,14 @@ func newGraphDiagnostic(policy domain.PolicySeverity, source, code, message, loc
 	d.NoteName = noteName
 	d.RelationshipFrom = relationshipFrom
 	d.RelationshipTo = relationshipTo
+	d.Message = formatDiagnosticMessage(d.Message, d)
+	return d
+}
+
+func newRegistryDiagnostic(code, message, location, argumentName string) domain.Diagnostic {
+	d := newDiagnostic(registryValidationSource, code, message, location)
+	d.ArgumentName = argumentName
+	d.Message = formatDiagnosticMessage(d.Message, d)
 	return d
 }
 
@@ -72,4 +83,39 @@ func registryArgLocation(name string, index int) string {
 
 func registryArgNameLocation(name string) string {
 	return fmt.Sprintf("argumentRegistry.arguments[name=%q]", name)
+}
+
+func formatDiagnosticMessage(base string, d domain.Diagnostic) string {
+	parts := make([]string, 0, 9)
+	if strings.TrimSpace(d.ReportTitle) != "" {
+		parts = append(parts, "reportTitle="+d.ReportTitle)
+	}
+	if strings.TrimSpace(d.SectionTitle) != "" {
+		parts = append(parts, "sectionTitle="+d.SectionTitle)
+	}
+	if strings.TrimSpace(d.NoteName) != "" {
+		parts = append(parts, "noteName="+d.NoteName)
+	}
+	if strings.TrimSpace(d.RelationshipFrom) != "" || strings.TrimSpace(d.RelationshipTo) != "" {
+		parts = append(parts, "relationship="+d.RelationshipFrom+"->"+d.RelationshipTo)
+	}
+	if strings.TrimSpace(d.ArgumentName) != "" {
+		parts = append(parts, "argumentName="+d.ArgumentName)
+	}
+	if strings.TrimSpace(d.SubjectLabel) != "" {
+		parts = append(parts, "subjectLabel="+d.SubjectLabel)
+	}
+	if strings.TrimSpace(d.EdgeLabel) != "" {
+		parts = append(parts, "edgeLabel="+d.EdgeLabel)
+	}
+	if strings.TrimSpace(d.CounterpartLabel) != "" {
+		parts = append(parts, "counterpartLabel="+d.CounterpartLabel)
+	}
+	if strings.TrimSpace(d.LabelValue) != "" {
+		parts = append(parts, "labelValue="+d.LabelValue)
+	}
+	if len(parts) == 0 {
+		return base
+	}
+	return base + " [" + strings.Join(parts, ", ") + "]"
 }

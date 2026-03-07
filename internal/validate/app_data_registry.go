@@ -54,40 +54,40 @@ func validateRegistry(raw domain.RawArgumentRegistry) []domain.Diagnostic {
 		locationBase := registryArgLocation(name, i)
 
 		if name == "" {
-			diagnostics = append(diagnostics, newDiagnostic(registryValidationSource, "FBR001", "missing argument name", locationBase+".name"))
+			diagnostics = append(diagnostics, newRegistryDiagnostic("FBR001", "missing argument name", locationBase+".name", name))
 		} else {
 			seenByName[name]++
 		}
 
 		valueType := strings.TrimSpace(arg.ValueType)
 		if valueType == "" {
-			diagnostics = append(diagnostics, newDiagnostic(registryValidationSource, "FBR002", "missing argument value type", locationBase+".valueType"))
+			diagnostics = append(diagnostics, newRegistryDiagnostic("FBR002", "missing argument value type", locationBase+".valueType", name))
 		} else if !isValidValueType(valueType) {
-			diagnostics = append(diagnostics, newDiagnostic(registryValidationSource, "FBR003", "invalid argument value type", locationBase+".valueType"))
+			diagnostics = append(diagnostics, newRegistryDiagnostic("FBR003", "invalid argument value type", locationBase+".valueType", name))
 		}
 
 		normalizedScopes := normalizeScopes(arg.Scopes)
 		if len(normalizedScopes) == 0 {
-			diagnostics = append(diagnostics, newDiagnostic(registryValidationSource, "FBR004", "missing argument scopes", locationBase+".scopes"))
+			diagnostics = append(diagnostics, newRegistryDiagnostic("FBR004", "missing argument scopes", locationBase+".scopes", name))
 		}
 		for _, scope := range arg.Scopes {
 			if !isValidScope(scope) {
-				diagnostics = append(diagnostics, newDiagnostic(registryValidationSource, "FBR005", "invalid argument scope", locationBase+".scopes"))
+				diagnostics = append(diagnostics, newRegistryDiagnostic("FBR005", "invalid argument scope", locationBase+".scopes", name))
 			}
 		}
 
 		if valueType == string(domain.ArgumentValueTypeEnum) {
 			normalizedAllowed, hadDuplicateAllowed := normalizeAllowedValuesWithDuplicateInfo(arg.AllowedValues)
 			if hadDuplicateAllowed {
-				diagnostics = append(diagnostics, newDiagnostic(registryValidationSource, "FBR007", "duplicate enum allowed values", locationBase+".allowedValues"))
+				diagnostics = append(diagnostics, newRegistryDiagnostic("FBR007", "duplicate enum allowed values", locationBase+".allowedValues", name))
 			}
 			if len(normalizedAllowed) == 0 {
-				diagnostics = append(diagnostics, newDiagnostic(registryValidationSource, "FBR006", "invalid enum default/allowed-values combination", locationBase+".allowedValues"))
+				diagnostics = append(diagnostics, newRegistryDiagnostic("FBR006", "invalid enum default/allowed-values combination", locationBase+".allowedValues", name))
 			}
 			if arg.DefaultValue != nil {
 				defaultValue, ok := arg.DefaultValue.(string)
 				if !ok || !containsString(normalizedAllowed, defaultValue) {
-					diagnostics = append(diagnostics, newDiagnostic(registryValidationSource, "FBR006", "invalid enum default/allowed-values combination", locationBase+".defaultValue"))
+					diagnostics = append(diagnostics, newRegistryDiagnostic("FBR006", "invalid enum default/allowed-values combination", locationBase+".defaultValue", name))
 				}
 			}
 		}
@@ -101,7 +101,7 @@ func validateRegistry(raw domain.RawArgumentRegistry) []domain.Diagnostic {
 	}
 	slices.Sort(duplicateNames)
 	for _, name := range duplicateNames {
-		diagnostics = append(diagnostics, newDiagnostic(registryValidationSource, "FBR000", "duplicate argument name", registryArgNameLocation(name)))
+		diagnostics = append(diagnostics, newRegistryDiagnostic("FBR000", "duplicate argument name", registryArgNameLocation(name), name))
 	}
 
 	return diagnostics
