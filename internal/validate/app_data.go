@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -11,8 +12,9 @@ import (
 )
 
 const (
-	schemaValidationSource   = "validate.app.data.schema"
-	registryValidationSource = "validate.app.data.args.registry"
+	schemaValidationSource     = "validate.app.data.schema"
+	registryValidationSource   = "validate.app.data.args.registry"
+	configArgsValidationSource = "validate.app.data.args.config"
 )
 
 type AppDataValidator struct {
@@ -31,6 +33,9 @@ func (v AppDataValidator) Validate(raw domain.RawApp) (domain.ValidatedApp, doma
 
 	v.step("args_registry_validate")
 	diagnostics = append(diagnostics, validateRegistry(rawModel.Registry)...)
+
+	v.step("args_validate_config")
+	diagnostics = append(diagnostics, validateConfiguredArguments(rawModel, registry)...)
 
 	v.step("diagnostics_collection")
 	diagnostics = collectDiagnostics(diagnostics)
@@ -206,6 +211,62 @@ func validateRegistry(raw domain.RawArgumentRegistry) []domain.Diagnostic {
 	return diagnostics
 }
 
+func validateConfiguredArguments(raw domain.RawApp, registry domain.ArgumentRegistry) []domain.Diagnostic {
+	diagnostics := make([]domain.Diagnostic, 0)
+	byName := map[string]domain.ArgumentDefinition{}
+	for _, arg := range registry.Arguments {
+		byName[arg.Name] = arg
+	}
+
+	for i, report := range raw.Reports {
+		for j, section := range report.Sections {
+			for k, entry := range section.Arguments {
+				location := fmt.Sprintf("reports[%d].sections[%d].arguments[%d]", i, j, k)
+				name, value, ok := parseConfiguredArgument(entry)
+				if !ok {
+					diagnostics = append(diagnostics, newArgumentDiagnostic("FBC001", "malformed configured argument", location, report.Title, section.Title, "", ""))
+					continue
+				}
+				def, exists := byName[name]
+				if !exists {
+					diagnostics = append(diagnostics, newArgumentDiagnostic("FBC002", "unknown configured argument key", location, report.Title, section.Title, "", name))
+					continue
+				}
+				if !containsScope(def.Scopes, domain.ArgumentScopeH3Section) && !containsScope(def.Scopes, domain.ArgumentScopeRenderer) {
+					diagnostics = append(diagnostics, newArgumentDiagnostic("FBC003", "argument used outside allowed scope", location, report.Title, section.Title, "", name))
+				}
+				if !valueMatchesType(value, def) {
+					diagnostics = append(diagnostics, newArgumentDiagnostic("FBC004", "argument value does not match declared type", location, report.Title, section.Title, "", name))
+				}
+			}
+		}
+	}
+
+	for i, note := range raw.Notes {
+		for j, entry := range note.Arguments {
+			location := fmt.Sprintf("notes[%d].arguments[%d]", i, j)
+			name, value, ok := parseConfiguredArgument(entry)
+			if !ok {
+				diagnostics = append(diagnostics, newArgumentDiagnostic("FBC001", "malformed configured argument", location, "", "", note.Name, ""))
+				continue
+			}
+			def, exists := byName[name]
+			if !exists {
+				diagnostics = append(diagnostics, newArgumentDiagnostic("FBC002", "unknown configured argument key", location, "", "", note.Name, name))
+				continue
+			}
+			if !containsScope(def.Scopes, domain.ArgumentScopeNote) {
+				diagnostics = append(diagnostics, newArgumentDiagnostic("FBC003", "argument used outside allowed scope", location, "", "", note.Name, name))
+			}
+			if !valueMatchesType(value, def) {
+				diagnostics = append(diagnostics, newArgumentDiagnostic("FBC004", "argument value does not match declared type", location, "", "", note.Name, name))
+			}
+		}
+	}
+
+	return diagnostics
+}
+
 func collectDiagnostics(diagnostics []domain.Diagnostic) []domain.Diagnostic {
 	if diagnostics == nil {
 		diagnostics = []domain.Diagnostic{}
@@ -312,6 +373,58 @@ func containsString(items []string, target string) bool {
 	return false
 }
 
+func containsScope(scopes []domain.ArgumentScope, target domain.ArgumentScope) bool {
+	for _, scope := range scopes {
+		if scope == target {
+			return true
+		}
+	}
+	return false
+}
+
+func parseConfiguredArgument(entry string) (string, string, bool) {
+	parts := strings.SplitN(entry, "=", 2)
+	if len(parts) != 2 {
+		return "", "", false
+	}
+	key := strings.TrimSpace(parts[0])
+	value := strings.TrimSpace(parts[1])
+	if key == "" || value == "" {
+		return "", "", false
+	}
+	return key, value, true
+}
+
+func valueMatchesType(value string, def domain.ArgumentDefinition) bool {
+	switch def.ValueType {
+	case domain.ArgumentValueTypeString:
+		return value != ""
+	case domain.ArgumentValueTypeStrings:
+		parts := strings.Split(value, ",")
+		if len(parts) == 0 {
+			return false
+		}
+		for _, part := range parts {
+			if strings.TrimSpace(part) == "" {
+				return false
+			}
+		}
+		return true
+	case domain.ArgumentValueTypeBoolean:
+		return value == "true" || value == "false"
+	case domain.ArgumentValueTypeInt:
+		_, err := strconv.Atoi(value)
+		return err == nil
+	case domain.ArgumentValueTypeFloat:
+		_, err := strconv.ParseFloat(value, 64)
+		return err == nil
+	case domain.ArgumentValueTypeEnum:
+		return containsString(def.AllowedValues, value)
+	default:
+		return false
+	}
+}
+
 func isValidValueType(valueType string) bool {
 	switch valueType {
 	case string(domain.ArgumentValueTypeString),
@@ -346,6 +459,15 @@ func newDiagnostic(source, code, message, location string) domain.Diagnostic {
 		Location: location,
 		Path:     location,
 	}
+}
+
+func newArgumentDiagnostic(code, message, location, reportTitle, sectionTitle, noteName, argumentName string) domain.Diagnostic {
+	d := newDiagnostic(configArgsValidationSource, code, message, location)
+	d.ReportTitle = reportTitle
+	d.SectionTitle = sectionTitle
+	d.NoteName = noteName
+	d.ArgumentName = argumentName
+	return d
 }
 
 func reportLocation(i int, field string) string {

@@ -222,6 +222,26 @@ func TestValidateWithInvalidRegistryConfigCollectsMultipleDiagnostics(t *testing
 	assertOutput(t, validateStdout, validateStderr, readGolden(t, "validate_registry_invalid_output.golden"), "")
 }
 
+func TestValidateWithInvalidConfiguredArgumentsCollectsMultipleDiagnostics(t *testing.T) {
+	t.Parallel()
+
+	configPath := filepath.Join("testdata", "config.args.invalid.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader {
+		return load.FSAppLoader{ConfigPath: path}
+	}
+	validator := validate.AppDataValidator{}
+
+	validateCode, validateStdout, validateStderr := runCommandWithFactory(
+		[]string{"validate", "--config", configPath},
+		loaderFactory,
+		validator,
+	)
+	if validateCode != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected validate exit code %d, got %d", outcome.ExitCodeValidationBlocked, validateCode)
+	}
+	assertOutput(t, validateStdout, validateStderr, readGolden(t, "validate_args_invalid_output.golden"), "")
+}
+
 func TestFilesystemLoaderDeterministicOutputAcrossRuns(t *testing.T) {
 	t.Parallel()
 

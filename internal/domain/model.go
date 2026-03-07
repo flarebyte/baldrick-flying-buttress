@@ -7,12 +7,14 @@ type RawReport struct {
 }
 
 type RawReportSection struct {
-	Title string `json:"title"`
+	Title     string   `json:"title"`
+	Arguments []string `json:"arguments"`
 }
 
 type RawNote struct {
-	Name  string `json:"name"`
-	Title string `json:"title"`
+	Name      string   `json:"name"`
+	Title     string   `json:"title"`
+	Arguments []string `json:"arguments"`
 }
 
 type RawRelationship struct {
@@ -62,6 +64,7 @@ type Diagnostic struct {
 	ReportTitle  string   `json:"reportTitle,omitempty"`
 	SectionTitle string   `json:"sectionTitle,omitempty"`
 	NoteName     string   `json:"noteName,omitempty"`
+	ArgumentName string   `json:"argumentName,omitempty"`
 }
 
 type ValidationReport struct {
