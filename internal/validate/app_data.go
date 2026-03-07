@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	schemaValidationSource         = "validate.app.data.schema"
+	schemaValidationSource         = "validate.cue.schema"
 	registryValidationSource       = "validate.app.data.args.registry"
 	configArgsValidationSource     = "validate.app.data.args.config"
 	labelReferenceValidationSource = "labels.reference.validate"
@@ -28,7 +28,7 @@ func (v AppDataValidator) Validate(ctx context.Context, raw domain.RawApp) (doma
 	v.step("raw_model_normalization_precheck")
 	rawModel := normalizeRaw(raw)
 
-	v.step("schema_structure_validation")
+	v.step("validate_cue_schema")
 	diagnostics := validateStructure(rawModel)
 	if err := ctx.Err(); err != nil {
 		return domain.ValidatedApp{}, domain.ValidationReport{}, err

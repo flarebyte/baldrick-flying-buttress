@@ -2,10 +2,11 @@ package load
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 
+	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/cuecontext"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 )
 
@@ -29,8 +30,14 @@ func (l FSAppLoader) Load(ctx context.Context) (domain.RawApp, error) {
 		return domain.RawApp{}, err
 	}
 
+	cueCtx := cuecontext.New()
+	value := cueCtx.CompileBytes(data, cue.Filename(l.ConfigPath))
+	if err := value.Err(); err != nil {
+		return domain.RawApp{}, fmt.Errorf("parse config %s: %w", l.ConfigPath, err)
+	}
+
 	var raw domain.RawApp
-	if err := json.Unmarshal(data, &raw); err != nil {
+	if err := value.Decode(&raw); err != nil {
 		return domain.RawApp{}, fmt.Errorf("parse config %s: %w", l.ConfigPath, err)
 	}
 	if err := ctx.Err(); err != nil {

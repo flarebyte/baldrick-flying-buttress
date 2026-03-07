@@ -60,10 +60,92 @@ func TestCommandsWorkWithConfigFlagAndFilesystemLoader(t *testing.T) {
 	}
 }
 
+func TestCommandsWorkWithCueConfigAndFilesystemLoader(t *testing.T) {
+	t.Parallel()
+
+	configPath := filepath.Join("testdata", "config.cue")
+	loaderFactory := func(path string) pipeline.AppLoader {
+		return load.FSAppLoader{ConfigPath: path}
+	}
+	validator := validate.AppDataValidator{}
+	tests := []struct {
+		name       string
+		args       []string
+		wantCode   int
+		wantStdout string
+	}{
+		{
+			name:       "validate",
+			args:       []string{"validate", "--config", configPath},
+			wantCode:   0,
+			wantStdout: "{\"diagnostics\":[]}\n",
+		},
+		{
+			name:       "list reports",
+			args:       []string{"list", "reports", "--config", configPath},
+			wantCode:   0,
+			wantStdout: readGolden(t, "list_reports_output.golden"),
+		},
+		{
+			name:       "generate json",
+			args:       []string{"generate", "json", "--config", configPath},
+			wantCode:   0,
+			wantStdout: readGolden(t, "generate_json_output.golden"),
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			var out bytes.Buffer
+			var errOut bytes.Buffer
+			exitCode := ExecuteWithFactory(tc.args, &out, &errOut, loaderFactory, validator)
+			if exitCode != tc.wantCode {
+				t.Fatalf("expected exit code %d, got %d", tc.wantCode, exitCode)
+			}
+			assertOutput(t, out.String(), errOut.String(), tc.wantStdout, "")
+		})
+	}
+}
+
 func TestCommandsWithInvalidStructureConfigProduceValidationDiagnostics(t *testing.T) {
 	t.Parallel()
 
 	configPath := filepath.Join("testdata", "config.invalid.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader {
+		return load.FSAppLoader{ConfigPath: path}
+	}
+	validator := validate.AppDataValidator{}
+
+	validateCode, validateStdout, validateStderr := runCommandWithFactory(
+		[]string{"validate", "--config", configPath},
+		loaderFactory,
+		validator,
+	)
+	if validateCode != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected validate exit code %d, got %d", outcome.ExitCodeValidationBlocked, validateCode)
+	}
+	if validateStderr != "" {
+		t.Fatalf("expected empty validate stderr, got %q", validateStderr)
+	}
+	assertOutput(t, validateStdout, validateStderr, readGolden(t, "validate_invalid_output.golden"), "")
+
+	listCode, listStdout, listStderr := runCommandWithFactory(
+		[]string{"list", "reports", "--config", configPath},
+		loaderFactory,
+		validator,
+	)
+	if listCode != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected list exit code %d, got %d", outcome.ExitCodeValidationBlocked, listCode)
+	}
+	assertOutput(t, listStdout, listStderr, "", "")
+}
+
+func TestCommandsWithInvalidStructureCueConfigProduceValidationDiagnostics(t *testing.T) {
+	t.Parallel()
+
+	configPath := filepath.Join("testdata", "config.invalid.cue")
 	loaderFactory := func(path string) pipeline.AppLoader {
 		return load.FSAppLoader{ConfigPath: path}
 	}

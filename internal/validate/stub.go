@@ -12,10 +12,9 @@ type StubAppValidator struct{}
 
 func (StubAppLoader) Load(context.Context) (domain.RawApp, error) {
 	return domain.RawApp{
-		ConfigPath: "in-memory-stub",
-		Source:     "in-memory-stub",
-		Name:       "stub-app",
-		Modules:    []string{"core", "edge"},
+		Source:  "in-memory-stub",
+		Name:    "stub-app",
+		Modules: []string{"core", "edge"},
 		Reports: []domain.RawReport{
 			{Title: "CPU Overview", Filepath: "reports/cpu-overview.md", Sections: []domain.RawReportSection{{Title: "Overview"}}},
 			{Title: "Memory Health", Filepath: "reports/memory-health.md", Sections: []domain.RawReportSection{{Title: "Overview"}}},

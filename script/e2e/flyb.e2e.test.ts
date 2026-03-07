@@ -12,6 +12,7 @@ import { dirname, join } from 'node:path';
 const rootDir = join(import.meta.dir, '..', '..');
 const binPath = join(rootDir, '.e2e-bin', 'flyb');
 const fixturePath = join(rootDir, 'testdata', 'app.raw.json');
+const cueFixturePath = join(rootDir, 'testdata', 'app.cue');
 const namesFixturePath = join(rootDir, 'testdata', 'names.raw.json');
 const lintFixturePath = join(rootDir, 'testdata', 'lint.raw.json');
 const orphansFixturePath = join(rootDir, 'testdata', 'orphans.raw.json');
@@ -102,6 +103,15 @@ function assertGenerateMarkdownOutput(
 
 test('flyb validate stdout matches golden', () => {
   const got = runFlyb(['validate', '--config', fixturePath]);
+  const wantStdout = readGolden('validate.stdout.golden');
+
+  expect(got.exitCode).toBe(1);
+  expect(bytesHex(got.stdout)).toBe(bytesHex(wantStdout));
+  expect(bytesHex(got.stderr)).toBe('');
+});
+
+test('flyb validate with cue fixture stdout matches golden', () => {
+  const got = runFlyb(['validate', '--config', cueFixturePath]);
   const wantStdout = readGolden('validate.stdout.golden');
 
   expect(got.exitCode).toBe(1);

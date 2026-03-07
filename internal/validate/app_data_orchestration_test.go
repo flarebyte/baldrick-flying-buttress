@@ -23,7 +23,7 @@ func TestAppDataValidatorRunsSubstepsInOrder(t *testing.T) {
 
 	want := []string{
 		"raw_model_normalization_precheck",
-		"schema_structure_validation",
+		"validate_cue_schema",
 		"args_registry_resolve",
 		"args_registry_validate",
 		"args_validate_config",

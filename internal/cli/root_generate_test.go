@@ -52,6 +52,36 @@ func TestGenerateMarkdownSuccess(t *testing.T) {
 	}
 }
 
+func TestGenerateMarkdownSuccessWithCueConfig(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	configPath := writeFixtureConfig(t, tmp, "config.markdown.cue")
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	code, stdout, stderr := runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, "", "")
+
+	alpha, err := os.ReadFile(filepath.Join(tmp, "out", "alpha.md"))
+	if err != nil {
+		t.Fatalf("read alpha report failed: %v", err)
+	}
+	beta, err := os.ReadFile(filepath.Join(tmp, "out", "beta.md"))
+	if err != nil {
+		t.Fatalf("read beta report failed: %v", err)
+	}
+	if string(alpha) != readGolden(t, "generate_markdown_alpha_output.golden") {
+		t.Fatalf("alpha markdown mismatch\\nwant: %q\\n got: %q", readGolden(t, "generate_markdown_alpha_output.golden"), string(alpha))
+	}
+	if string(beta) != readGolden(t, "generate_markdown_beta_output.golden") {
+		t.Fatalf("beta markdown mismatch\\nwant: %q\\n got: %q", readGolden(t, "generate_markdown_beta_output.golden"), string(beta))
+	}
+}
+
 func TestGenerateMarkdownBlockedOnErrorDiagnostic(t *testing.T) {
 	t.Parallel()
 
