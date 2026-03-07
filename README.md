@@ -1,104 +1,108 @@
-# baldrick-flying-buttress
+# baldrick-flying-buttress (`flyb`)
 
-**Divert the weight of design away from the code with a flying buttress.**
+`flyb` is a config-driven CLI for validating architecture knowledge and generating deterministic documentation from it.
 
-![Flwying buttress](./baldrick-flying-buttress-hero.jpg)
+## Project overview
 
-`baldrick-flying-buttress` (**flyb**) is a CLI that turns **structured design notes and relationships** into **living architecture documentation**.
+`flyb` models architecture as:
+- notes
+- relationships between notes
+- reports made of sections
 
-Instead of writing large design documents that quickly become outdated, flyb lets you describe your system as **small connected notes**. From those notes, the CLI generates **deterministic Markdown reports and diagrams** that stay consistent with the model.
+It solves the common drift between design docs and reality by keeping design as structured data in source control and generating outputs from that model.
 
-Think of it as **“architecture-as-data”**.
+Key design principles:
+- deterministic output
+- config-driven reports
+- machine-readable command output
 
----
+## Quick start
 
-## The idea
+Build locally:
 
-You define:
-
-- **notes** — small pieces of design knowledge
-- **relationships** — how those pieces connect
-- **reports** — curated views of the graph
-
-Example:
-
-```
-cli.root ──satisfies-usecase──► usecase.io.calls.count
-```
-
-From this simple structure, flyb can generate:
-
-- architecture documentation
-- call flow graphs
-- dependency maps
-- use-case mappings
-- Markdown reports with Mermaid diagrams
-
----
-
-## Why flyb exists
-
-Documentation tends to fail in one of two ways:
-
-- it becomes **too large and hard to maintain**
-- it becomes **out of sync with the code**
-
-flyb solves this by making documentation:
-
-- **modular** — small notes instead of large documents
-- **structured** — relationships instead of free text
-- **deterministic** — generated output works well with Git
-- **close to the code** — configuration lives in the repository
-
----
-
-## What flyb helps teams do
-
-With flyb you can:
-
-- generate architecture reports automatically
-- visualize relationships between system components
-- validate design models for consistency
-- enforce naming conventions across design identifiers
-- detect unused or disconnected concepts
-- embed diagrams, tables, and references in documentation
-
----
-
-## Example CLI workflow
-
-Generate documentation:
-
-```
-flyb generate markdown
+```bash
+make build-dev
+./.e2e-bin/flyb --version
 ```
 
-Inspect notes and relationships:
+Use a minimal example project:
 
-```
-flyb list names
-```
-
-Validate configuration:
-
-```
-flyb validate
+```bash
+cd examples/minimal
 ```
 
-Check naming consistency:
+Validate config:
 
+```bash
+../../.e2e-bin/flyb validate --config app.cue
 ```
-flyb lint names --style dot
+
+Generate markdown:
+
+```bash
+../../.e2e-bin/flyb generate markdown --config app.cue
 ```
 
----
+## Example CUE configuration
 
-## What makes flyb different
+```cue
+package flyb
 
-Most documentation tools start with **documents**.
+source: "minimal"
+name:   "minimal"
+modules: ["core"]
 
-flyb starts with a **graph of knowledge**.
+reports: [{
+	title:    "Minimal Report"
+	filepath: "out/minimal.md"
+	sections: [{
+		title: "Overview"
+		sections: [{
+			title: "Core"
+			notes: ["app.api", "app.db"]
+		}]
+	}]
+}]
 
-Documentation becomes a **generated view** of that graph.
+notes: [
+	{name: "app.api", title: "API", markdown: "Public API."},
+	{name: "app.db", title: "Database", markdown: "Primary database."},
+]
 
-This keeps design knowledge **structured, reusable, and maintainable** as systems grow.
+relationships: [{
+	from:   "app.api"
+	to:     "app.db"
+	label:  "depends_on"
+	labels: ["depends_on"]
+}]
+```
+
+## CLI commands overview
+
+- `flyb validate`
+- `flyb list reports`
+- `flyb list names`
+- `flyb lint names`
+- `flyb lint orphans`
+- `flyb generate markdown`
+- `flyb generate json`
+
+## Project structure explanation
+
+- `notes`: named design nodes (with title/markdown/labels)
+- `relationships`: directed links (`from`, `to`, `label`, `labels`)
+- `reports`: generated markdown targets (`title`, `filepath`)
+- `sections`: nested report structure (`H2` and `H3`) for plain, graph, or orphan views
+
+## Determinism guarantees
+
+- ordering policy is stable for diagnostics, reports, notes, and relationships
+- machine-readable JSON output is deterministic
+- repeated runs with the same config produce reproducible outputs
+
+## Examples
+
+See starter configurations in [`examples/`](./examples):
+- [`examples/minimal`](./examples/minimal)
+- [`examples/microservice-architecture`](./examples/microservice-architecture)
+- [`examples/orphan-analysis`](./examples/orphan-analysis)
