@@ -91,13 +91,22 @@ func newListCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, co
 }
 
 func newListReportsCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
-	return &cobra.Command{
+	var format string
+	cmd := &cobra.Command{
 		Use:   "reports",
 		Short: "List reports",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, listReportsAction{out: cmd.OutOrStdout()})
+			if err := validateReportsFormat(format); err != nil {
+				return err
+			}
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, listReportsAction{
+				out:    cmd.OutOrStdout(),
+				format: format,
+			})
 		},
 	}
+	cmd.Flags().StringVar(&format, "format", reportsFormatJSON, "Output format: json|table")
+	return cmd
 }
 
 func newListNamesCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
@@ -257,19 +266,6 @@ func (a validateAction) Execute(_ context.Context, _ domain.ValidatedApp, report
 
 func (validateAction) AllowOnValidationErrors() bool {
 	return true
-}
-
-type listReportsAction struct {
-	out io.Writer
-}
-
-func (a listReportsAction) Execute(_ context.Context, validated domain.ValidatedApp, report domain.ValidationReport) error {
-	_ = report
-	return clioutput.EmitReportList(a.out, validated)
-}
-
-func (listReportsAction) AllowOnValidationErrors() bool {
-	return false
 }
 
 type generateJSONAction struct {

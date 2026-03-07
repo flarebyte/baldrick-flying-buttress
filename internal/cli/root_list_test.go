@@ -17,6 +17,33 @@ func TestListReportsGoldenOutput(t *testing.T) {
 	assertOutput(t, stdout, stderr, readGolden(t, "list_reports_output.golden"), "")
 }
 
+func TestListReportsFormatJSONOutput(t *testing.T) {
+	t.Parallel()
+
+	exitCode, stdout, stderr := runCommand([]string{"list", "reports", "--format", "json"}, stubLoader(), validatorWith(listValidatedApp(), warningOnlyReport(), nil))
+	if exitCode != 0 {
+		t.Fatalf("expected exit code 0, got %d", exitCode)
+	}
+	assertOutput(t, stdout, stderr, readGolden(t, "list_reports_output.golden"), "")
+}
+
+func TestListReportsFormatTableOutput(t *testing.T) {
+	t.Parallel()
+
+	exitCode, stdout, stderr := runCommand([]string{"list", "reports", "--format", "table"}, stubLoader(), validatorWith(listValidatedApp(), warningOnlyReport(), nil))
+	if exitCode != 0 {
+		t.Fatalf("expected exit code 0, got %d", exitCode)
+	}
+	assertOutput(t, stdout, stderr, readGolden(t, "list_reports_table_output.golden"), "")
+}
+
+func TestListReportsDeterministicOutput(t *testing.T) {
+	t.Parallel()
+
+	assertDeterministic(t, []string{"list", "reports"}, stubLoader(), validatorWith(listValidatedApp(), warningOnlyReport(), nil), 0)
+	assertDeterministic(t, []string{"list", "reports", "--format", "table"}, stubLoader(), validatorWith(listValidatedApp(), warningOnlyReport(), nil), 0)
+}
+
 func TestListReportsBlockedOnErrorDiagnostic(t *testing.T) {
 	t.Parallel()
 
