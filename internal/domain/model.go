@@ -1,7 +1,8 @@
 package domain
 
 type RawApp struct {
-	Source string
+	ConfigPath string
+	Source     string
 }
 
 type Severity string

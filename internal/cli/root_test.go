@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/load"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/pipeline"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/validate"
@@ -117,6 +118,89 @@ func TestRuntimeFailureMapsToDistinctExitCodeAndStderr(t *testing.T) {
 		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeRuntimeFailure, exitCode)
 	}
 	assertOutput(t, stdout, stderr, "", "runtime exploded\n")
+}
+
+func TestCommandsWorkWithConfigFlagAndFilesystemLoader(t *testing.T) {
+	t.Parallel()
+
+	configPath := filepath.Join("testdata", "config.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader {
+		return load.FSAppLoader{ConfigPath: path}
+	}
+	validator := validatorWith(listValidatedApp(), warningOnlyReport(), nil)
+	tests := []struct {
+		name       string
+		args       []string
+		wantCode   int
+		wantStdout string
+	}{
+		{
+			name:       "validate",
+			args:       []string{"validate", "--config", configPath},
+			wantCode:   0,
+			wantStdout: "{\"diagnostics\":[{\"code\":\"FBW01\",\"severity\":\"warning\",\"message\":\"warning only\",\"path\":\"module.stub\"}]}\n",
+		},
+		{
+			name:       "list reports",
+			args:       []string{"list", "reports", "--config", configPath},
+			wantCode:   0,
+			wantStdout: readGolden(t, "list_reports_output.golden"),
+		},
+		{
+			name:       "generate json",
+			args:       []string{"generate", "json", "--config", configPath},
+			wantCode:   0,
+			wantStdout: readGolden(t, "generate_json_output.golden"),
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			var out bytes.Buffer
+			var errOut bytes.Buffer
+			exitCode := ExecuteWithFactory(tc.args, &out, &errOut, loaderFactory, validator)
+			if exitCode != tc.wantCode {
+				t.Fatalf("expected exit code %d, got %d", tc.wantCode, exitCode)
+			}
+			assertOutput(t, out.String(), errOut.String(), tc.wantStdout, "")
+		})
+	}
+}
+
+func TestFilesystemLoaderDeterministicOutputAcrossRuns(t *testing.T) {
+	t.Parallel()
+
+	configPath := filepath.Join("testdata", "config.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader {
+		return load.FSAppLoader{ConfigPath: path}
+	}
+	validator := validatorWith(listValidatedApp(), warningOnlyReport(), nil)
+
+	var out1 bytes.Buffer
+	var err1 bytes.Buffer
+	code1 := ExecuteWithFactory([]string{"list", "reports", "--config", configPath}, &out1, &err1, loaderFactory, validator)
+	if code1 != 0 {
+		t.Fatalf("expected first exit code 0, got %d", code1)
+	}
+	if err1.String() != "" {
+		t.Fatalf("expected empty first stderr, got %q", err1.String())
+	}
+
+	var out2 bytes.Buffer
+	var err2 bytes.Buffer
+	code2 := ExecuteWithFactory([]string{"list", "reports", "--config", configPath}, &out2, &err2, loaderFactory, validator)
+	if code2 != 0 {
+		t.Fatalf("expected second exit code 0, got %d", code2)
+	}
+	if err2.String() != "" {
+		t.Fatalf("expected empty second stderr, got %q", err2.String())
+	}
+
+	if out1.String() != out2.String() {
+		t.Fatalf("non-deterministic stdout\nfirst: %q\nsecond: %q", out1.String(), out2.String())
+	}
 }
 
 func TestCanonicalOrderingFromDifferentInputOrdersProducesIdenticalOutput(t *testing.T) {

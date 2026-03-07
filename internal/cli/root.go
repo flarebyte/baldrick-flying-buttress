@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"io"
 
@@ -11,22 +12,40 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const defaultConfigPath = "testdata/app.raw.json"
+
+type LoaderFactory func(configPath string) pipeline.AppLoader
+
 func NewRootCmd(loader pipeline.AppLoader, validator pipeline.AppValidator) *cobra.Command {
+	return NewRootCmdWithFactory(func(string) pipeline.AppLoader {
+		return loader
+	}, validator)
+}
+
+func NewRootCmdWithFactory(loaderFactory LoaderFactory, validator pipeline.AppValidator) *cobra.Command {
+	var configPath string
 	cmd := &cobra.Command{
 		Use:           "flyb",
 		Short:         "Baldrick Flying Buttress CLI",
 		SilenceErrors: true,
 		SilenceUsage:  true,
 	}
+	cmd.PersistentFlags().StringVar(&configPath, "config", defaultConfigPath, "Path to raw app config file")
 
-	cmd.AddCommand(newValidateCmd(loader, validator))
-	cmd.AddCommand(newListCmd(loader, validator))
-	cmd.AddCommand(newGenerateCmd(loader, validator))
+	cmd.AddCommand(newValidateCmd(loaderFactory, validator, &configPath))
+	cmd.AddCommand(newListCmd(loaderFactory, validator, &configPath))
+	cmd.AddCommand(newGenerateCmd(loaderFactory, validator, &configPath))
 	return cmd
 }
 
 func Execute(args []string, out io.Writer, errOut io.Writer, loader pipeline.AppLoader, validator pipeline.AppValidator) int {
-	cmd := NewRootCmd(loader, validator)
+	return ExecuteWithFactory(args, out, errOut, func(string) pipeline.AppLoader {
+		return loader
+	}, validator)
+}
+
+func ExecuteWithFactory(args []string, out io.Writer, errOut io.Writer, loaderFactory LoaderFactory, validator pipeline.AppValidator) int {
+	cmd := NewRootCmdWithFactory(loaderFactory, validator)
 	cmd.SetOut(out)
 	cmd.SetErr(errOut)
 	cmd.SetArgs(args)
@@ -39,52 +58,63 @@ func Execute(args []string, out io.Writer, errOut io.Writer, loader pipeline.App
 	return exec.ExitCode()
 }
 
-func newValidateCmd(loader pipeline.AppLoader, validator pipeline.AppValidator) *cobra.Command {
+func newValidateCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "validate",
 		Short: "Validate configuration",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return pipeline.Run(loader, validator, validateAction{out: cmd.OutOrStdout()})
+			return runWithConfig(loaderFactory, validator, configPath, validateAction{out: cmd.OutOrStdout()})
 		},
 	}
 }
 
-func newListCmd(loader pipeline.AppLoader, validator pipeline.AppValidator) *cobra.Command {
+func newListCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List entities",
 	}
-	cmd.AddCommand(newListReportsCmd(loader, validator))
+	cmd.AddCommand(newListReportsCmd(loaderFactory, validator, configPath))
 	return cmd
 }
 
-func newListReportsCmd(loader pipeline.AppLoader, validator pipeline.AppValidator) *cobra.Command {
+func newListReportsCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "reports",
 		Short: "List reports",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return pipeline.Run(loader, validator, listReportsAction{out: cmd.OutOrStdout()})
+			return runWithConfig(loaderFactory, validator, configPath, listReportsAction{out: cmd.OutOrStdout()})
 		},
 	}
 }
 
-func newGenerateCmd(loader pipeline.AppLoader, validator pipeline.AppValidator) *cobra.Command {
+func newGenerateCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "generate",
 		Short: "Generate artifacts",
 	}
-	cmd.AddCommand(newGenerateJSONCmd(loader, validator))
+	cmd.AddCommand(newGenerateJSONCmd(loaderFactory, validator, configPath))
 	return cmd
 }
 
-func newGenerateJSONCmd(loader pipeline.AppLoader, validator pipeline.AppValidator) *cobra.Command {
+func newGenerateJSONCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "json",
 		Short: "Generate JSON",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return pipeline.Run(loader, validator, generateJSONAction{out: cmd.OutOrStdout()})
+			return runWithConfig(loaderFactory, validator, configPath, generateJSONAction{out: cmd.OutOrStdout()})
 		},
 	}
+}
+
+func runWithConfig(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string, action pipeline.CommandAction) error {
+	if loaderFactory == nil {
+		return errors.New("loader factory is required")
+	}
+	if configPath == nil {
+		return errors.New("config path is required")
+	}
+	loader := loaderFactory(*configPath)
+	return pipeline.Run(loader, validator, action)
 }
 
 type validateAction struct {

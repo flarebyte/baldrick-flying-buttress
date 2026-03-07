@@ -8,7 +8,8 @@ type StubAppValidator struct{}
 
 func (StubAppLoader) Load() (domain.RawApp, error) {
 	return domain.RawApp{
-		Source: "in-memory-stub",
+		ConfigPath: "in-memory-stub",
+		Source:     "in-memory-stub",
 	}, nil
 }
 
