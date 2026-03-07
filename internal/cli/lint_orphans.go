@@ -7,8 +7,6 @@ import (
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/orphans"
-	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
-	clioutput "github.com/flarebyte/baldrick-flying-buttress/internal/output"
 )
 
 const defaultOrphanDirection = orphans.DirectionEither
@@ -21,15 +19,7 @@ type lintOrphansAction struct {
 
 func (a lintOrphansAction) Execute(validated domain.ValidatedApp, report domain.ValidationReport) error {
 	_ = report
-	diagnostics := a.diagnostics(validated)
-	lintReport := domain.ValidationReport{Diagnostics: diagnostics}
-	if err := clioutput.EmitDiagnostics(a.out, lintReport); err != nil {
-		return err
-	}
-	if lintReport.HasErrors() {
-		return outcome.ValidationBlockedError()
-	}
-	return nil
+	return emitDiagnosticsOutcome(a.out, a.diagnostics(validated))
 }
 
 func (lintOrphansAction) AllowOnValidationErrors() bool {
@@ -69,16 +59,9 @@ func resolveLintOrphansQuery(subjectLabel, edgeLabel, counterpartLabel, directio
 	if err := query.Validate(); err != nil {
 		return orphans.Query{}, "", err
 	}
-
-	var diagSeverity domain.Severity
-	switch strings.TrimSpace(severity) {
-	case "", string(domain.SeverityWarning):
-		diagSeverity = domain.SeverityWarning
-	case string(domain.SeverityError):
-		diagSeverity = domain.SeverityError
-	default:
-		return orphans.Query{}, "", fmt.Errorf("invalid severity: %s", severity)
+	diagSeverity, err := resolveSeverity(severity)
+	if err != nil {
+		return orphans.Query{}, "", err
 	}
-
 	return query, diagSeverity, nil
 }

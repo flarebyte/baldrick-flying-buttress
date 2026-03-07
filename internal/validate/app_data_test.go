@@ -7,6 +7,36 @@ import (
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 )
 
+type diagExpectation struct {
+	code string
+	path string
+}
+
+func assertHasDiagnostics(t *testing.T, diagnostics []domain.Diagnostic, want []diagExpectation, label string) {
+	t.Helper()
+	for _, item := range want {
+		found := false
+		for _, d := range diagnostics {
+			if d.Code == item.code && d.Path == item.path {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Fatalf("expected %s diagnostic %s at %s, got %#v", label, item.code, item.path, diagnostics)
+		}
+	}
+}
+
+func validateRaw(t *testing.T, raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport) {
+	t.Helper()
+	app, report, err := AppDataValidator{}.Validate(raw)
+	if err != nil {
+		t.Fatalf("validate failed: %v", err)
+	}
+	return app, report
+}
+
 func TestAppDataValidatorRunsSubstepsInOrder(t *testing.T) {
 	t.Parallel()
 
@@ -96,16 +126,7 @@ func TestAppDataValidatorSchemaDiagnostics(t *testing.T) {
 			if len(report.Diagnostics) != tc.wantCount {
 				t.Fatalf("diagnostic count mismatch: got %d want %d", len(report.Diagnostics), tc.wantCount)
 			}
-			found := false
-			for _, d := range report.Diagnostics {
-				if d.Code == tc.wantCode && d.Path == tc.wantPath {
-					found = true
-					break
-				}
-			}
-			if !found {
-				t.Fatalf("expected diagnostic %s at %s, got %#v", tc.wantCode, tc.wantPath, report.Diagnostics)
-			}
+			assertHasDiagnostics(t, report.Diagnostics, []diagExpectation{{code: tc.wantCode, path: tc.wantPath}}, "schema")
 		})
 	}
 }
@@ -127,15 +148,9 @@ func TestAppDataValidatorRegistryDiagnostics(t *testing.T) {
 		}},
 	}
 
-	_, report, err := AppDataValidator{}.Validate(raw)
-	if err != nil {
-		t.Fatalf("validate failed: %v", err)
-	}
+	_, report := validateRaw(t, raw)
 
-	want := []struct {
-		code string
-		path string
-	}{
+	want := []diagExpectation{
 		{code: "FBR000", path: "argumentRegistry.arguments[name=\"dup\"]"},
 		{code: "FBR001", path: "argumentRegistry.arguments[0].name"},
 		{code: "FBR002", path: "argumentRegistry.arguments[0].valueType"},
@@ -145,18 +160,7 @@ func TestAppDataValidatorRegistryDiagnostics(t *testing.T) {
 		{code: "FBR006", path: "argumentRegistry.arguments[name=\"mode\"].defaultValue"},
 		{code: "FBR007", path: "argumentRegistry.arguments[name=\"mode\"].allowedValues"},
 	}
-	for _, item := range want {
-		found := false
-		for _, d := range report.Diagnostics {
-			if d.Code == item.code && d.Path == item.path {
-				found = true
-				break
-			}
-		}
-		if !found {
-			t.Fatalf("expected registry diagnostic %s at %s, got %#v", item.code, item.path, report.Diagnostics)
-		}
-	}
+	assertHasDiagnostics(t, report.Diagnostics, want, "registry")
 }
 
 func TestAppDataValidatorRegistryNormalizedOrder(t *testing.T) {
@@ -173,10 +177,7 @@ func TestAppDataValidatorRegistryNormalizedOrder(t *testing.T) {
 		}},
 	}
 
-	app, _, err := AppDataValidator{}.Validate(raw)
-	if err != nil {
-		t.Fatalf("validate failed: %v", err)
-	}
+	app, _ := validateRaw(t, raw)
 	if len(app.Registry.Arguments) != 2 {
 		t.Fatalf("expected 2 arguments, got %d", len(app.Registry.Arguments))
 	}
@@ -217,15 +218,9 @@ func TestAppDataValidatorConfiguredArgumentsDiagnostics(t *testing.T) {
 		}},
 	}
 
-	_, report, err := AppDataValidator{}.Validate(raw)
-	if err != nil {
-		t.Fatalf("validate failed: %v", err)
-	}
+	_, report := validateRaw(t, raw)
 
-	want := []struct {
-		code string
-		path string
-	}{
+	want := []diagExpectation{
 		{code: "FBC001", path: "reports[0].sections[0].arguments[3]"},
 		{code: "FBC001", path: "reports[0].sections[0].arguments[4]"},
 		{code: "FBC001", path: "reports[0].sections[0].arguments[5]"},
@@ -235,18 +230,7 @@ func TestAppDataValidatorConfiguredArgumentsDiagnostics(t *testing.T) {
 		{code: "FBC004", path: "notes[0].arguments[1]"},
 		{code: "FBC004", path: "reports[0].sections[0].arguments[2]"},
 	}
-	for _, item := range want {
-		found := false
-		for _, d := range report.Diagnostics {
-			if d.Code == item.code && d.Path == item.path {
-				found = true
-				break
-			}
-		}
-		if !found {
-			t.Fatalf("expected configured-args diagnostic %s at %s, got %#v", item.code, item.path, report.Diagnostics)
-		}
-	}
+	assertHasDiagnostics(t, report.Diagnostics, want, "configured-args")
 }
 
 func TestAppDataValidatorConfiguredArgumentsContextFields(t *testing.T) {

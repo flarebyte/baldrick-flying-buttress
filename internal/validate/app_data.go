@@ -9,6 +9,7 @@ import (
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/ordering"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/textutil"
 )
 
 const (
@@ -704,16 +705,7 @@ func containsScope(scopes []domain.ArgumentScope, target domain.ArgumentScope) b
 }
 
 func parseConfiguredArgument(entry string) (string, string, bool) {
-	parts := strings.SplitN(entry, "=", 2)
-	if len(parts) != 2 {
-		return "", "", false
-	}
-	key := strings.TrimSpace(parts[0])
-	value := strings.TrimSpace(parts[1])
-	if key == "" || value == "" {
-		return "", "", false
-	}
-	return key, value, true
+	return textutil.ParseKeyValue(entry)
 }
 
 func valueMatchesType(value string, def domain.ArgumentDefinition) bool {

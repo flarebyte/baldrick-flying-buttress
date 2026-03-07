@@ -8,8 +8,6 @@ import (
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/ordering"
-	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
-	clioutput "github.com/flarebyte/baldrick-flying-buttress/internal/output"
 )
 
 const (
@@ -37,15 +35,7 @@ type lintNamesAction struct {
 
 func (a lintNamesAction) Execute(validated domain.ValidatedApp, report domain.ValidationReport) error {
 	_ = report
-	diagnostics := lintNames(validated, a.prefix, a.policy)
-	lintReport := domain.ValidationReport{Diagnostics: diagnostics}
-	if err := clioutput.EmitDiagnostics(a.out, lintReport); err != nil {
-		return err
-	}
-	if lintReport.HasErrors() {
-		return outcome.ValidationBlockedError()
-	}
-	return nil
+	return emitDiagnosticsOutcome(a.out, lintNames(validated, a.prefix, a.policy))
 }
 
 func (lintNamesAction) AllowOnValidationErrors() bool {
@@ -53,15 +43,11 @@ func (lintNamesAction) AllowOnValidationErrors() bool {
 }
 
 func resolveLintNamesPolicy(style string, pattern string, severity string) (lintNamesPolicy, error) {
-	pol := lintNamesPolicy{style: style, severity: domain.SeverityWarning}
-	switch severity {
-	case "warning", "":
-		pol.severity = domain.SeverityWarning
-	case "error":
-		pol.severity = domain.SeverityError
-	default:
-		return lintNamesPolicy{}, fmt.Errorf("invalid severity: %s", severity)
+	resolvedSeverity, err := resolveSeverity(severity)
+	if err != nil {
+		return lintNamesPolicy{}, err
 	}
+	pol := lintNamesPolicy{style: style, severity: resolvedSeverity}
 
 	switch style {
 	case lintStyleDot, "":

@@ -81,6 +81,25 @@ function makeTempFixtureWithFiles(sourcePath: string, relativePaths: string[]) {
   return fixture;
 }
 
+function runGenerateMarkdown(fixtureConfigPath: string) {
+  return runFlyb(['generate', 'markdown', '--config', fixtureConfigPath]);
+}
+
+function assertGenerateMarkdownOutput(
+  fixtureDir: string,
+  reportPath: string,
+  goldenName: string,
+) {
+  const got = runGenerateMarkdown(join(fixtureDir, 'config.raw.json'));
+  const want = readGolden(goldenName);
+  const gotOutput = readFileSync(join(fixtureDir, 'out', reportPath));
+
+  expect(got.exitCode).toBe(0);
+  expect(bytesHex(got.stdout)).toBe('');
+  expect(bytesHex(got.stderr)).toBe('');
+  expect(bytesHex(gotOutput)).toBe(bytesHex(want));
+}
+
 test('flyb validate stdout matches golden', () => {
   const got = runFlyb(['validate', '--config', fixturePath]);
   const wantStdout = readGolden('validate.stdout.golden');
@@ -197,21 +216,11 @@ test('flyb generate markdown renders graph sections', () => {
 test('flyb generate markdown supports explicit mermaid renderer', () => {
   const fixture = makeTempFixture(markdownRendererExplicitFixturePath);
   try {
-    const got = runFlyb([
-      'generate',
-      'markdown',
-      '--config',
-      fixture.configPath,
-    ]);
-    const want = readGolden('generate-markdown-renderer-explicit.golden');
-    const gotOutput = readFileSync(
-      join(fixture.dir, 'out', 'renderer-explicit.md'),
+    assertGenerateMarkdownOutput(
+      fixture.dir,
+      'renderer-explicit.md',
+      'generate-markdown-renderer-explicit.golden',
     );
-
-    expect(got.exitCode).toBe(0);
-    expect(bytesHex(got.stdout)).toBe('');
-    expect(bytesHex(got.stderr)).toBe('');
-    expect(bytesHex(gotOutput)).toBe(bytesHex(want));
   } finally {
     rmSync(fixture.dir, { recursive: true, force: true });
   }
@@ -220,21 +229,11 @@ test('flyb generate markdown supports explicit mermaid renderer', () => {
 test('flyb generate markdown renders orphan sections', () => {
   const fixture = makeTempFixture(markdownOrphansFixturePath);
   try {
-    const got = runFlyb([
-      'generate',
-      'markdown',
-      '--config',
-      fixture.configPath,
-    ]);
-    const want = readGolden('generate-markdown-orphans.golden');
-    const gotOutput = readFileSync(
-      join(fixture.dir, 'out', 'orphans-subject.md'),
+    assertGenerateMarkdownOutput(
+      fixture.dir,
+      'orphans-subject.md',
+      'generate-markdown-orphans.golden',
     );
-
-    expect(got.exitCode).toBe(0);
-    expect(bytesHex(got.stdout)).toBe('');
-    expect(bytesHex(got.stderr)).toBe('');
-    expect(bytesHex(gotOutput)).toBe(bytesHex(want));
   } finally {
     rmSync(fixture.dir, { recursive: true, force: true });
   }
@@ -247,19 +246,11 @@ test('flyb generate markdown renders file-backed sections', () => {
     'fixtures/flow.mmd',
   ]);
   try {
-    const got = runFlyb([
-      'generate',
-      'markdown',
-      '--config',
-      fixture.configPath,
-    ]);
-    const want = readGolden('generate-markdown-file.golden');
-    const gotOutput = readFileSync(join(fixture.dir, 'out', 'file.md'));
-
-    expect(got.exitCode).toBe(0);
-    expect(bytesHex(got.stdout)).toBe('');
-    expect(bytesHex(got.stderr)).toBe('');
-    expect(bytesHex(gotOutput)).toBe(bytesHex(want));
+    assertGenerateMarkdownOutput(
+      fixture.dir,
+      'file.md',
+      'generate-markdown-file.golden',
+    );
   } finally {
     rmSync(fixture.dir, { recursive: true, force: true });
   }
@@ -272,19 +263,9 @@ test('flyb generate markdown file-backed output is deterministic across runs', (
     'fixtures/flow.mmd',
   ]);
   try {
-    const first = runFlyb([
-      'generate',
-      'markdown',
-      '--config',
-      fixture.configPath,
-    ]);
+    const first = runGenerateMarkdown(fixture.configPath);
     const firstOutput = readFileSync(join(fixture.dir, 'out', 'file.md'));
-    const second = runFlyb([
-      'generate',
-      'markdown',
-      '--config',
-      fixture.configPath,
-    ]);
+    const second = runGenerateMarkdown(fixture.configPath);
     const secondOutput = readFileSync(join(fixture.dir, 'out', 'file.md'));
 
     expect(second.exitCode).toBe(first.exitCode);

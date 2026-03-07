@@ -6,6 +6,7 @@ import (
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/ordering"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/textutil"
 )
 
 type Shape string
@@ -452,30 +453,9 @@ func hasSubject(subject map[string]domain.Note, id string) bool {
 }
 
 func parseArg(entry string) (string, string, bool) {
-	parts := strings.SplitN(entry, "=", 2)
-	if len(parts) != 2 {
-		return "", "", false
-	}
-	k := strings.TrimSpace(parts[0])
-	v := strings.TrimSpace(parts[1])
-	if k == "" || v == "" {
-		return "", "", false
-	}
-	return k, v, true
+	return textutil.ParseKeyValue(entry)
 }
 
 func splitCSV(input string) []string {
-	if strings.TrimSpace(input) == "" {
-		return []string{}
-	}
-	items := strings.Split(input, ",")
-	out := make([]string, 0, len(items))
-	for _, item := range items {
-		value := strings.TrimSpace(item)
-		if value == "" {
-			continue
-		}
-		out = append(out, value)
-	}
-	return out
+	return textutil.SplitCSV(input)
 }

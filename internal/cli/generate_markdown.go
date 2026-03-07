@@ -16,6 +16,7 @@ import (
 	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
 	clioutput "github.com/flarebyte/baldrick-flying-buttress/internal/output"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/renderer"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/textutil"
 )
 
 type generateMarkdownAction struct {
@@ -283,32 +284,11 @@ func renderOrphanRows(notes []domain.Note) string {
 }
 
 func parseKVArg(entry string) (string, string, bool) {
-	parts := strings.SplitN(entry, "=", 2)
-	if len(parts) != 2 {
-		return "", "", false
-	}
-	key := strings.TrimSpace(parts[0])
-	value := strings.TrimSpace(parts[1])
-	if key == "" || value == "" {
-		return "", "", false
-	}
-	return key, value, true
+	return textutil.ParseKeyValue(entry)
 }
 
 func splitCSV(input string) []string {
-	if strings.TrimSpace(input) == "" {
-		return []string{}
-	}
-	items := strings.Split(input, ",")
-	out := make([]string, 0, len(items))
-	for _, item := range items {
-		v := strings.TrimSpace(item)
-		if v == "" {
-			continue
-		}
-		out = append(out, v)
-	}
-	return out
+	return textutil.SplitCSV(input)
 }
 
 func escapeMarkdownCell(input string) string {
@@ -542,17 +522,5 @@ func isCodeExt(ext string) bool {
 }
 
 func splitArgLines(input string) []string {
-	if strings.TrimSpace(input) == "" {
-		return []string{}
-	}
-	lines := strings.Split(input, "\n")
-	out := make([]string, 0, len(lines))
-	for _, line := range lines {
-		v := strings.TrimSpace(line)
-		if v == "" {
-			continue
-		}
-		out = append(out, v)
-	}
-	return ordering.Strings(out)
+	return ordering.Strings(textutil.SplitNonEmptyLines(input))
 }

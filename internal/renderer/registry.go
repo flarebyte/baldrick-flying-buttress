@@ -7,6 +7,7 @@ import (
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/graph"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/ordering"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/textutil"
 )
 
 type Args struct {
@@ -115,30 +116,9 @@ func ResolveArgs(app domain.ValidatedApp, h3 domain.MarkdownH3Section, noteByID 
 }
 
 func parseArg(entry string) (string, string, bool) {
-	parts := strings.SplitN(entry, "=", 2)
-	if len(parts) != 2 {
-		return "", "", false
-	}
-	k := strings.TrimSpace(parts[0])
-	v := strings.TrimSpace(parts[1])
-	if k == "" || v == "" {
-		return "", "", false
-	}
-	return k, v, true
+	return textutil.ParseKeyValue(entry)
 }
 
 func splitArgs(csv string) []string {
-	if strings.TrimSpace(csv) == "" {
-		return []string{}
-	}
-	parts := strings.Split(csv, "\n")
-	out := make([]string, 0, len(parts))
-	for _, part := range parts {
-		v := strings.TrimSpace(part)
-		if v == "" {
-			continue
-		}
-		out = append(out, v)
-	}
-	return out
+	return textutil.SplitNonEmptyLines(csv)
 }
