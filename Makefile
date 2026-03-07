@@ -3,7 +3,7 @@
 ## - No dynamic variables or shell logic
 ## - Real logic lives in scripts (TypeScript/Bun, bash)
 
-.PHONY: lint format test cov build typecheck e2e release clean complexity sec dup help
+.PHONY: lint format test cov build typecheck e2e release clean complexity sec dup perf-smoke test-race help
 
 BIOME := npx @biomejs/biome
 BUN := bun
@@ -42,6 +42,12 @@ e2e:
 	go build -o .e2e-bin/flyb ./cmd/flyb
 	bun test script/e2e
 
+perf-smoke:
+	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache $(GO) test -run PerfSmoke ./internal/cli
+
+test-race:
+	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache $(GO) test -race ./...
+
 release: build
 	$(BUN) run release-go.ts
 
@@ -68,6 +74,8 @@ help:
 	@printf "  build      Compile TypeScript to dist/.\n"
 	@printf "  typecheck  Run TypeScript type-check only.\n"
 	@printf "  e2e        Run Bun-powered end-to-end tests.\n"
+	@printf "  perf-smoke Run deterministic moderate-size Go smoke tests.\n"
+	@printf "  test-race  Run Go tests with the race detector.\n"
 	@printf "  release    Prepare release artifacts (depends on build).\n"
 	@printf "  clean      Remove dist/ artifacts.\n"
 	@printf "  complexity Show top TypeScript files by complexity via scc.\n"
