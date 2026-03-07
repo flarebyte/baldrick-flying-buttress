@@ -9,7 +9,7 @@ import (
 func TestFormatDiagnosticMessageDeterministicOrder(t *testing.T) {
 	t.Parallel()
 
-	got := formatDiagnosticMessage("base", domain.Diagnostic{
+	got := domain.FormatDiagnosticMessage("base", domain.Diagnostic{
 		SectionTitle:     "S",
 		ReportTitle:      "R",
 		ArgumentName:     "arg",

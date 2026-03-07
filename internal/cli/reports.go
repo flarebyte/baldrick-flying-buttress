@@ -61,37 +61,17 @@ func emitReportsTable(w io.Writer, reports []domain.Report) error {
 		}
 		rows = append(rows, row)
 	}
-	if _, err := io.WriteString(w, formatReportTableRow(headers, widths)); err != nil {
+	if _, err := io.WriteString(w, formatAlignedTableRow(headers, widths)); err != nil {
 		return err
 	}
 	divider := []string{strings.Repeat("-", widths[0]), strings.Repeat("-", widths[1])}
-	if _, err := io.WriteString(w, formatReportTableRow(divider, widths)); err != nil {
+	if _, err := io.WriteString(w, formatAlignedTableRow(divider, widths)); err != nil {
 		return err
 	}
 	for _, row := range rows {
-		if _, err := io.WriteString(w, formatReportTableRow(row, widths)); err != nil {
+		if _, err := io.WriteString(w, formatAlignedTableRow(row, widths)); err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func formatReportTableRow(cells []string, widths []int) string {
-	var b strings.Builder
-	for i := range widths {
-		if i > 0 {
-			b.WriteString(" | ")
-		}
-		cell := ""
-		if i < len(cells) {
-			cell = cells[i]
-		}
-		b.WriteString(cell)
-		padding := widths[i] - len(cell)
-		if padding > 0 {
-			b.WriteString(strings.Repeat(" ", padding))
-		}
-	}
-	b.WriteByte('\n')
-	return b.String()
 }

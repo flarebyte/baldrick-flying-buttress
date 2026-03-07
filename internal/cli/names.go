@@ -168,44 +168,24 @@ func emitAlignedTable(w io.Writer, title string, headers []string, rows [][]stri
 	if _, err := io.WriteString(w, title+"\n"); err != nil {
 		return err
 	}
-	if _, err := io.WriteString(w, formatAlignedRow(headers, widths)); err != nil {
+	if _, err := io.WriteString(w, formatAlignedTableRow(headers, widths)); err != nil {
 		return err
 	}
 	dividerCells := make([]string, len(headers))
 	for i := range widths {
 		dividerCells[i] = strings.Repeat("-", widths[i])
 	}
-	if _, err := io.WriteString(w, formatAlignedRow(dividerCells, widths)); err != nil {
+	if _, err := io.WriteString(w, formatAlignedTableRow(dividerCells, widths)); err != nil {
 		return err
 	}
 	for _, row := range rows {
 		cells := make([]string, len(headers))
 		copy(cells, row)
-		if _, err := io.WriteString(w, formatAlignedRow(cells, widths)); err != nil {
+		if _, err := io.WriteString(w, formatAlignedTableRow(cells, widths)); err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func formatAlignedRow(cells []string, widths []int) string {
-	var b strings.Builder
-	for i := range widths {
-		if i > 0 {
-			b.WriteString(" | ")
-		}
-		cell := ""
-		if i < len(cells) {
-			cell = cells[i]
-		}
-		b.WriteString(cell)
-		padding := widths[i] - len(cell)
-		if padding > 0 {
-			b.WriteString(strings.Repeat(" ", padding))
-		}
-	}
-	b.WriteByte('\n')
-	return b.String()
 }
 
 func joinSortedLabels(csv string) string {
