@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -52,11 +51,7 @@ func newValidateCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return pipeline.Run(loader, validator, func(validated app.ValidatedApp, report diagnostics.Report) error {
 				_ = validated
-				payload, err := json.Marshal(report)
-				if err != nil {
-					return err
-				}
-				if _, err := cmd.OutOrStdout().Write(append(payload, '\n')); err != nil {
+				if err := emitDiagnostics(cmd.OutOrStdout(), report); err != nil {
 					return err
 				}
 				if report.HasErrors() {
@@ -86,15 +81,7 @@ func newListReportsCmd(loader pipeline.Loader, validator pipeline.Validator) *co
 				if report.HasErrors() {
 					return errValidationFailed
 				}
-				out := listReportsOutput{Reports: make([]listReport, 0, len(validated.Reports))}
-				for _, r := range validated.Reports {
-					out.Reports = append(out.Reports, listReport{ID: r.ID, Title: r.Title})
-				}
-				payload, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				if _, err := cmd.OutOrStdout().Write(append(payload, '\n')); err != nil {
+				if err := emitReportList(cmd.OutOrStdout(), validated); err != nil {
 					return err
 				}
 				return nil
@@ -121,21 +108,7 @@ func newGenerateJSONCmd(loader pipeline.Loader, validator pipeline.Validator) *c
 				if report.HasErrors() {
 					return errValidationFailed
 				}
-				out := generateJSONOutput{
-					Notes:         make([]generateNote, 0, len(validated.Notes)),
-					Relationships: make([]generateRelationship, 0, len(validated.Relationships)),
-				}
-				for _, n := range validated.Notes {
-					out.Notes = append(out.Notes, generateNote{ID: n.ID, Label: n.Label})
-				}
-				for _, r := range validated.Relationships {
-					out.Relationships = append(out.Relationships, generateRelationship{From: r.FromID, To: r.ToID, Label: r.Label})
-				}
-				payload, err := json.Marshal(out)
-				if err != nil {
-					return err
-				}
-				if _, err := cmd.OutOrStdout().Write(append(payload, '\n')); err != nil {
+				if err := emitGraphJSON(cmd.OutOrStdout(), validated); err != nil {
 					return err
 				}
 				return nil
