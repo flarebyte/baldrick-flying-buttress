@@ -1,0 +1,83 @@
+package validate
+
+import (
+	"fmt"
+
+	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+)
+
+func newDiagnostic(source, code, message, location string) domain.Diagnostic {
+	return domain.Diagnostic{
+		Code:     code,
+		Severity: domain.SeverityError,
+		Source:   source,
+		Message:  message,
+		Location: location,
+		Path:     location,
+	}
+}
+
+func newArgumentDiagnostic(code, message, location, reportTitle, sectionTitle, noteName, argumentName string) domain.Diagnostic {
+	d := newDiagnostic(configArgsValidationSource, code, message, location)
+	d.ReportTitle = reportTitle
+	d.SectionTitle = sectionTitle
+	d.NoteName = noteName
+	d.ArgumentName = argumentName
+	return d
+}
+
+func newLabelReferenceDiagnostic(code, message, location, reportTitle, sectionTitle, noteName, argumentName, labelValue string) domain.Diagnostic {
+	d := newDiagnostic(labelReferenceValidationSource, code, message, location)
+	d.Severity = domain.SeverityWarning
+	d.ReportTitle = reportTitle
+	d.SectionTitle = sectionTitle
+	d.NoteName = noteName
+	d.ArgumentName = argumentName
+	d.LabelValue = labelValue
+	return d
+}
+
+func newGraphDiagnostic(policy domain.PolicySeverity, source, code, message, location, reportTitle, sectionTitle, noteName, relationshipFrom, relationshipTo string) domain.Diagnostic {
+	if policy == domain.PolicySeverityIgnore {
+		return domain.Diagnostic{}
+	}
+	d := newDiagnostic(source, code, message, location)
+	if policy == domain.PolicySeverityWarning {
+		d.Severity = domain.SeverityWarning
+	} else {
+		d.Severity = domain.SeverityError
+	}
+	d.ReportTitle = reportTitle
+	d.SectionTitle = sectionTitle
+	d.NoteName = noteName
+	d.RelationshipFrom = relationshipFrom
+	d.RelationshipTo = relationshipTo
+	return d
+}
+
+func reportLocation(i int, field string) string {
+	return fmt.Sprintf("reports[%d].%s", i, field)
+}
+
+func reportSectionLocation(reportIndex, sectionIndex int, field string) string {
+	return fmt.Sprintf("reports[%d].sections[%d].%s", reportIndex, sectionIndex, field)
+}
+
+func noteLocation(i int, field string) string {
+	return fmt.Sprintf("notes[%d].%s", i, field)
+}
+
+func relationshipLocation(i int, field string) string {
+	return fmt.Sprintf("relationships[%d].%s", i, field)
+}
+
+func registryArgLocation(name string, index int) string {
+	if name != "" {
+		return fmt.Sprintf("argumentRegistry.arguments[name=%q]", name)
+	}
+	return fmt.Sprintf("argumentRegistry.arguments[%d]", index)
+}
+
+func registryArgNameLocation(name string) string {
+	return fmt.Sprintf("argumentRegistry.arguments[name=%q]", name)
+}
