@@ -67,7 +67,7 @@ release-check:
 	$(MAKE) perf-smoke
 	$(MAKE) e2e
 
-release: build
+release: release-check build
 	$(BUN) run release-go.ts
 
 clean:
@@ -90,7 +90,7 @@ help:
 	@printf "  format     Format code with Biome and apply safe fixes.\n"
 	@printf "  test       Run unit tests (Node test runner via tsx).\n"
 	@printf "  cov        Run unit tests with coverage report (text-summary + lcov).\n"
-	@printf "  build      Compile TypeScript to dist/.\n"
+	@printf "  build      Build Go release binaries into build/.\n"
 	@printf "  typecheck  Run TypeScript type-check only.\n"
 	@printf "  e2e        Run Bun-powered end-to-end tests.\n"
 	@printf "  perf-smoke Run deterministic moderate-size Go smoke tests.\n"
