@@ -34,6 +34,7 @@ func NewRootCmdWithFactory(loaderFactory LoaderFactory, validator pipeline.AppVa
 
 	cmd.AddCommand(newValidateCmd(loaderFactory, validator, &configPath))
 	cmd.AddCommand(newListCmd(loaderFactory, validator, &configPath))
+	cmd.AddCommand(newLintCmd(loaderFactory, validator, &configPath))
 	cmd.AddCommand(newGenerateCmd(loaderFactory, validator, &configPath))
 	return cmd
 }
@@ -125,6 +126,43 @@ func newGenerateCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator
 		Short: "Generate artifacts",
 	}
 	cmd.AddCommand(newGenerateJSONCmd(loaderFactory, validator, configPath))
+	return cmd
+}
+
+func newLintCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "lint",
+		Short: "Lint entities",
+	}
+	cmd.AddCommand(newLintNamesCmd(loaderFactory, validator, configPath))
+	return cmd
+}
+
+func newLintNamesCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
+	var prefix string
+	var style string
+	var pattern string
+	var severity string
+
+	cmd := &cobra.Command{
+		Use:   "names",
+		Short: "Lint names",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			policy, err := resolveLintNamesPolicy(style, pattern, severity)
+			if err != nil {
+				return err
+			}
+			return runWithConfig(loaderFactory, validator, configPath, lintNamesAction{
+				out:    cmd.OutOrStdout(),
+				prefix: prefix,
+				policy: policy,
+			})
+		},
+	}
+	cmd.Flags().StringVar(&prefix, "prefix", "", "Optional prefix filter")
+	cmd.Flags().StringVar(&style, "style", lintStyleDot, "Style matcher: dot|snake|regex")
+	cmd.Flags().StringVar(&pattern, "pattern", "", "Regex pattern when style=regex")
+	cmd.Flags().StringVar(&severity, "severity", "warning", "Diagnostic severity: warning|error")
 	return cmd
 }
 

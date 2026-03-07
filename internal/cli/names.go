@@ -80,7 +80,7 @@ func filterNames(app domain.ValidatedApp, prefix string, kind string) ([]domain.
 
 	if kind == namesKindAll || kind == namesKindNotes {
 		for _, note := range orderedNotes {
-			if strings.HasPrefix(note.ID, prefix) {
+			if matchesNotePrefix(note.ID, prefix) {
 				notes = append(notes, note)
 			}
 		}
@@ -88,13 +88,24 @@ func filterNames(app domain.ValidatedApp, prefix string, kind string) ([]domain.
 
 	if kind == namesKindAll || kind == namesKindRelationships {
 		for _, relationship := range orderedRelationships {
-			if strings.HasPrefix(relationship.FromID, prefix) || strings.HasPrefix(relationship.ToID, prefix) {
+			if matchesRelationshipPrefix(relationship, prefix) {
 				relationships = append(relationships, relationship)
 			}
 		}
 	}
 
 	return notes, relationships, nil
+}
+
+func matchesNotePrefix(name string, prefix string) bool {
+	return prefix == "" || strings.HasPrefix(name, prefix)
+}
+
+func matchesRelationshipPrefix(relationship domain.Relationship, prefix string) bool {
+	if prefix == "" {
+		return true
+	}
+	return strings.HasPrefix(relationship.FromID, prefix) || strings.HasPrefix(relationship.ToID, prefix)
 }
 
 func emitNamesTable(w io.Writer, notes []domain.Note, relationships []domain.Relationship) error {

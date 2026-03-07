@@ -1,0 +1,27 @@
+{
+  "source": "lint-app",
+  "name": "lint-app",
+  "modules": ["core"],
+  "reports": [
+    {
+      "title": "Lint",
+      "filepath": "reports/lint.md",
+      "sections": [
+        {
+          "title": "Inventory",
+          "notes": ["cli.root", "cli_worker", "badName", "app.db"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    { "name": "cli.root", "title": "CLI Root" },
+    { "name": "cli_worker", "title": "CLI Worker" },
+    { "name": "badName", "title": "Bad" },
+    { "name": "app.db", "title": "DB" }
+  ],
+  "relationships": [
+    { "from": "cli.root", "to": "cli_worker", "label": "depends_on" },
+    { "from": "badName", "to": "app.db", "label": "depends_on" }
+  ]
+}

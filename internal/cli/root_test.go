@@ -173,6 +173,81 @@ func TestListNamesMissingPrefixReturnsRuntimeFailure(t *testing.T) {
 	}
 }
 
+func TestLintNamesDefaultDotStyle(t *testing.T) {
+	t.Parallel()
+
+	configPath := filepath.Join("testdata", "config.lint.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	code, stdout, stderr := runCommandWithFactory([]string{"lint", "names", "--config", configPath}, loaderFactory, validator)
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, readGolden(t, "lint_names_dot_output.golden"), "")
+}
+
+func TestLintNamesSnakeStyle(t *testing.T) {
+	t.Parallel()
+
+	configPath := filepath.Join("testdata", "config.lint.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	code, stdout, stderr := runCommandWithFactory([]string{"lint", "names", "--config", configPath, "--style", "snake"}, loaderFactory, validator)
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, readGolden(t, "lint_names_snake_output.golden"), "")
+}
+
+func TestLintNamesRegexStyle(t *testing.T) {
+	t.Parallel()
+
+	configPath := filepath.Join("testdata", "config.lint.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	code, stdout, stderr := runCommandWithFactory([]string{"lint", "names", "--config", configPath, "--style", "regex", "--pattern", "^cli\\..+$"}, loaderFactory, validator)
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, readGolden(t, "lint_names_regex_output.golden"), "")
+}
+
+func TestLintNamesRegexMissingPatternRuntimeFailure(t *testing.T) {
+	t.Parallel()
+
+	configPath := filepath.Join("testdata", "config.lint.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	code, stdout, stderr := runCommandWithFactory([]string{"lint", "names", "--config", configPath, "--style", "regex"}, loaderFactory, validator)
+	if code != outcome.ExitCodeRuntimeFailure {
+		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeRuntimeFailure, code)
+	}
+	if stdout != "" {
+		t.Fatalf("expected empty stdout, got %q", stdout)
+	}
+	if stderr == "" {
+		t.Fatal("expected stderr")
+	}
+}
+
+func TestLintNamesSeverityErrorProducesBlockingDiagnostics(t *testing.T) {
+	t.Parallel()
+
+	configPath := filepath.Join("testdata", "config.lint.raw.json")
+	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
+	validator := validate.AppDataValidator{}
+
+	code, stdout, stderr := runCommandWithFactory([]string{"lint", "names", "--config", configPath, "--severity", "error"}, loaderFactory, validator)
+	if code != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, code)
+	}
+	assertOutput(t, stdout, stderr, readGolden(t, "lint_names_dot_error_output.golden"), "")
+}
+
 func TestGenerateJSONGoldenOutput(t *testing.T) {
 	t.Parallel()
 
@@ -461,6 +536,7 @@ func TestDeterministicOutputAcrossRuns(t *testing.T) {
 		{name: "validate", args: []string{"validate"}, loader: validate.StubAppLoader{}, validator: validate.StubAppValidator{}, exitCode: 0},
 		{name: "list reports", args: []string{"list", "reports"}, loader: stubLoader(), validator: validatorWith(listValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
 		{name: "list names", args: []string{"list", "names", "--prefix", "cli."}, loader: stubLoader(), validator: validatorWith(listNamesValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
+		{name: "lint names", args: []string{"lint", "names", "--style", "dot"}, loader: stubLoader(), validator: validatorWith(listNamesValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
 		{name: "generate json", args: []string{"generate", "json"}, loader: stubLoader(), validator: validatorWith(listValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
 	}
 
