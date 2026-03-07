@@ -9,20 +9,28 @@ BIOME := npx @biomejs/biome
 BUN := bun
 GO := go
 GOLINT := golangci-lint
+GO_ENV := GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache
+GOLINT_ENV := $(GO_ENV) GOLANGCI_LINT_CACHE=$(PWD)/.golangci-lint-cache
 
 lint:
 	$(BIOME) check
-	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache $(GO) vet ./...
-	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache GOLANGCI_LINT_CACHE=$(PWD)/.golangci-lint-cache $(GOLINT) run
+	$(GO_ENV) $(GO) vet ./...
+	$(GOLINT_ENV) $(GOLINT) run
 
 format:
-	git ls-files '*.go' | xargs gofmt -w
+	find . -type f -name '*.go' \
+		-not -path './.git/*' \
+		-not -path './.gocache/*' \
+		-not -path './.gomodcache/*' \
+		-not -path './.e2e-bin/*' \
+		-not -path './node_modules/*' \
+		-print0 | xargs -0 -r gofmt -w
 	$(BIOME) format --write .
 	$(BIOME) check --unsafe --write
 
 test:
-	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache $(GO) test -coverprofile=coverage.out ./...
-	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache $(GO) tool cover -func=coverage.out
+	$(GO_ENV) $(GO) test -coverprofile=coverage.out ./...
+	$(GO_ENV) $(GO) tool cover -func=coverage.out
 
 cov:
 	npm run test:cov
@@ -32,24 +40,24 @@ build:
 
 build-dev:
 	mkdir -p .e2e-bin
-	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache CGO_ENABLED=0 $(GO) build -o .e2e-bin/flyb ./cmd/flyb
+	$(GO_ENV) CGO_ENABLED=0 $(GO) build -o .e2e-bin/flyb ./cmd/flyb
 
 typecheck:
 	npm run typecheck
 
 e2e:
 	mkdir -p .e2e-bin
-	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache go build -o .e2e-bin/flyb ./cmd/flyb
-	bun test script/e2e
+	$(GO_ENV) $(GO) build -o .e2e-bin/flyb ./cmd/flyb
+	$(BUN) test script/e2e
 
 perf-smoke:
-	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache $(GO) test -run PerfSmoke ./internal/cli
+	$(GO_ENV) $(GO) test -run PerfSmoke ./internal/cli
 
 test-race:
-	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache $(GO) test -race ./...
+	$(GO_ENV) $(GO) test -race ./...
 
 contract-snapshots:
-	GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache $(GO) test -run 'TestContract|TestContractSnapshot' ./internal/...
+	$(GO_ENV) $(GO) test -run 'TestContract|TestContractSnapshot' ./internal/...
 
 release-check:
 	$(MAKE) lint
