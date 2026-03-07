@@ -112,11 +112,7 @@ async function main() {
   const commit = process.env.COMMIT || commitFromGit || 'unknown';
   const currentDate =
     process.env.DATE ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
-
-  // Keep cli.* for compatibility and set internal/buildinfo.* for `thoth version`.
   const ldflags = [
-    `-X ${modulePath}/cli.Version=${version}`,
-    `-X ${modulePath}/cli.Date=${currentDate}`,
     `-X ${modulePath}/internal/buildinfo.Version=${version}`,
     `-X ${modulePath}/internal/buildinfo.Commit=${commit}`,
     `-X ${modulePath}/internal/buildinfo.Date=${currentDate}`,
@@ -150,10 +146,9 @@ async function main() {
     }
 
     const out = path.join('build', `${folderName}-${p.os}-${p.arch}`);
-    await runChecked(
-      ['go', 'build', '-o', out, '-ldflags', ldflags, './cmd/thoth'],
-      { env },
-    );
+    await runChecked(['go', 'build', '-o', out, '-ldflags', ldflags, './cmd/flyb'], {
+      env,
+    });
     builtFiles.push(out);
   }
 

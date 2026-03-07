@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/flarebyte/baldrick-flying-buttress/internal/buildinfo"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/cli"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/load"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/pipeline"
@@ -12,6 +13,10 @@ import (
 )
 
 func main() {
+	_ = buildinfo.Version
+	_ = buildinfo.Commit
+	_ = buildinfo.Date
+
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
