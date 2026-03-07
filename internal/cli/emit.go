@@ -4,15 +4,14 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/flarebyte/baldrick-flying-buttress/internal/app"
-	"github.com/flarebyte/baldrick-flying-buttress/internal/diagnostics"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 )
 
-func emitDiagnostics(out io.Writer, report diagnostics.Report) error {
-	return emitJSON(out, report)
+func emitDiagnostics(out io.Writer, report domain.ValidationReport) error {
+	return emitJSON(out, report.Canonical())
 }
 
-func emitReportList(out io.Writer, validated app.ValidatedApp) error {
+func emitReportList(out io.Writer, validated domain.ValidatedApp) error {
 	payload := listReportsOutput{Reports: make([]listReport, 0, len(validated.Reports))}
 	for _, r := range validated.Reports {
 		payload.Reports = append(payload.Reports, listReport{ID: r.ID, Title: r.Title})
@@ -20,7 +19,7 @@ func emitReportList(out io.Writer, validated app.ValidatedApp) error {
 	return emitJSON(out, payload)
 }
 
-func emitGraphJSON(out io.Writer, validated app.ValidatedApp) error {
+func emitGraphJSON(out io.Writer, validated domain.ValidatedApp) error {
 	payload := generateJSONOutput{
 		Notes:         make([]generateNote, 0, len(validated.Notes)),
 		Relationships: make([]generateRelationship, 0, len(validated.Relationships)),

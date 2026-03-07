@@ -1,22 +1,19 @@
 package validate
 
-import (
-	"github.com/flarebyte/baldrick-flying-buttress/internal/app"
-	"github.com/flarebyte/baldrick-flying-buttress/internal/diagnostics"
-)
+import "github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 
-func LoadStub() (app.RawApp, error) {
-	return app.RawApp{
+func LoadStub() (domain.RawApp, error) {
+	return domain.RawApp{
 		Source: "in-memory-stub",
 	}, nil
 }
 
-func ValidateStub(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) {
+func ValidateStub(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 	_ = raw
-	return app.ValidatedApp{
+	return domain.ValidatedApp{
 			Name:    "stub-app",
 			Modules: []string{"core", "edge"},
-			Reports: []app.Report{
+			Reports: []domain.Report{
 				{
 					ID:    "cpu-overview",
 					Title: "CPU Overview",
@@ -26,7 +23,7 @@ func ValidateStub(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) 
 					Title: "Memory Health",
 				},
 			},
-			Notes: []app.Note{
+			Notes: []domain.Note{
 				{
 					ID:    "n1",
 					Label: "service.api",
@@ -36,24 +33,24 @@ func ValidateStub(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) 
 					Label: "service.db",
 				},
 			},
-			Relationships: []app.Relationship{
+			Relationships: []domain.Relationship{
 				{
 					FromID: "n1",
 					ToID:   "n2",
 					Label:  "depends_on",
 				},
 			},
-		}, diagnostics.Report{
-			Diagnostics: []diagnostics.Diagnostic{
+		}, domain.ValidationReport{
+			Diagnostics: []domain.Diagnostic{
 				{
 					Code:     "FB001",
-					Severity: diagnostics.SeverityWarning,
+					Severity: domain.SeverityWarning,
 					Message:  "stub warning diagnostic",
 					Path:     "module.stub",
 				},
 				{
 					Code:     "FB002",
-					Severity: diagnostics.SeverityError,
+					Severity: domain.SeverityError,
 					Message:  "stub error diagnostic",
 					Path:     "module.stub",
 				},

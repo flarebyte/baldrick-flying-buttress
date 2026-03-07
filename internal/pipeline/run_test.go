@@ -3,36 +3,35 @@ package pipeline
 import (
 	"testing"
 
-	"github.com/flarebyte/baldrick-flying-buttress/internal/app"
-	"github.com/flarebyte/baldrick-flying-buttress/internal/diagnostics"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 )
 
 func TestRunCallsLoadValidateAction(t *testing.T) {
 	t.Parallel()
 
 	var calls []string
-	wantRaw := app.RawApp{Source: "raw-stub"}
-	wantValidated := app.ValidatedApp{Name: "validated", Modules: []string{"core"}}
-	wantReport := diagnostics.Report{Diagnostics: []diagnostics.Diagnostic{{
+	wantRaw := domain.RawApp{Source: "raw-stub"}
+	wantValidated := domain.ValidatedApp{Name: "validated", Modules: []string{"core"}}
+	wantReport := domain.ValidationReport{Diagnostics: []domain.Diagnostic{{
 		Code:     "FBW01",
-		Severity: diagnostics.SeverityWarning,
+		Severity: domain.SeverityWarning,
 		Message:  "warning",
 		Path:     "module.stub",
 	}}}
 
 	err := Run(
-		func() (app.RawApp, error) {
+		func() (domain.RawApp, error) {
 			calls = append(calls, "load")
 			return wantRaw, nil
 		},
-		func(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) {
+		func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 			calls = append(calls, "validate")
 			if raw != wantRaw {
 				t.Fatalf("unexpected raw app: %#v", raw)
 			}
 			return wantValidated, wantReport, nil
 		},
-		func(validated app.ValidatedApp, report diagnostics.Report) error {
+		func(validated domain.ValidatedApp, report domain.ValidationReport) error {
 			calls = append(calls, "action")
 			if validated.Name != wantValidated.Name {
 				t.Fatalf("unexpected app name: %s", validated.Name)

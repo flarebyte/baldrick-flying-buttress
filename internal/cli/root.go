@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/flarebyte/baldrick-flying-buttress/internal/app"
-	"github.com/flarebyte/baldrick-flying-buttress/internal/diagnostics"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/pipeline"
 	"github.com/spf13/cobra"
 )
@@ -49,7 +48,7 @@ func newValidateCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra
 		Use:   "validate",
 		Short: "Validate configuration",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return pipeline.Run(loader, validator, func(validated app.ValidatedApp, report diagnostics.Report) error {
+			return pipeline.Run(loader, validator, func(validated domain.ValidatedApp, report domain.ValidationReport) error {
 				_ = validated
 				if err := emitDiagnostics(cmd.OutOrStdout(), report); err != nil {
 					return err
@@ -77,7 +76,7 @@ func newListReportsCmd(loader pipeline.Loader, validator pipeline.Validator) *co
 		Use:   "reports",
 		Short: "List reports",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return pipeline.Run(loader, validator, func(validated app.ValidatedApp, report diagnostics.Report) error {
+			return pipeline.Run(loader, validator, func(validated domain.ValidatedApp, report domain.ValidationReport) error {
 				if report.HasErrors() {
 					return errValidationFailed
 				}
@@ -104,7 +103,7 @@ func newGenerateJSONCmd(loader pipeline.Loader, validator pipeline.Validator) *c
 		Use:   "json",
 		Short: "Generate JSON",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return pipeline.Run(loader, validator, func(validated app.ValidatedApp, report diagnostics.Report) error {
+			return pipeline.Run(loader, validator, func(validated domain.ValidatedApp, report domain.ValidationReport) error {
 				if report.HasErrors() {
 					return errValidationFailed
 				}

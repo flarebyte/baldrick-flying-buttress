@@ -5,24 +5,23 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/flarebyte/baldrick-flying-buttress/internal/app"
-	"github.com/flarebyte/baldrick-flying-buttress/internal/diagnostics"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/validate"
 )
 
 func TestValidateSuccessWarningsOnly(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (app.RawApp, error) {
-		return app.RawApp{Source: "in-memory-stub"}, nil
+	loader := func() (domain.RawApp, error) {
+		return domain.RawApp{Source: "in-memory-stub"}, nil
 	}
-	validator := func(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) {
+	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 		_ = raw
-		return app.ValidatedApp{Name: "stub-app", Modules: []string{"core", "edge"}}, diagnostics.Report{
-			Diagnostics: []diagnostics.Diagnostic{
+		return domain.ValidatedApp{Name: "stub-app", Modules: []string{"core", "edge"}}, domain.ValidationReport{
+			Diagnostics: []domain.Diagnostic{
 				{
 					Code:     "FBW01",
-					Severity: diagnostics.SeverityWarning,
+					Severity: domain.SeverityWarning,
 					Message:  "warning only",
 					Path:     "module.stub",
 				},
@@ -48,16 +47,16 @@ func TestValidateSuccessWarningsOnly(t *testing.T) {
 func TestValidateFailureErrorDiagnostic(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (app.RawApp, error) {
-		return app.RawApp{Source: "in-memory-stub"}, nil
+	loader := func() (domain.RawApp, error) {
+		return domain.RawApp{Source: "in-memory-stub"}, nil
 	}
-	validator := func(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) {
+	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 		_ = raw
-		return app.ValidatedApp{Name: "stub-app", Modules: []string{"core", "edge"}}, diagnostics.Report{
-			Diagnostics: []diagnostics.Diagnostic{
+		return domain.ValidatedApp{Name: "stub-app", Modules: []string{"core", "edge"}}, domain.ValidationReport{
+			Diagnostics: []domain.Diagnostic{
 				{
 					Code:     "FBE01",
-					Severity: diagnostics.SeverityError,
+					Severity: domain.SeverityError,
 					Message:  "error diagnostic",
 					Path:     "module.stub",
 				},
@@ -132,16 +131,16 @@ func TestValidateDeterministicOutputAcrossRuns(t *testing.T) {
 func TestListReportsGoldenOutput(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (app.RawApp, error) {
-		return app.RawApp{Source: "in-memory-stub"}, nil
+	loader := func() (domain.RawApp, error) {
+		return domain.RawApp{Source: "in-memory-stub"}, nil
 	}
-	validator := func(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) {
+	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 		_ = raw
-		return listValidatedApp(), diagnostics.Report{
-			Diagnostics: []diagnostics.Diagnostic{
+		return listValidatedApp(), domain.ValidationReport{
+			Diagnostics: []domain.Diagnostic{
 				{
 					Code:     "FBW01",
-					Severity: diagnostics.SeverityWarning,
+					Severity: domain.SeverityWarning,
 					Message:  "warning only",
 					Path:     "module.stub",
 				},
@@ -171,16 +170,16 @@ func TestListReportsGoldenOutput(t *testing.T) {
 func TestListReportsBlockedOnErrorDiagnostic(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (app.RawApp, error) {
-		return app.RawApp{Source: "in-memory-stub"}, nil
+	loader := func() (domain.RawApp, error) {
+		return domain.RawApp{Source: "in-memory-stub"}, nil
 	}
-	validator := func(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) {
+	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 		_ = raw
-		return listValidatedApp(), diagnostics.Report{
-			Diagnostics: []diagnostics.Diagnostic{
+		return listValidatedApp(), domain.ValidationReport{
+			Diagnostics: []domain.Diagnostic{
 				{
 					Code:     "FBE01",
-					Severity: diagnostics.SeverityError,
+					Severity: domain.SeverityError,
 					Message:  "error diagnostic",
 					Path:     "module.stub",
 				},
@@ -204,12 +203,12 @@ func TestListReportsBlockedOnErrorDiagnostic(t *testing.T) {
 func TestListReportsDeterministicOutputAcrossRuns(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (app.RawApp, error) {
-		return app.RawApp{Source: "in-memory-stub"}, nil
+	loader := func() (domain.RawApp, error) {
+		return domain.RawApp{Source: "in-memory-stub"}, nil
 	}
-	validator := func(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) {
+	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 		_ = raw
-		return listValidatedApp(), diagnostics.Report{}, nil
+		return listValidatedApp(), domain.ValidationReport{}, nil
 	}
 
 	var out1, errOut1 bytesBuffer
@@ -238,16 +237,16 @@ func TestListReportsDeterministicOutputAcrossRuns(t *testing.T) {
 func TestGenerateJSONGoldenOutput(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (app.RawApp, error) {
-		return app.RawApp{Source: "in-memory-stub"}, nil
+	loader := func() (domain.RawApp, error) {
+		return domain.RawApp{Source: "in-memory-stub"}, nil
 	}
-	validator := func(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) {
+	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 		_ = raw
-		return listValidatedApp(), diagnostics.Report{
-			Diagnostics: []diagnostics.Diagnostic{
+		return listValidatedApp(), domain.ValidationReport{
+			Diagnostics: []domain.Diagnostic{
 				{
 					Code:     "FBW01",
-					Severity: diagnostics.SeverityWarning,
+					Severity: domain.SeverityWarning,
 					Message:  "warning only",
 					Path:     "module.stub",
 				},
@@ -277,16 +276,16 @@ func TestGenerateJSONGoldenOutput(t *testing.T) {
 func TestGenerateJSONBlockedOnErrorDiagnostic(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (app.RawApp, error) {
-		return app.RawApp{Source: "in-memory-stub"}, nil
+	loader := func() (domain.RawApp, error) {
+		return domain.RawApp{Source: "in-memory-stub"}, nil
 	}
-	validator := func(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) {
+	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 		_ = raw
-		return listValidatedApp(), diagnostics.Report{
-			Diagnostics: []diagnostics.Diagnostic{
+		return listValidatedApp(), domain.ValidationReport{
+			Diagnostics: []domain.Diagnostic{
 				{
 					Code:     "FBE01",
-					Severity: diagnostics.SeverityError,
+					Severity: domain.SeverityError,
 					Message:  "error diagnostic",
 					Path:     "module.stub",
 				},
@@ -310,12 +309,12 @@ func TestGenerateJSONBlockedOnErrorDiagnostic(t *testing.T) {
 func TestGenerateJSONDeterministicOutputAcrossRuns(t *testing.T) {
 	t.Parallel()
 
-	loader := func() (app.RawApp, error) {
-		return app.RawApp{Source: "in-memory-stub"}, nil
+	loader := func() (domain.RawApp, error) {
+		return domain.RawApp{Source: "in-memory-stub"}, nil
 	}
-	validator := func(raw app.RawApp) (app.ValidatedApp, diagnostics.Report, error) {
+	validator := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 		_ = raw
-		return listValidatedApp(), diagnostics.Report{}, nil
+		return listValidatedApp(), domain.ValidationReport{}, nil
 	}
 
 	var out1, errOut1 bytesBuffer
@@ -341,11 +340,11 @@ func TestGenerateJSONDeterministicOutputAcrossRuns(t *testing.T) {
 	}
 }
 
-func listValidatedApp() app.ValidatedApp {
-	return app.ValidatedApp{
+func listValidatedApp() domain.ValidatedApp {
+	return domain.ValidatedApp{
 		Name:    "stub-app",
 		Modules: []string{"core", "edge"},
-		Reports: []app.Report{
+		Reports: []domain.Report{
 			{
 				ID:    "cpu-overview",
 				Title: "CPU Overview",
@@ -355,7 +354,7 @@ func listValidatedApp() app.ValidatedApp {
 				Title: "Memory Health",
 			},
 		},
-		Notes: []app.Note{
+		Notes: []domain.Note{
 			{
 				ID:    "n1",
 				Label: "service.api",
@@ -365,7 +364,7 @@ func listValidatedApp() app.ValidatedApp {
 				Label: "service.db",
 			},
 		},
-		Relationships: []app.Relationship{
+		Relationships: []domain.Relationship{
 			{
 				FromID: "n1",
 				ToID:   "n2",

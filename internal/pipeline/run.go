@@ -3,13 +3,12 @@ package pipeline
 import (
 	"errors"
 
-	"github.com/flarebyte/baldrick-flying-buttress/internal/app"
-	"github.com/flarebyte/baldrick-flying-buttress/internal/diagnostics"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 )
 
-type Loader func() (app.RawApp, error)
-type Validator func(app.RawApp) (app.ValidatedApp, diagnostics.Report, error)
-type Action func(app.ValidatedApp, diagnostics.Report) error
+type Loader func() (domain.RawApp, error)
+type Validator func(domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error)
+type Action func(domain.ValidatedApp, domain.ValidationReport) error
 
 func Run(loader Loader, validator Validator, action Action) error {
 	if loader == nil {
