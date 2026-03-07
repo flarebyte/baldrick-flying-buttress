@@ -77,6 +77,9 @@ type Diagnostic struct {
 	NoteName         string   `json:"noteName,omitempty"`
 	ArgumentName     string   `json:"argumentName,omitempty"`
 	LabelValue       string   `json:"labelValue,omitempty"`
+	SubjectLabel     string   `json:"subjectLabel,omitempty"`
+	EdgeLabel        string   `json:"edgeLabel,omitempty"`
+	CounterpartLabel string   `json:"counterpartLabel,omitempty"`
 	RelationshipFrom string   `json:"relationshipFrom,omitempty"`
 	RelationshipTo   string   `json:"relationshipTo,omitempty"`
 }

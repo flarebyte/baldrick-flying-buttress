@@ -7,6 +7,7 @@ const binPath = join(rootDir, '.e2e-bin', 'flyb');
 const fixturePath = join(rootDir, 'testdata', 'app.raw.json');
 const namesFixturePath = join(rootDir, 'testdata', 'names.raw.json');
 const lintFixturePath = join(rootDir, 'testdata', 'lint.raw.json');
+const orphansFixturePath = join(rootDir, 'testdata', 'orphans.raw.json');
 
 function runFlyb(args: string[]) {
   const result = Bun.spawnSync({
@@ -86,6 +87,22 @@ test('flyb lint names stdout matches golden', () => {
   expect(bytesHex(got.stderr)).toBe('');
 });
 
+test('flyb lint orphans stdout matches golden', () => {
+  const got = runFlyb([
+    'lint',
+    'orphans',
+    '--config',
+    orphansFixturePath,
+    '--subject-label',
+    'ingredient',
+  ]);
+  const wantStdout = readGolden('lint-orphans.stdout.golden');
+
+  expect(got.exitCode).toBe(0);
+  expect(bytesHex(got.stdout)).toBe(bytesHex(wantStdout));
+  expect(bytesHex(got.stderr)).toBe('');
+});
+
 test('flyb outputs are deterministic across repeated runs', () => {
   const commands: string[][] = [
     ['validate', '--config', fixturePath],
@@ -93,6 +110,14 @@ test('flyb outputs are deterministic across repeated runs', () => {
     ['generate', 'json', '--config', fixturePath],
     ['list', 'names', '--config', namesFixturePath, '--prefix', 'cli.'],
     ['lint', 'names', '--config', lintFixturePath],
+    [
+      'lint',
+      'orphans',
+      '--config',
+      orphansFixturePath,
+      '--subject-label',
+      'ingredient',
+    ],
   ];
 
   for (const args of commands) {

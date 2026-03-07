@@ -1,0 +1,1 @@
+{"diagnostics":[{"code":"ORPHAN_QUERY_MISSING_LINK","severity":"warning","message":"subject note has no relationships matching orphan query","path":"notes[name=\"n.ingredient.orphan\"]"}]}

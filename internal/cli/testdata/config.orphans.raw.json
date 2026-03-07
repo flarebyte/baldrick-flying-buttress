@@ -1,0 +1,35 @@
+{
+  "source": "orphans-app",
+  "name": "orphans-app",
+  "modules": ["core"],
+  "reports": [
+    {
+      "title": "Orphans",
+      "filepath": "reports/orphans.md",
+      "sections": [
+        {
+          "title": "S",
+          "notes": [
+            "n.ingredient.a",
+            "n.ingredient.b",
+            "n.ingredient.orphan",
+            "n.tool.a",
+            "n.tool.b"
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    { "name": "n.ingredient.a", "title": "ingredient" },
+    { "name": "n.ingredient.b", "title": "ingredient" },
+    { "name": "n.ingredient.orphan", "title": "ingredient" },
+    { "name": "n.tool.a", "title": "tool" },
+    { "name": "n.tool.b", "title": "tool" }
+  ],
+  "relationships": [
+    { "from": "n.ingredient.a", "to": "n.tool.a", "label": "uses" },
+    { "from": "n.tool.a", "to": "n.ingredient.b", "label": "feeds" },
+    { "from": "n.ingredient.a", "to": "n.tool.b", "label": "depends_on" }
+  ]
+}

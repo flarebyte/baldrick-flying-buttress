@@ -135,6 +135,7 @@ func newLintCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, co
 		Short: "Lint entities",
 	}
 	cmd.AddCommand(newLintNamesCmd(loaderFactory, validator, configPath))
+	cmd.AddCommand(newLintOrphansCmd(loaderFactory, validator, configPath))
 	return cmd
 }
 
@@ -163,6 +164,37 @@ func newLintNamesCmd(loaderFactory LoaderFactory, validator pipeline.AppValidato
 	cmd.Flags().StringVar(&style, "style", lintStyleDot, "Style matcher: dot|snake|regex")
 	cmd.Flags().StringVar(&pattern, "pattern", "", "Regex pattern when style=regex")
 	cmd.Flags().StringVar(&severity, "severity", "warning", "Diagnostic severity: warning|error")
+	return cmd
+}
+
+func newLintOrphansCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
+	var subjectLabel string
+	var edgeLabel string
+	var counterpartLabel string
+	var direction string
+	var severity string
+
+	cmd := &cobra.Command{
+		Use:   "orphans",
+		Short: "Lint orphans with a label-driven query",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			query, diagSeverity, err := resolveLintOrphansQuery(subjectLabel, edgeLabel, counterpartLabel, direction, severity)
+			if err != nil {
+				return err
+			}
+			return runWithConfig(loaderFactory, validator, configPath, lintOrphansAction{
+				out:      cmd.OutOrStdout(),
+				query:    query,
+				severity: diagSeverity,
+			})
+		},
+	}
+	cmd.Flags().StringVar(&subjectLabel, "subject-label", "", "Required subject note label")
+	cmd.Flags().StringVar(&edgeLabel, "edge-label", "", "Optional relationship label filter")
+	cmd.Flags().StringVar(&counterpartLabel, "counterpart-label", "", "Optional counterpart note label filter")
+	cmd.Flags().StringVar(&direction, "direction", string(defaultOrphanDirection), "Relationship direction: in|out|either")
+	cmd.Flags().StringVar(&severity, "severity", "warning", "Diagnostic severity: warning|error")
+	_ = cmd.MarkFlagRequired("subject-label")
 	return cmd
 }
 
