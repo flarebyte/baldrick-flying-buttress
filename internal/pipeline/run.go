@@ -6,11 +6,34 @@ import (
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 )
 
-type Loader func() (domain.RawApp, error)
-type Validator func(domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error)
-type Action func(domain.ValidatedApp, domain.ValidationReport) error
+var ErrValidationFailed = errors.New("validation failed")
 
-func Run(loader Loader, validator Validator, action Action) error {
+type AppLoader interface {
+	Load() (domain.RawApp, error)
+}
+
+type AppValidator interface {
+	Validate(domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error)
+}
+
+type CommandAction interface {
+	Execute(domain.ValidatedApp, domain.ValidationReport) error
+	AllowOnValidationErrors() bool
+}
+
+type LoaderFunc func() (domain.RawApp, error)
+
+func (f LoaderFunc) Load() (domain.RawApp, error) {
+	return f()
+}
+
+type ValidatorFunc func(domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error)
+
+func (f ValidatorFunc) Validate(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
+	return f(raw)
+}
+
+func Run(loader AppLoader, validator AppValidator, action CommandAction) error {
 	if loader == nil {
 		return errors.New("loader is required")
 	}
@@ -21,15 +44,19 @@ func Run(loader Loader, validator Validator, action Action) error {
 		return errors.New("action is required")
 	}
 
-	raw, err := loader()
+	raw, err := loader.Load()
 	if err != nil {
 		return err
 	}
 
-	validated, report, err := validator(raw)
+	validated, report, err := validator.Validate(raw)
 	if err != nil {
 		return err
 	}
 
-	return action(validated, report)
+	if report.HasErrors() && !action.AllowOnValidationErrors() {
+		return ErrValidationFailed
+	}
+
+	return action.Execute(validated, report)
 }

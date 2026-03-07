@@ -2,13 +2,17 @@ package validate
 
 import "github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 
-func LoadStub() (domain.RawApp, error) {
+type StubAppLoader struct{}
+
+type StubAppValidator struct{}
+
+func (StubAppLoader) Load() (domain.RawApp, error) {
 	return domain.RawApp{
 		Source: "in-memory-stub",
 	}, nil
 }
 
-func ValidateStub(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
+func (StubAppValidator) Validate(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
 	_ = raw
 	return domain.ValidatedApp{
 			Name:    "stub-app",
@@ -56,4 +60,12 @@ func ValidateStub(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationRepo
 				},
 			},
 		}, nil
+}
+
+func LoadStub() (domain.RawApp, error) {
+	return StubAppLoader{}.Load()
+}
+
+func ValidateStub(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
+	return StubAppValidator{}.Validate(raw)
 }

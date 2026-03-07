@@ -10,9 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var errValidationFailed = errors.New("validation failed")
-
-func NewRootCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra.Command {
+func NewRootCmd(loader pipeline.AppLoader, validator pipeline.AppValidator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "flyb",
 		Short:         "Baldrick Flying Buttress CLI",
@@ -26,7 +24,7 @@ func NewRootCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra.Com
 	return cmd
 }
 
-func Execute(args []string, out io.Writer, errOut io.Writer, loader pipeline.Loader, validator pipeline.Validator) int {
+func Execute(args []string, out io.Writer, errOut io.Writer, loader pipeline.AppLoader, validator pipeline.AppValidator) int {
 	cmd := NewRootCmd(loader, validator)
 	cmd.SetOut(out)
 	cmd.SetErr(errOut)
@@ -36,33 +34,24 @@ func Execute(args []string, out io.Writer, errOut io.Writer, loader pipeline.Loa
 	if err == nil {
 		return 0
 	}
-	if errors.Is(err, errValidationFailed) {
+	if errors.Is(err, pipeline.ErrValidationFailed) {
 		return 1
 	}
 	_, _ = fmt.Fprintln(errOut, err.Error())
 	return 1
 }
 
-func newValidateCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra.Command {
+func newValidateCmd(loader pipeline.AppLoader, validator pipeline.AppValidator) *cobra.Command {
 	return &cobra.Command{
 		Use:   "validate",
 		Short: "Validate configuration",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return pipeline.Run(loader, validator, func(validated domain.ValidatedApp, report domain.ValidationReport) error {
-				_ = validated
-				if err := emitDiagnostics(cmd.OutOrStdout(), report); err != nil {
-					return err
-				}
-				if report.HasErrors() {
-					return errValidationFailed
-				}
-				return nil
-			})
+			return pipeline.Run(loader, validator, validateAction{out: cmd.OutOrStdout()})
 		},
 	}
 }
 
-func newListCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra.Command {
+func newListCmd(loader pipeline.AppLoader, validator pipeline.AppValidator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List entities",
@@ -71,25 +60,17 @@ func newListCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra.Com
 	return cmd
 }
 
-func newListReportsCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra.Command {
+func newListReportsCmd(loader pipeline.AppLoader, validator pipeline.AppValidator) *cobra.Command {
 	return &cobra.Command{
 		Use:   "reports",
 		Short: "List reports",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return pipeline.Run(loader, validator, func(validated domain.ValidatedApp, report domain.ValidationReport) error {
-				if report.HasErrors() {
-					return errValidationFailed
-				}
-				if err := emitReportList(cmd.OutOrStdout(), validated); err != nil {
-					return err
-				}
-				return nil
-			})
+			return pipeline.Run(loader, validator, listReportsAction{out: cmd.OutOrStdout()})
 		},
 	}
 }
 
-func newGenerateCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra.Command {
+func newGenerateCmd(loader pipeline.AppLoader, validator pipeline.AppValidator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "generate",
 		Short: "Generate artifacts",
@@ -98,22 +79,59 @@ func newGenerateCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra
 	return cmd
 }
 
-func newGenerateJSONCmd(loader pipeline.Loader, validator pipeline.Validator) *cobra.Command {
+func newGenerateJSONCmd(loader pipeline.AppLoader, validator pipeline.AppValidator) *cobra.Command {
 	return &cobra.Command{
 		Use:   "json",
 		Short: "Generate JSON",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return pipeline.Run(loader, validator, func(validated domain.ValidatedApp, report domain.ValidationReport) error {
-				if report.HasErrors() {
-					return errValidationFailed
-				}
-				if err := emitGraphJSON(cmd.OutOrStdout(), validated); err != nil {
-					return err
-				}
-				return nil
-			})
+			return pipeline.Run(loader, validator, generateJSONAction{out: cmd.OutOrStdout()})
 		},
 	}
+}
+
+type validateAction struct {
+	out io.Writer
+}
+
+func (a validateAction) Execute(validated domain.ValidatedApp, report domain.ValidationReport) error {
+	_ = validated
+	if err := emitDiagnostics(a.out, report); err != nil {
+		return err
+	}
+	if report.HasErrors() {
+		return pipeline.ErrValidationFailed
+	}
+	return nil
+}
+
+func (validateAction) AllowOnValidationErrors() bool {
+	return true
+}
+
+type listReportsAction struct {
+	out io.Writer
+}
+
+func (a listReportsAction) Execute(validated domain.ValidatedApp, report domain.ValidationReport) error {
+	_ = report
+	return emitReportList(a.out, validated)
+}
+
+func (listReportsAction) AllowOnValidationErrors() bool {
+	return false
+}
+
+type generateJSONAction struct {
+	out io.Writer
+}
+
+func (a generateJSONAction) Execute(validated domain.ValidatedApp, report domain.ValidationReport) error {
+	_ = report
+	return emitGraphJSON(a.out, validated)
+}
+
+func (generateJSONAction) AllowOnValidationErrors() bool {
+	return false
 }
 
 type listReportsOutput struct {

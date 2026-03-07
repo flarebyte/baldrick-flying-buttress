@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/pipeline"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/validate"
 )
 
@@ -30,7 +31,7 @@ func TestValidateSuccessWarningsOnly(t *testing.T) {
 	}
 
 	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"validate"}, &out, &errOut, loader, validator)
+	exitCode := Execute([]string{"validate"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
 
 	if exitCode != 0 {
 		t.Fatalf("expected exit code 0, got %d", exitCode)
@@ -65,7 +66,7 @@ func TestValidateFailureErrorDiagnostic(t *testing.T) {
 	}
 
 	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"validate"}, &out, &errOut, loader, validator)
+	exitCode := Execute([]string{"validate"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
 
 	if exitCode != 1 {
 		t.Fatalf("expected exit code 1, got %d", exitCode)
@@ -83,7 +84,7 @@ func TestValidateGoldenOutput(t *testing.T) {
 	t.Parallel()
 
 	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"validate"}, &out, &errOut, validate.LoadStub, validate.ValidateStub)
+	exitCode := Execute([]string{"validate"}, &out, &errOut, validate.StubAppLoader{}, validate.StubAppValidator{})
 
 	if exitCode != 1 {
 		t.Fatalf("expected exit code 1, got %d", exitCode)
@@ -106,7 +107,7 @@ func TestValidateDeterministicOutputAcrossRuns(t *testing.T) {
 	t.Parallel()
 
 	var out1, errOut1 bytesBuffer
-	exitCode1 := Execute([]string{"validate"}, &out1, &errOut1, validate.LoadStub, validate.ValidateStub)
+	exitCode1 := Execute([]string{"validate"}, &out1, &errOut1, validate.StubAppLoader{}, validate.StubAppValidator{})
 	if exitCode1 != 1 {
 		t.Fatalf("expected first exit code 1, got %d", exitCode1)
 	}
@@ -115,7 +116,7 @@ func TestValidateDeterministicOutputAcrossRuns(t *testing.T) {
 	}
 
 	var out2, errOut2 bytesBuffer
-	exitCode2 := Execute([]string{"validate"}, &out2, &errOut2, validate.LoadStub, validate.ValidateStub)
+	exitCode2 := Execute([]string{"validate"}, &out2, &errOut2, validate.StubAppLoader{}, validate.StubAppValidator{})
 	if exitCode2 != 1 {
 		t.Fatalf("expected second exit code 1, got %d", exitCode2)
 	}
@@ -149,7 +150,7 @@ func TestListReportsGoldenOutput(t *testing.T) {
 	}
 
 	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"list", "reports"}, &out, &errOut, loader, validator)
+	exitCode := Execute([]string{"list", "reports"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
 	if exitCode != 0 {
 		t.Fatalf("expected exit code 0, got %d", exitCode)
 	}
@@ -188,7 +189,7 @@ func TestListReportsBlockedOnErrorDiagnostic(t *testing.T) {
 	}
 
 	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"list", "reports"}, &out, &errOut, loader, validator)
+	exitCode := Execute([]string{"list", "reports"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
 	if exitCode != 1 {
 		t.Fatalf("expected exit code 1, got %d", exitCode)
 	}
@@ -212,7 +213,7 @@ func TestListReportsDeterministicOutputAcrossRuns(t *testing.T) {
 	}
 
 	var out1, errOut1 bytesBuffer
-	exitCode1 := Execute([]string{"list", "reports"}, &out1, &errOut1, loader, validator)
+	exitCode1 := Execute([]string{"list", "reports"}, &out1, &errOut1, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
 	if exitCode1 != 0 {
 		t.Fatalf("expected first exit code 0, got %d", exitCode1)
 	}
@@ -221,7 +222,7 @@ func TestListReportsDeterministicOutputAcrossRuns(t *testing.T) {
 	}
 
 	var out2, errOut2 bytesBuffer
-	exitCode2 := Execute([]string{"list", "reports"}, &out2, &errOut2, loader, validator)
+	exitCode2 := Execute([]string{"list", "reports"}, &out2, &errOut2, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
 	if exitCode2 != 0 {
 		t.Fatalf("expected second exit code 0, got %d", exitCode2)
 	}
@@ -255,7 +256,7 @@ func TestGenerateJSONGoldenOutput(t *testing.T) {
 	}
 
 	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"generate", "json"}, &out, &errOut, loader, validator)
+	exitCode := Execute([]string{"generate", "json"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
 	if exitCode != 0 {
 		t.Fatalf("expected exit code 0, got %d", exitCode)
 	}
@@ -294,7 +295,7 @@ func TestGenerateJSONBlockedOnErrorDiagnostic(t *testing.T) {
 	}
 
 	var out, errOut bytesBuffer
-	exitCode := Execute([]string{"generate", "json"}, &out, &errOut, loader, validator)
+	exitCode := Execute([]string{"generate", "json"}, &out, &errOut, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
 	if exitCode != 1 {
 		t.Fatalf("expected exit code 1, got %d", exitCode)
 	}
@@ -318,7 +319,7 @@ func TestGenerateJSONDeterministicOutputAcrossRuns(t *testing.T) {
 	}
 
 	var out1, errOut1 bytesBuffer
-	exitCode1 := Execute([]string{"generate", "json"}, &out1, &errOut1, loader, validator)
+	exitCode1 := Execute([]string{"generate", "json"}, &out1, &errOut1, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
 	if exitCode1 != 0 {
 		t.Fatalf("expected first exit code 0, got %d", exitCode1)
 	}
@@ -327,7 +328,7 @@ func TestGenerateJSONDeterministicOutputAcrossRuns(t *testing.T) {
 	}
 
 	var out2, errOut2 bytesBuffer
-	exitCode2 := Execute([]string{"generate", "json"}, &out2, &errOut2, loader, validator)
+	exitCode2 := Execute([]string{"generate", "json"}, &out2, &errOut2, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validator))
 	if exitCode2 != 0 {
 		t.Fatalf("expected second exit code 0, got %d", exitCode2)
 	}
