@@ -1,19 +1,19 @@
-import { expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { expect, test } from 'bun:test';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
-const rootDir = join(import.meta.dir, "..", "..");
-const binPath = join(rootDir, ".e2e-bin", "flyb");
+const rootDir = join(import.meta.dir, '..', '..');
+const binPath = join(rootDir, '.e2e-bin', 'flyb');
 
 function runFlyb(args: string[]) {
   const result = Bun.spawnSync({
     cmd: [binPath, ...args],
-    stdout: "pipe",
-    stderr: "pipe",
+    stdout: 'pipe',
+    stderr: 'pipe',
   });
 
   if (result.exitCode === null) {
-    throw new Error("flyb process did not return an exit code");
+    throw new Error('flyb process did not return an exit code');
   }
 
   return {
@@ -24,45 +24,45 @@ function runFlyb(args: string[]) {
 }
 
 function readGolden(name: string) {
-  return readFileSync(join(import.meta.dir, "testdata", name));
+  return readFileSync(join(import.meta.dir, 'testdata', name));
 }
 
 function bytesHex(data: Uint8Array) {
-  return Buffer.from(data).toString("hex");
+  return Buffer.from(data).toString('hex');
 }
 
-test("flyb validate stdout matches golden", () => {
-  const got = runFlyb(["validate"]);
-  const wantStdout = readGolden("validate.stdout.golden");
+test('flyb validate stdout matches golden', () => {
+  const got = runFlyb(['validate']);
+  const wantStdout = readGolden('validate.stdout.golden');
 
   expect(got.exitCode).toBe(1);
   expect(bytesHex(got.stdout)).toBe(bytesHex(wantStdout));
-  expect(bytesHex(got.stderr)).toBe("");
+  expect(bytesHex(got.stderr)).toBe('');
 });
 
-test("flyb list reports stdout matches golden", () => {
-  const got = runFlyb(["list", "reports"]);
-  const wantStdout = readGolden("list-reports.stdout.golden");
+test('flyb list reports stdout matches golden', () => {
+  const got = runFlyb(['list', 'reports']);
+  const wantStdout = readGolden('list-reports.stdout.golden');
 
   expect(got.exitCode).toBe(1);
   expect(bytesHex(got.stdout)).toBe(bytesHex(wantStdout));
-  expect(bytesHex(got.stderr)).toBe("");
+  expect(bytesHex(got.stderr)).toBe('');
 });
 
-test("flyb generate json stdout matches golden", () => {
-  const got = runFlyb(["generate", "json"]);
-  const wantStdout = readGolden("generate-json.stdout.golden");
+test('flyb generate json stdout matches golden', () => {
+  const got = runFlyb(['generate', 'json']);
+  const wantStdout = readGolden('generate-json.stdout.golden');
 
   expect(got.exitCode).toBe(1);
   expect(bytesHex(got.stdout)).toBe(bytesHex(wantStdout));
-  expect(bytesHex(got.stderr)).toBe("");
+  expect(bytesHex(got.stderr)).toBe('');
 });
 
-test("flyb outputs are deterministic across repeated runs", () => {
+test('flyb outputs are deterministic across repeated runs', () => {
   const commands: string[][] = [
-    ["validate"],
-    ["list", "reports"],
-    ["generate", "json"],
+    ['validate'],
+    ['list', 'reports'],
+    ['generate', 'json'],
   ];
 
   for (const args of commands) {
