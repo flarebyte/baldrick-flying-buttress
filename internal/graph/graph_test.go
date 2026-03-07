@@ -2,9 +2,12 @@ package graph
 
 import (
 	"context"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/safety"
 )
 
 func TestSelectByLabels(t *testing.T) {
@@ -81,6 +84,28 @@ func TestCyclePolicyDisallowSkipsCyclicRendering(t *testing.T) {
 	}
 	if got != "" {
 		t.Fatalf("expected empty render when cycle-policy disallow, got %q", got)
+	}
+}
+
+func TestRenderMarkdownTextNodeLimitExceeded(t *testing.T) {
+	t.Parallel()
+
+	notes := make([]domain.Note, 0, safety.MaxGraphRenderNodesPerSection+1)
+	for i := 0; i < safety.MaxGraphRenderNodesPerSection+1; i++ {
+		notes = append(notes, domain.Note{
+			ID:       "n" + strconv.Itoa(i),
+			Title:    "N",
+			Markdown: "m",
+		})
+	}
+	selected := Selected{Notes: notes}
+
+	_, err := RenderMarkdownText(context.Background(), selected, ShapeTree, CyclePolicyDisallow)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "graph render limit exceeded") {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 

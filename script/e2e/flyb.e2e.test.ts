@@ -345,3 +345,22 @@ test('flyb generate markdown is deterministic across repeated runs', () => {
     rmSync(fixture.dir, { recursive: true, force: true });
   }
 });
+
+test('flyb validate oversized config fails deterministically', () => {
+  const fixture = makeTempFixture(fixturePath);
+  try {
+    const oversized = 'a'.repeat(1024 * 1024 + 1);
+    writeFileSync(fixture.configPath, oversized);
+
+    const first = runFlyb(['validate', '--config', fixture.configPath]);
+    const second = runFlyb(['validate', '--config', fixture.configPath]);
+
+    expect(first.exitCode).toBe(2);
+    expect(second.exitCode).toBe(2);
+    expect(bytesHex(first.stdout)).toBe('');
+    expect(bytesHex(second.stdout)).toBe('');
+    expect(bytesHex(second.stderr)).toBe(bytesHex(first.stderr));
+  } finally {
+    rmSync(fixture.dir, { recursive: true, force: true });
+  }
+});

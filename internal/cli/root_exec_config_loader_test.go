@@ -2,12 +2,15 @@ package cli
 
 import (
 	"bytes"
+	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/load"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/pipeline"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/safety"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/validate"
 )
 
@@ -296,5 +299,45 @@ func TestFilesystemLoaderDeterministicOutputAcrossRuns(t *testing.T) {
 
 	if out1.String() != out2.String() {
 		t.Fatalf("non-deterministic stdout\nfirst: %q\nsecond: %q", out1.String(), out2.String())
+	}
+}
+
+func TestOversizedConfigRuntimeFailureDeterministic(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	configPath := filepath.Join(tmp, "oversized.cue")
+	content := strings.Repeat("a", int(safety.MaxConfigFileBytes)+1)
+	if err := os.WriteFile(configPath, []byte(content), 0o644); err != nil {
+		t.Fatalf("write oversized config failed: %v", err)
+	}
+
+	loaderFactory := func(path string) pipeline.AppLoader {
+		return load.FSAppLoader{ConfigPath: path}
+	}
+	validator := validate.AppDataValidator{}
+
+	code1, stdout1, stderr1 := runCommandWithFactory(
+		[]string{"validate", "--config", configPath},
+		loaderFactory,
+		validator,
+	)
+	code2, stdout2, stderr2 := runCommandWithFactory(
+		[]string{"validate", "--config", configPath},
+		loaderFactory,
+		validator,
+	)
+
+	if code1 != outcome.ExitCodeRuntimeFailure || code2 != outcome.ExitCodeRuntimeFailure {
+		t.Fatalf("expected runtime failure exit codes, got %d and %d", code1, code2)
+	}
+	if stdout1 != "" || stdout2 != "" {
+		t.Fatalf("expected empty stdout, got %q and %q", stdout1, stdout2)
+	}
+	if stderr1 == "" || stderr2 == "" {
+		t.Fatalf("expected non-empty stderr, got %q and %q", stderr1, stderr2)
+	}
+	if stderr1 != stderr2 {
+		t.Fatalf("non-deterministic stderr\nfirst: %q\nsecond: %q", stderr1, stderr2)
 	}
 }

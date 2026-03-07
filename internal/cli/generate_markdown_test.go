@@ -5,11 +5,13 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/orphans"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/renderer"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/safety"
 )
 
 func TestRenderMarkdownPlainNote(t *testing.T) {
@@ -275,6 +277,37 @@ func TestRenderFileCSVIncludeExcludeFilters(t *testing.T) {
 	want := "| kind | name | status |\n| --- | --- | --- |\n| note | cli.root | active |"
 	if got != want {
 		t.Fatalf("csv include/exclude mismatch\nwant: %q\n got: %q", want, got)
+	}
+}
+
+func TestRenderFileCSVTooLarge(t *testing.T) {
+	t.Parallel()
+
+	data := []byte(strings.Repeat("x", safety.MaxCSVFileBytes+1))
+	_, err := renderFileCSV(context.Background(), data, noteArgs{formatCSV: "table"})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "csv file too large") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestRenderFileCSVRowsRenderedLimitExceeded(t *testing.T) {
+	t.Parallel()
+
+	var b strings.Builder
+	b.WriteString("name,status\n")
+	for i := 0; i < safety.MaxCSVRowsRenderedPerNote+1; i++ {
+		b.WriteString("n")
+		b.WriteString("x,ok\n")
+	}
+	_, err := renderFileCSV(context.Background(), []byte(b.String()), noteArgs{formatCSV: "table"})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "csv rendered rows") {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 

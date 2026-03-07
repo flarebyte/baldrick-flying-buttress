@@ -2,8 +2,10 @@ package validate
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/safety"
 )
 
 const (
@@ -27,6 +29,9 @@ func (v AppDataValidator) Validate(ctx context.Context, raw domain.RawApp) (doma
 	}
 	v.step("raw_model_normalization_precheck")
 	rawModel := normalizeRaw(raw)
+	if err := enforceRawModelLimits(rawModel); err != nil {
+		return domain.ValidatedApp{}, domain.ValidationReport{}, err
+	}
 
 	v.step("validate_cue_schema")
 	diagnostics := validateStructure(rawModel)
@@ -87,4 +92,17 @@ func normalizeRaw(raw domain.RawApp) domain.RawApp {
 		raw.Modules = []string{}
 	}
 	return raw
+}
+
+func enforceRawModelLimits(raw domain.RawApp) error {
+	if err := safety.CheckReportsCount(len(raw.Reports)); err != nil {
+		return fmt.Errorf("raw app limit exceeded: %w", err)
+	}
+	if err := safety.CheckNotesCount(len(raw.Notes)); err != nil {
+		return fmt.Errorf("raw app limit exceeded: %w", err)
+	}
+	if err := safety.CheckRelationshipsCount(len(raw.Relationships)); err != nil {
+		return fmt.Errorf("raw app limit exceeded: %w", err)
+	}
+	return nil
 }

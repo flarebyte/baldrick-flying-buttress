@@ -8,6 +8,7 @@ import (
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/safety"
 )
 
 type FSAppLoader struct {
@@ -19,6 +20,13 @@ func (l FSAppLoader) Load(ctx context.Context) (domain.RawApp, error) {
 		return domain.RawApp{}, fmt.Errorf("config path is required")
 	}
 	if err := ctx.Err(); err != nil {
+		return domain.RawApp{}, err
+	}
+	info, err := os.Stat(l.ConfigPath)
+	if err != nil {
+		return domain.RawApp{}, fmt.Errorf("stat config %s: %w", l.ConfigPath, err)
+	}
+	if err := safety.CheckConfigFileSize(info.Size()); err != nil {
 		return domain.RawApp{}, err
 	}
 

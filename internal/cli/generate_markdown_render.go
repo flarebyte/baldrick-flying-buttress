@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/flarebyte/baldrick-flying-buttress/internal/ordering"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/orphans"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/renderer"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/safety"
 )
 
 func renderMarkdownReport(ctx context.Context, report domain.MarkdownReport, noteByID map[string]domain.Note, app domain.ValidatedApp, registry renderer.Registry) (string, []domain.Diagnostic, error) {
@@ -59,6 +61,9 @@ func renderMarkdownReport(ctx context.Context, report domain.MarkdownReport, not
 			if graph.HasGraphArgs(h3.Arguments) {
 				query := graph.QueryFromArgs(h3.Arguments)
 				selected := graph.Select(app, query)
+				if err := safety.CheckGraphRenderNodeCount(len(selected.Notes)); err != nil {
+					return "", nil, err
+				}
 				shape := graph.DetectShape(selected)
 				cyclePolicy, err := graph.ResolveCyclePolicy(h3.Arguments)
 				if err != nil {
@@ -117,6 +122,9 @@ func renderMarkdownReport(ctx context.Context, report domain.MarkdownReport, not
 				}
 				graphText, err := capability.Render(ctx, selected, shape, resolvedArgs)
 				if err != nil {
+					if safety.IsLimitError(err) || errors.Is(err, context.Canceled) {
+						return "", nil, err
+					}
 					diagnostics = append(diagnostics, domain.Diagnostic{
 						Code:         "GRAPH_RENDER_FAILED",
 						Severity:     domain.SeverityError,

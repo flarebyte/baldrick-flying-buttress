@@ -11,6 +11,7 @@ import (
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/ordering"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/safety"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/textutil"
 )
 
@@ -105,6 +106,9 @@ func renderFileCSV(ctx context.Context, data []byte, args noteArgs) (string, err
 	if err := ctx.Err(); err != nil {
 		return "", err
 	}
+	if err := safety.CheckCSVFileSize(len(data)); err != nil {
+		return "", err
+	}
 	if args.formatCSV == "" {
 		args.formatCSV = "table"
 	}
@@ -153,6 +157,7 @@ func renderFileCSV(ctx context.Context, data []byte, args noteArgs) (string, err
 	}
 	b.WriteString(" |\n")
 
+	renderedRows := 0
 	for _, row := range rows[1:] {
 		if err := ctx.Err(); err != nil {
 			return "", err
@@ -182,6 +187,10 @@ func renderFileCSV(ctx context.Context, data []byte, args noteArgs) (string, err
 		b.WriteString("| ")
 		b.WriteString(strings.Join(values, " | "))
 		b.WriteString(" |\n")
+		renderedRows++
+		if err := safety.CheckCSVRenderedRows(renderedRows); err != nil {
+			return "", err
+		}
 	}
 	return strings.TrimSuffix(b.String(), "\n"), nil
 }
