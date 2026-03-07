@@ -334,6 +334,55 @@ func TestRuntimeFailureMapsToDistinctExitCodeAndStderr(t *testing.T) {
 	}
 }
 
+func TestCanonicalOrderingFromDifferentInputOrdersProducesIdenticalOutput(t *testing.T) {
+	t.Parallel()
+
+	loader := func() (domain.RawApp, error) {
+		return domain.RawApp{Source: "in-memory-stub"}, nil
+	}
+	validatorOrdered := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
+		_ = raw
+		return orderedValidatedAppForOrdering(), domain.ValidationReport{
+			Diagnostics: []domain.Diagnostic{
+				{Code: "FB001", Severity: domain.SeverityWarning, Message: "w", Path: "p1"},
+				{Code: "FB002", Severity: domain.SeverityError, Message: "e", Path: "p2"},
+			},
+		}, nil
+	}
+	validatorUnordered := func(raw domain.RawApp) (domain.ValidatedApp, domain.ValidationReport, error) {
+		_ = raw
+		return unorderedValidatedApp(), domain.ValidationReport{
+			Diagnostics: []domain.Diagnostic{
+				{Code: "FB002", Severity: domain.SeverityError, Message: "e", Path: "p2"},
+				{Code: "FB001", Severity: domain.SeverityWarning, Message: "w", Path: "p1"},
+			},
+		}, nil
+	}
+
+	commands := [][]string{
+		{"validate"},
+		{"list", "reports"},
+		{"generate", "json"},
+	}
+	for _, args := range commands {
+		var outOrdered, errOrdered bytesBuffer
+		codeOrdered := Execute(args, &outOrdered, &errOrdered, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validatorOrdered))
+
+		var outUnordered, errUnordered bytesBuffer
+		codeUnordered := Execute(args, &outUnordered, &errUnordered, pipeline.LoaderFunc(loader), pipeline.ValidatorFunc(validatorUnordered))
+
+		if codeOrdered != codeUnordered {
+			t.Fatalf("exit code mismatch for %v: %d vs %d", args, codeOrdered, codeUnordered)
+		}
+		if outOrdered.String() != outUnordered.String() {
+			t.Fatalf("stdout mismatch for %v\nordered: %q\nunordered: %q", args, outOrdered.String(), outUnordered.String())
+		}
+		if errOrdered.String() != errUnordered.String() {
+			t.Fatalf("stderr mismatch for %v\nordered: %q\nunordered: %q", args, errOrdered.String(), errUnordered.String())
+		}
+	}
+}
+
 func TestGenerateJSONDeterministicOutputAcrossRuns(t *testing.T) {
 	t.Parallel()
 
@@ -397,6 +446,84 @@ func listValidatedApp() domain.ValidatedApp {
 				FromID: "n1",
 				ToID:   "n2",
 				Label:  "depends_on",
+			},
+		},
+	}
+}
+
+func unorderedValidatedApp() domain.ValidatedApp {
+	return domain.ValidatedApp{
+		Name:    "stub-app",
+		Modules: []string{"edge", "core"},
+		Reports: []domain.Report{
+			{
+				ID:    "memory-health",
+				Title: "Memory Health",
+			},
+			{
+				ID:    "cpu-overview",
+				Title: "CPU Overview",
+			},
+		},
+		Notes: []domain.Note{
+			{
+				ID:    "n2",
+				Label: "service.db",
+			},
+			{
+				ID:    "n1",
+				Label: "service.api",
+			},
+		},
+		Relationships: []domain.Relationship{
+			{
+				FromID: "n1",
+				ToID:   "n2",
+				Label:  "depends_on",
+			},
+			{
+				FromID: "n1",
+				ToID:   "n2",
+				Label:  "owns",
+			},
+		},
+	}
+}
+
+func orderedValidatedAppForOrdering() domain.ValidatedApp {
+	return domain.ValidatedApp{
+		Name:    "stub-app",
+		Modules: []string{"core", "edge"},
+		Reports: []domain.Report{
+			{
+				ID:    "cpu-overview",
+				Title: "CPU Overview",
+			},
+			{
+				ID:    "memory-health",
+				Title: "Memory Health",
+			},
+		},
+		Notes: []domain.Note{
+			{
+				ID:    "n1",
+				Label: "service.api",
+			},
+			{
+				ID:    "n2",
+				Label: "service.db",
+			},
+		},
+		Relationships: []domain.Relationship{
+			{
+				FromID: "n1",
+				ToID:   "n2",
+				Label:  "depends_on",
+			},
+			{
+				FromID: "n1",
+				ToID:   "n2",
+				Label:  "owns",
 			},
 		},
 	}
