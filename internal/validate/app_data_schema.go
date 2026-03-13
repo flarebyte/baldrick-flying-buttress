@@ -4,7 +4,6 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -12,6 +11,7 @@ import (
 	"cuelang.org/go/cue/cuecontext"
 	cueerrors "cuelang.org/go/cue/errors"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/load"
 )
 
 //go:embed app_schema.cue
@@ -79,16 +79,10 @@ func buildRawAppValue(cueCtx *cue.Context, raw domain.RawApp) (cue.Value, error)
 		return value, nil
 	}
 
-	configBytes, err := os.ReadFile(raw.ConfigPath)
+	value, _, err := load.CompileConfigValueInContext(cueCtx, raw.ConfigPath)
 	if err != nil {
-		return cue.Value{}, fmt.Errorf("read config %s: %w", raw.ConfigPath, err)
+		return cue.Value{}, err
 	}
-
-	value := cueCtx.CompileBytes(configBytes, cue.Filename(raw.ConfigPath))
-	if err := value.Err(); err != nil {
-		return cue.Value{}, fmt.Errorf("parse config %s: %w", raw.ConfigPath, err)
-	}
-
 	return value, nil
 }
 

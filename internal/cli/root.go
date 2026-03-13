@@ -43,7 +43,7 @@ func NewRootCmdWithFactory(loaderFactory LoaderFactory, validator pipeline.AppVa
 			return cmd.Help()
 		},
 	}
-	cmd.PersistentFlags().StringVar(&configPath, "config", defaultConfigPath, "Path to raw app config file")
+	cmd.PersistentFlags().StringVar(&configPath, "config", defaultConfigPath, "Path to app config file or directory")
 	cmd.PersistentFlags().BoolVar(&showVersion, "version", false, "Print detailed version metadata as JSON")
 
 	cmd.AddCommand(newValidateCmd(loaderFactory, validator, &configPath))

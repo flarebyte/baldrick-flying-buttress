@@ -47,6 +47,8 @@ const markdownFileRawCSVFixturePath = join(
   'testdata',
   'markdown.file.rawcsv.raw.json',
 );
+const designMetaDirPath = join(rootDir, 'doc', 'design-meta');
+const designMetaAppCuePath = join(designMetaDirPath, 'app.cue');
 
 function runFlyb(args: string[]) {
   const result = Bun.spawnSync({
@@ -127,6 +129,40 @@ test('flyb validate with cue fixture stdout matches golden', () => {
   expect(got.exitCode).toBe(1);
   expect(bytesHex(got.stdout)).toBe(bytesHex(wantStdout));
   expect(bytesHex(got.stderr)).toBe('');
+});
+
+test('flyb directory config matches equivalent app.cue package config', () => {
+  const validateFromDir = runFlyb(['validate', '--config', designMetaDirPath]);
+  const validateFromFile = runFlyb([
+    'validate',
+    '--config',
+    designMetaAppCuePath,
+  ]);
+
+  expect(validateFromDir.exitCode).toBe(validateFromFile.exitCode);
+  expect(bytesHex(validateFromDir.stdout)).toBe(
+    bytesHex(validateFromFile.stdout),
+  );
+  expect(bytesHex(validateFromDir.stderr)).toBe(
+    bytesHex(validateFromFile.stderr),
+  );
+
+  const listFromDir = runFlyb([
+    'list',
+    'reports',
+    '--config',
+    designMetaDirPath,
+  ]);
+  const listFromFile = runFlyb([
+    'list',
+    'reports',
+    '--config',
+    designMetaAppCuePath,
+  ]);
+
+  expect(listFromDir.exitCode).toBe(listFromFile.exitCode);
+  expect(bytesHex(listFromDir.stdout)).toBe(bytesHex(listFromFile.stdout));
+  expect(bytesHex(listFromDir.stderr)).toBe(bytesHex(listFromFile.stderr));
 });
 
 test('flyb list reports stdout matches golden', () => {

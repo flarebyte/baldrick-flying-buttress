@@ -38,16 +38,18 @@ Use a minimal example project:
 cd examples/minimal
 ```
 
+`--config` accepts a raw JSON file, a standalone CUE file, or a CUE config directory containing `app.cue`. For packaged CUE configs, `flyb` loads the full package from the directory, including sibling `.cue` files and standard CUE imports.
+
 Validate config:
 
 ```bash
-../../.e2e-bin/flyb validate --config app.cue
+flyb validate --config .
 ```
 
 Generate markdown:
 
 ```bash
-../../.e2e-bin/flyb generate markdown --config app.cue
+flyb generate markdown --config .
 ```
 
 ## Example CUE configuration
