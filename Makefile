@@ -89,6 +89,8 @@ dup:
 	npx jscpd --format go --min-lines 10 --ignore "**/.gomodcache/**,**/.gocache/**,**/.e2e-bin/**,**/node_modules/**,**/dist/**" --gitignore .
 	npx jscpd --format typescript --min-lines 10 --gitignore .
 
+review: format test e2e lint
+
 help:
 	@printf "Targets:\n"
 	@printf "  lint       Run Biome checks.\n"

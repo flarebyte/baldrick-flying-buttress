@@ -86,7 +86,7 @@ func TestValidateWithReportFilterTargetsSingleReport(t *testing.T) {
 	if exitCode != outcome.ExitCodeValidationBlocked {
 		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, exitCode)
 	}
-	want := "{\"diagnostics\":[{\"code\":\"FBC002\",\"severity\":\"error\",\"message\":\"unknown configured argument key [reportTitle=Alpha Report, sectionTitle=Overview, argumentName=unknown]\",\"path\":\"reports[0].sections[0].arguments[0]\"}]}\n"
+	want := "{\"diagnostics\":[{\"code\":\"FBC002\",\"severity\":\"error\",\"message\":\"unknown configured argument key [reportTitle=Alpha Report, sectionTitle=Overview, argumentName=unknown]\",\"path\":\"reports[0].sections[0].arguments[0]\",\"normalizedPath\":\"reports[0].sections[0].arguments[0]\",\"reportTitle\":\"Alpha Report\",\"reportId\":\"alpha\",\"sectionTitle\":\"Overview\",\"argumentName\":\"unknown\",\"suggestedFixes\":[\"Remove the unknown argument or declare it in argumentRegistry\"]}]}\n"
 	assertOutput(t, stdout, stderr, want, "")
 }
 

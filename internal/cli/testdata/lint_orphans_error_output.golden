@@ -1,1 +1,1 @@
-{"diagnostics":[{"code":"ORPHAN_QUERY_MISSING_LINK","severity":"error","message":"subject note has no relationships matching orphan query [noteName=n.ingredient.orphan, subjectLabel=ingredient]","path":"notes[name=\"n.ingredient.orphan\"]"}]}
+{"diagnostics":[{"code":"ORPHAN_QUERY_MISSING_LINK","severity":"error","message":"subject note has no relationships matching orphan query [noteName=n.ingredient.orphan, subjectLabel=ingredient]","path":"notes[name=\"n.ingredient.orphan\"]","noteName":"n.ingredient.orphan","subjectLabel":"ingredient"}]}

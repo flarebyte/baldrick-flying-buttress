@@ -13,10 +13,27 @@ type DiagnosticsDTO struct {
 }
 
 type DiagnosticDTO struct {
-	Code     string          `json:"code"`
-	Severity domain.Severity `json:"severity"`
-	Message  string          `json:"message"`
-	Path     string          `json:"path"`
+	Code             string          `json:"code"`
+	Severity         domain.Severity `json:"severity"`
+	Message          string          `json:"message"`
+	Path             string          `json:"path"`
+	NormalizedPath   string          `json:"normalizedPath,omitempty"`
+	ConfigPath       string          `json:"configPath,omitempty"`
+	ConfigPathAbs    string          `json:"configPathAbsolute,omitempty"`
+	ReportTitle      string          `json:"reportTitle,omitempty"`
+	ReportID         string          `json:"reportId,omitempty"`
+	SectionTitle     string          `json:"sectionTitle,omitempty"`
+	NoteName         string          `json:"noteName,omitempty"`
+	NoteTitle        string          `json:"noteTitle,omitempty"`
+	ArgumentName     string          `json:"argumentName,omitempty"`
+	LabelValue       string          `json:"labelValue,omitempty"`
+	SubjectLabel     string          `json:"subjectLabel,omitempty"`
+	EdgeLabel        string          `json:"edgeLabel,omitempty"`
+	CounterpartLabel string          `json:"counterpartLabel,omitempty"`
+	RelationshipFrom string          `json:"relationshipFrom,omitempty"`
+	RelationshipTo   string          `json:"relationshipTo,omitempty"`
+	RelatedNodes     []string        `json:"relatedNodes,omitempty"`
+	SuggestedFixes   []string        `json:"suggestedFixes,omitempty"`
 }
 
 type ReportListDTO struct {
@@ -50,10 +67,27 @@ func EmitDiagnostics(w io.Writer, report domain.ValidationReport) error {
 	dto := DiagnosticsDTO{Diagnostics: make([]DiagnosticDTO, 0, len(ordered))}
 	for _, d := range ordered {
 		dto.Diagnostics = append(dto.Diagnostics, DiagnosticDTO{
-			Code:     d.Code,
-			Severity: d.Severity,
-			Message:  d.Message,
-			Path:     d.Path,
+			Code:             d.Code,
+			Severity:         d.Severity,
+			Message:          d.Message,
+			Path:             d.Path,
+			NormalizedPath:   d.NormalizedPath,
+			ConfigPath:       d.ConfigPath,
+			ConfigPathAbs:    d.ConfigPathAbs,
+			ReportTitle:      d.ReportTitle,
+			ReportID:         d.ReportID,
+			SectionTitle:     d.SectionTitle,
+			NoteName:         d.NoteName,
+			NoteTitle:        d.NoteTitle,
+			ArgumentName:     d.ArgumentName,
+			LabelValue:       d.LabelValue,
+			SubjectLabel:     d.SubjectLabel,
+			EdgeLabel:        d.EdgeLabel,
+			CounterpartLabel: d.CounterpartLabel,
+			RelationshipFrom: d.RelationshipFrom,
+			RelationshipTo:   d.RelationshipTo,
+			RelatedNodes:     d.RelatedNodes,
+			SuggestedFixes:   d.SuggestedFixes,
 		})
 	}
 	return emitJSON(w, dto)

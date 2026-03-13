@@ -153,6 +153,18 @@ These controls are especially useful for large flow-oriented documents where the
 - machine-readable JSON output is deterministic
 - repeated runs with the same config produce reproducible outputs
 
+## Machine-friendly diagnostics
+
+Validation and lint commands emit structured diagnostics designed to be consumable by scripts and AI agents. In addition to `code`, `severity`, `message`, and `path`, diagnostics may now include:
+
+- `normalizedPath`: canonicalized model path for stable matching
+- `configPath` and `configPathAbsolute`: normalized config source paths
+- dedicated fields such as `reportTitle`, `reportId`, `sectionTitle`, `noteName`, and `noteTitle`
+- `relatedNodes`: directly related note or relationship endpoints when applicable
+- `suggestedFixes`: concrete next actions for common failures
+
+These fields are optional and appear only when they can be derived reliably from the config and validation context.
+
 ## Examples
 
 See starter configurations in [`examples/`](./examples):

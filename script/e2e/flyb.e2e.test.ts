@@ -124,7 +124,7 @@ test('flyb validate stdout matches golden', () => {
 
 test('flyb validate with cue fixture stdout matches golden', () => {
   const got = runFlyb(['validate', '--config', cueFixturePath]);
-  const wantStdout = readGolden('validate.stdout.golden');
+  const wantStdout = readGolden('validate-cue.stdout.golden');
 
   expect(got.exitCode).toBe(1);
   expect(bytesHex(got.stdout)).toBe(bytesHex(wantStdout));

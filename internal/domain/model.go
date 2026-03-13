@@ -77,9 +77,14 @@ type Diagnostic struct {
 	Message          string   `json:"message"`
 	Location         string   `json:"location"`
 	Path             string   `json:"path"`
+	NormalizedPath   string   `json:"normalizedPath,omitempty"`
+	ConfigPath       string   `json:"configPath,omitempty"`
+	ConfigPathAbs    string   `json:"configPathAbsolute,omitempty"`
 	ReportTitle      string   `json:"reportTitle,omitempty"`
+	ReportID         string   `json:"reportId,omitempty"`
 	SectionTitle     string   `json:"sectionTitle,omitempty"`
 	NoteName         string   `json:"noteName,omitempty"`
+	NoteTitle        string   `json:"noteTitle,omitempty"`
 	ArgumentName     string   `json:"argumentName,omitempty"`
 	LabelValue       string   `json:"labelValue,omitempty"`
 	SubjectLabel     string   `json:"subjectLabel,omitempty"`
@@ -87,6 +92,8 @@ type Diagnostic struct {
 	CounterpartLabel string   `json:"counterpartLabel,omitempty"`
 	RelationshipFrom string   `json:"relationshipFrom,omitempty"`
 	RelationshipTo   string   `json:"relationshipTo,omitempty"`
+	RelatedNodes     []string `json:"relatedNodes,omitempty"`
+	SuggestedFixes   []string `json:"suggestedFixes,omitempty"`
 }
 
 type ValidationReport struct {

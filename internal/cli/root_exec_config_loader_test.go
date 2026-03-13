@@ -167,7 +167,7 @@ func TestCommandsWithInvalidStructureConfigProduceValidationDiagnostics(t *testi
 func TestCommandsWithInvalidStructureCueConfigProduceValidationDiagnostics(t *testing.T) {
 	t.Parallel()
 
-	assertValidateAndListBlocked(t, filepath.Join("testdata", "config.invalid.cue"), "validate_invalid_output.golden")
+	assertValidateAndListBlocked(t, filepath.Join("testdata", "config.invalid.cue"), "validate_invalid_cue_output.golden")
 }
 
 func TestValidateWithInvalidRegistryConfigCollectsMultipleDiagnostics(t *testing.T) {
