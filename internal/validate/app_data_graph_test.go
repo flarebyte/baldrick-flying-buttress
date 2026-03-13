@@ -144,3 +144,53 @@ func TestGraphIntegritySeverityFollowsPolicy(t *testing.T) {
 	}
 	t.Fatalf("missing GRAPH_MISSING_NODE diagnostic: %#v", report.Diagnostics)
 }
+
+func TestGraphIntegrityNestedReportNoteIsNotAnOrphan(t *testing.T) {
+	t.Parallel()
+
+	raw := domain.RawApp{
+		Source: "app",
+		Reports: []domain.RawReport{{
+			Title:    "R",
+			Filepath: "reports/r.md",
+			Sections: []domain.RawReportSection{{
+				Title: "H2",
+				Sections: []domain.RawReportSection{{
+					Title: "H3",
+					Notes: []string{"doc.only"},
+				}},
+			}},
+		}},
+		Notes: []domain.RawNote{
+			{Name: "doc.only", Title: "Doc Only"},
+			{Name: "true.orphan", Title: "True Orphan"},
+		},
+		GraphIntegrityPolicy: domain.RawGraphIntegrityPolicy{
+			OrphanNode: "warning",
+		},
+	}
+
+	_, report, err := AppDataValidator{}.Validate(context.Background(), raw)
+	if err != nil {
+		t.Fatalf("validate failed: %v", err)
+	}
+
+	for _, d := range report.Diagnostics {
+		if d.Code != "GRAPH_ORPHAN_NODE" {
+			continue
+		}
+		if d.NoteName == "doc.only" {
+			t.Fatalf("expected nested report-linked note to avoid orphan warning, got %#v", d)
+		}
+	}
+
+	foundTrueOrphan := false
+	for _, d := range report.Diagnostics {
+		if d.Code == "GRAPH_ORPHAN_NODE" && d.NoteName == "true.orphan" {
+			foundTrueOrphan = true
+		}
+	}
+	if !foundTrueOrphan {
+		t.Fatalf("expected true orphan diagnostic, got %#v", report.Diagnostics)
+	}
+}

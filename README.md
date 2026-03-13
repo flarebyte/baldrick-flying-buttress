@@ -110,6 +110,9 @@ relationships: [{
 - `reports`: generated markdown targets (`title`, `filepath`)
 - `sections`: nested report structure (`H2` and `H3`) for plain, graph, or orphan views
 
+Validation note:
+Notes referenced by report sections, including nested subsections, are treated as intentional documentation nodes and are not flagged as graph orphans just because they have no relationships.
+
 ## Graph documentation flows
 
 Graph sections are configured through free-form H3 arguments, so graph rendering can be tuned without changing the core config model. A typical section looks like this:
