@@ -110,6 +110,40 @@ relationships: [{
 - `reports`: generated markdown targets (`title`, `filepath`)
 - `sections`: nested report structure (`H2` and `H3`) for plain, graph, or orphan views
 
+## Graph documentation flows
+
+Graph sections are configured through free-form H3 arguments, so graph rendering can be tuned without changing the core config model. A typical section looks like this:
+
+```cue
+{
+  title: "Flows"
+  arguments: [
+    "graph-subject-label=flow",
+    "graph-edge-label=contains_step",
+    "graph-start-node=cli.root",
+    "graph-child-order=title",
+    "graph-max-depth=3",
+    "graph-branch-priority-label=main",
+    "graph-branch-priority-label=future",
+    "graph-exclude-label=helper",
+    "graph-show-helper-nodes=false",
+    "graph-renderer=markdown-text",
+  ]
+}
+```
+
+Useful graph arguments:
+
+- `graph-child-order=id|title`: stable child ordering for rendered branches
+- `graph-max-depth=<n>`: limit traversal depth from the selected root/start node
+- `graph-include-label=...`: include only notes carrying one of the selected labels
+- `graph-exclude-label=...`: remove notes carrying selected labels
+- `graph-branch-priority-label=...`: prioritize important branches ahead of others
+- `graph-show-helper-nodes=false`: hide helper nodes while keeping the main path readable
+- `graph-helper-label=helper`: define which label marks helper nodes when hiding them
+
+These controls are especially useful for large flow-oriented documents where the main path should stay prominent and future or helper branches should be shown selectively.
+
 ## Determinism guarantees
 
 - ordering policy is stable for diagnostics, reports, notes, and relationships

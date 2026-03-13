@@ -59,7 +59,20 @@ func renderMarkdownReport(ctx context.Context, report domain.MarkdownReport, not
 				continue
 			}
 			if graph.HasGraphArgs(h3.Arguments) {
-				query := graph.QueryFromArgs(h3.Arguments)
+				query, err := graph.ResolveQuery(h3.Arguments)
+				if err != nil {
+					diagnostics = append(diagnostics, domain.Diagnostic{
+						Code:         "GRAPH_QUERY_ARGS_INVALID",
+						Severity:     domain.SeverityError,
+						Source:       "graph.select",
+						Message:      err.Error(),
+						Location:     h3.Path,
+						Path:         h3.Path,
+						ReportTitle:  h3.ReportTitle,
+						SectionTitle: h3.H2Title,
+					})
+					continue
+				}
 				selected := graph.Select(app, query)
 				if err := safety.CheckGraphRenderNodeCount(len(selected.Notes)); err != nil {
 					return "", nil, err

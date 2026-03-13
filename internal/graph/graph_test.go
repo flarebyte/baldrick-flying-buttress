@@ -25,7 +25,7 @@ func TestDetectTreeShapeAndRender(t *testing.T) {
 	if shape := DetectShape(selected); shape != ShapeTree {
 		t.Fatalf("expected tree shape, got %s", shape)
 	}
-	got, err := RenderMarkdownText(context.Background(), selected, ShapeTree, CyclePolicyDisallow)
+	got, err := RenderMarkdownText(context.Background(), selected, ShapeTree, CyclePolicyDisallow, Query{})
 	if err != nil {
 		t.Fatalf("render failed: %v", err)
 	}
@@ -41,7 +41,7 @@ func TestDetectDAGAndRenderRepetitionLimit(t *testing.T) {
 	if shape := DetectShape(selected); shape != ShapeDAG {
 		t.Fatalf("expected dag shape, got %s", shape)
 	}
-	got, err := RenderMarkdownText(context.Background(), selected, ShapeDAG, CyclePolicyDisallow)
+	got, err := RenderMarkdownText(context.Background(), selected, ShapeDAG, CyclePolicyDisallow, Query{})
 	if err != nil {
 		t.Fatalf("render failed: %v", err)
 	}
@@ -57,7 +57,7 @@ func TestDetectCyclicAndRenderCycleBack(t *testing.T) {
 	if shape := DetectShape(selected); shape != ShapeCyclic {
 		t.Fatalf("expected cyclic shape, got %s", shape)
 	}
-	got, err := RenderMarkdownText(context.Background(), selected, ShapeCyclic, CyclePolicyAllow)
+	got, err := RenderMarkdownText(context.Background(), selected, ShapeCyclic, CyclePolicyAllow, Query{})
 	if err != nil {
 		t.Fatalf("render failed: %v", err)
 	}
@@ -78,7 +78,7 @@ func TestResolveCyclePolicy(t *testing.T) {
 func TestCyclePolicyDisallowSkipsCyclicRendering(t *testing.T) {
 	t.Parallel()
 	selected := Select(fixtureCycleApp(), Query{SubjectLabel: "graph", StartNode: "a"})
-	got, err := RenderMarkdownText(context.Background(), selected, ShapeCyclic, CyclePolicyDisallow)
+	got, err := RenderMarkdownText(context.Background(), selected, ShapeCyclic, CyclePolicyDisallow, Query{})
 	if err != nil {
 		t.Fatalf("render failed: %v", err)
 	}
@@ -100,7 +100,7 @@ func TestRenderMarkdownTextNodeLimitExceeded(t *testing.T) {
 	}
 	selected := Selected{Notes: notes}
 
-	_, err := RenderMarkdownText(context.Background(), selected, ShapeTree, CyclePolicyDisallow)
+	_, err := RenderMarkdownText(context.Background(), selected, ShapeTree, CyclePolicyDisallow, Query{})
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -131,6 +131,100 @@ func TestBuildNoteAnchorsWithCollisionDeterministic(t *testing.T) {
 	}
 	if anchors["n/a"] != "graph-node-n-a-2" {
 		t.Fatalf("unexpected anchor for n/a: %q", anchors["n/a"])
+	}
+}
+
+func TestSelectWithIncludeExcludeLabels(t *testing.T) {
+	t.Parallel()
+
+	app := domain.ValidatedApp{
+		Notes: []domain.Note{
+			{ID: "main", Title: "Main", Label: "graph", LabelsCSV: "graph,main"},
+			{ID: "future", Title: "Future", Label: "graph", LabelsCSV: "graph,future"},
+			{ID: "helper", Title: "Helper", Label: "graph", LabelsCSV: "graph,helper"},
+		},
+		Relationships: []domain.Relationship{
+			{FromID: "main", ToID: "future", Label: "edge", LabelsCSV: "edge"},
+			{FromID: "main", ToID: "helper", Label: "edge", LabelsCSV: "edge"},
+		},
+	}
+
+	selected := Select(app, Query{SubjectLabel: "graph", IncludeLabels: []string{"future", "main"}, ExcludeLabels: []string{"helper"}})
+	if len(selected.Notes) != 2 || len(selected.Relationships) != 1 {
+		t.Fatalf("unexpected selection with include/exclude labels: %#v", selected)
+	}
+}
+
+func TestSelectWithDepthLimit(t *testing.T) {
+	t.Parallel()
+
+	selected := Select(fixtureChainApp(), Query{SubjectLabel: "graph", StartNode: "a", MaxDepth: 1, MaxDepthSet: true})
+	if len(selected.Notes) != 2 {
+		t.Fatalf("expected 2 notes with depth limit, got %d", len(selected.Notes))
+	}
+	if len(selected.Relationships) != 1 {
+		t.Fatalf("expected 1 relationship with depth limit, got %d", len(selected.Relationships))
+	}
+}
+
+func TestSelectWithHiddenHelperNodes(t *testing.T) {
+	t.Parallel()
+
+	app := domain.ValidatedApp{
+		Notes: []domain.Note{
+			{ID: "a", Title: "A", Markdown: "a", Label: "graph", LabelsCSV: "graph"},
+			{ID: "h", Title: "Helper", Markdown: "h", Label: "graph", LabelsCSV: "graph,helper"},
+			{ID: "b", Title: "B", Markdown: "b", Label: "graph", LabelsCSV: "graph"},
+		},
+		Relationships: []domain.Relationship{
+			{FromID: "a", ToID: "h", Label: "edge", LabelsCSV: "edge"},
+			{FromID: "h", ToID: "b", Label: "edge", LabelsCSV: "edge"},
+		},
+	}
+
+	selected := Select(app, Query{SubjectLabel: "graph", ShowHelperNodes: false, ShowHelpersSet: true, HelperLabel: "helper"})
+	if len(selected.Notes) != 2 {
+		t.Fatalf("expected helper node hidden, got notes=%d", len(selected.Notes))
+	}
+	if len(selected.Relationships) != 1 || selected.Relationships[0].FromID != "a" || selected.Relationships[0].ToID != "b" {
+		t.Fatalf("expected helper path to collapse, got %#v", selected.Relationships)
+	}
+}
+
+func TestRenderMarkdownTextWithBranchPriorityAndTitleOrder(t *testing.T) {
+	t.Parallel()
+
+	selected := Select(domain.ValidatedApp{
+		Notes: []domain.Note{
+			{ID: "root", Title: "Root", Markdown: "r", Label: "graph", LabelsCSV: "graph"},
+			{ID: "n.future", Title: "Z Future", Markdown: "f", Label: "graph", LabelsCSV: "graph,future"},
+			{ID: "n.main", Title: "A Main", Markdown: "m", Label: "graph", LabelsCSV: "graph,main"},
+		},
+		Relationships: []domain.Relationship{
+			{FromID: "root", ToID: "n.future", Label: "edge", LabelsCSV: "edge"},
+			{FromID: "root", ToID: "n.main", Label: "edge", LabelsCSV: "edge"},
+		},
+	}, Query{SubjectLabel: "graph"})
+
+	got, err := RenderMarkdownText(context.Background(), selected, ShapeTree, CyclePolicyDisallow, Query{
+		ChildOrder:     ChildOrderTitle,
+		BranchPriority: []string{"main", "future"},
+	})
+	if err != nil {
+		t.Fatalf("render failed: %v", err)
+	}
+	want := "- <a id=\"graph-node-root\"></a> Root: r\n  - <a id=\"graph-node-n-main\"></a> A Main: m\n  - <a id=\"graph-node-n-future\"></a> Z Future: f\n"
+	if got != want {
+		t.Fatalf("branch-priority render mismatch\nwant: %q\n got: %q", want, got)
+	}
+}
+
+func TestResolveQueryInvalidArgs(t *testing.T) {
+	t.Parallel()
+
+	_, err := ResolveQuery([]string{"graph-max-depth=-1"})
+	if err == nil {
+		t.Fatal("expected invalid depth error")
 	}
 }
 
@@ -176,5 +270,19 @@ func fixtureCycleApp() domain.ValidatedApp {
 			{ID: "c", Title: "C", Markdown: "c", Label: "graph", LabelsCSV: "graph"},
 		},
 		Relationships: []domain.Relationship{{FromID: "a", ToID: "b", Label: "edge", LabelsCSV: "edge"}, {FromID: "b", ToID: "c", Label: "edge", LabelsCSV: "edge"}, {FromID: "c", ToID: "a", Label: "edge", LabelsCSV: "edge"}},
+	}
+}
+
+func fixtureChainApp() domain.ValidatedApp {
+	return domain.ValidatedApp{
+		Notes: []domain.Note{
+			{ID: "a", Title: "A", Markdown: "a", Label: "graph", LabelsCSV: "graph"},
+			{ID: "b", Title: "B", Markdown: "b", Label: "graph", LabelsCSV: "graph"},
+			{ID: "c", Title: "C", Markdown: "c", Label: "graph", LabelsCSV: "graph"},
+		},
+		Relationships: []domain.Relationship{
+			{FromID: "a", ToID: "b", Label: "edge", LabelsCSV: "edge"},
+			{FromID: "b", ToID: "c", Label: "edge", LabelsCSV: "edge"},
+		},
 	}
 }
