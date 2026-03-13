@@ -282,6 +282,30 @@ test('flyb generate markdown supports explicit mermaid renderer', () => {
   }
 });
 
+test('flyb generate markdown can target a single report', () => {
+  const fixture = makeTempFixture(markdownFixturePath);
+  try {
+    const got = runFlyb([
+      'generate',
+      'markdown',
+      '--config',
+      fixture.configPath,
+      '--report',
+      'alpha',
+    ]);
+    const wantAlpha = readGolden('generate-markdown-alpha.golden');
+    const gotAlpha = readFileSync(join(fixture.dir, 'out', 'alpha.md'));
+
+    expect(got.exitCode).toBe(0);
+    expect(bytesHex(got.stdout)).toBe('');
+    expect(bytesHex(got.stderr)).toBe('');
+    expect(bytesHex(gotAlpha)).toBe(bytesHex(wantAlpha));
+    expect(() => readFileSync(join(fixture.dir, 'out', 'beta.md'))).toThrow();
+  } finally {
+    rmSync(fixture.dir, { recursive: true, force: true });
+  }
+});
+
 test('flyb generate markdown renders orphan sections', () => {
   const fixture = makeTempFixture(markdownOrphansFixturePath);
   try {

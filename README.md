@@ -52,6 +52,13 @@ Generate markdown:
 flyb generate markdown --config .
 ```
 
+Target a subset of reports while validating or generating:
+
+```bash
+flyb validate --config . --report minimal
+flyb generate markdown --config . --report minimal
+```
+
 ## Example CUE configuration
 
 ```cue

@@ -19,6 +19,22 @@ func TestGenerateMarkdownSuccessWithCueConfig(t *testing.T) {
 	assertGenerateMarkdownSuccessFixture(t, "config.markdown.cue")
 }
 
+func TestGenerateMarkdownWithReportFilterWritesOnlySelectedReport(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	configPath := writeFixtureConfig(t, tmp, "config.markdown.raw.json")
+	code, stdout, stderr := runGenerateMarkdownWithArgs([]string{"--config", configPath, "--report", "alpha"})
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, "", "")
+	assertGeneratedMarkdownGolden(t, tmp, filepath.Join("out", "alpha.md"), "generate_markdown_alpha_output.golden")
+	if _, err := os.Stat(filepath.Join(tmp, "out", "beta.md")); !os.IsNotExist(err) {
+		t.Fatalf("expected beta.md to be absent, got stat err %v", err)
+	}
+}
+
 func assertGenerateMarkdownSuccessFixture(t *testing.T, fixtureName string) {
 	t.Helper()
 	tmp, code, stdout, stderr := runGenerateMarkdownFixture(t, fixtureName)

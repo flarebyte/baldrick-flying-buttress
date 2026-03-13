@@ -160,7 +160,7 @@ func checkCrossReportReferences(raw domain.RawApp, policy domain.GraphIntegrityP
 func collectNoteReportMembership(raw domain.RawApp) map[string][]string {
 	membership := map[string]map[string]struct{}{}
 	for _, report := range raw.Reports {
-		reportID := reportIDFromFilepath(report.Filepath)
+		reportID := domain.ReportIDFromFilepath(report.Filepath)
 		if reportID == "" {
 			reportID = report.Title
 		}

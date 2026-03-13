@@ -1,7 +1,6 @@
 package validate
 
 import (
-	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -106,12 +105,6 @@ func validateRegistry(raw domain.RawArgumentRegistry) []domain.Diagnostic {
 
 	return diagnostics
 }
-func reportIDFromFilepath(path string) string {
-	base := filepath.Base(path)
-	ext := filepath.Ext(base)
-	return strings.TrimSuffix(base, ext)
-}
-
 func normalizeScopes(scopes []string) []domain.ArgumentScope {
 	seen := map[domain.ArgumentScope]struct{}{}
 	out := make([]domain.ArgumentScope, 0)

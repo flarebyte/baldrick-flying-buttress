@@ -20,7 +20,7 @@ func normalizeValidatedApp(raw domain.RawApp, registry domain.ArgumentRegistry, 
 	reports := make([]domain.Report, 0, len(raw.Reports))
 	for _, report := range raw.Reports {
 		reports = append(reports, domain.Report{
-			ID:    reportIDFromFilepath(report.Filepath),
+			ID:    domain.ReportIDFromFilepath(report.Filepath),
 			Title: report.Title,
 		})
 	}

@@ -109,13 +109,16 @@ func ExecuteContextWithFactory(ctx context.Context, args []string, out io.Writer
 }
 
 func newValidateCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
-	return &cobra.Command{
+	var reportIDs []string
+	cmd := &cobra.Command{
 		Use:   "validate",
 		Short: "Validate configuration",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, validateAction{out: cmd.OutOrStdout()})
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, configRunOptions{reportIDs: reportIDs}, validateAction{out: cmd.OutOrStdout()})
 		},
 	}
+	cmd.Flags().StringArrayVar(&reportIDs, "report", nil, "Optional report id filter; repeat flag to target multiple reports")
+	return cmd
 }
 
 func newListCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
@@ -137,7 +140,7 @@ func newListReportsCmd(loaderFactory LoaderFactory, validator pipeline.AppValida
 			if err := validateReportsFormat(format); err != nil {
 				return err
 			}
-			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, listReportsAction{
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, configRunOptions{}, listReportsAction{
 				out:    cmd.OutOrStdout(),
 				format: format,
 			})
@@ -162,7 +165,7 @@ func newListNamesCmd(loaderFactory LoaderFactory, validator pipeline.AppValidato
 			if err := validateNamesFormat(format); err != nil {
 				return err
 			}
-			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, namesAction{
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, configRunOptions{}, namesAction{
 				out:    cmd.OutOrStdout(),
 				prefix: prefix,
 				kind:   kind,
@@ -212,7 +215,7 @@ func newLintNamesCmd(loaderFactory LoaderFactory, validator pipeline.AppValidato
 			if err != nil {
 				return err
 			}
-			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, lintNamesAction{
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, configRunOptions{}, lintNamesAction{
 				out:    cmd.OutOrStdout(),
 				prefix: prefix,
 				policy: policy,
@@ -241,7 +244,7 @@ func newLintOrphansCmd(loaderFactory LoaderFactory, validator pipeline.AppValida
 			if err != nil {
 				return err
 			}
-			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, lintOrphansAction{
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, configRunOptions{}, lintOrphansAction{
 				out:      cmd.OutOrStdout(),
 				query:    query,
 				severity: diagSeverity,
@@ -262,22 +265,29 @@ func newGenerateJSONCmd(loaderFactory LoaderFactory, validator pipeline.AppValid
 		Use:   "json",
 		Short: "Generate JSON",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, generateJSONAction{out: cmd.OutOrStdout()})
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, configRunOptions{}, generateJSONAction{out: cmd.OutOrStdout()})
 		},
 	}
 }
 
 func newGenerateMarkdownCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
-	return &cobra.Command{
+	var reportIDs []string
+	cmd := &cobra.Command{
 		Use:   "markdown",
 		Short: "Generate markdown reports",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, generateMarkdownAction{out: cmd.OutOrStdout()})
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, configRunOptions{reportIDs: reportIDs}, generateMarkdownAction{out: cmd.OutOrStdout()})
 		},
 	}
+	cmd.Flags().StringArrayVar(&reportIDs, "report", nil, "Optional report id filter; repeat flag to target multiple reports")
+	return cmd
 }
 
-func runWithConfig(ctx context.Context, loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string, action pipeline.CommandAction) error {
+type configRunOptions struct {
+	reportIDs []string
+}
+
+func runWithConfig(ctx context.Context, loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string, options configRunOptions, action pipeline.CommandAction) error {
 	if loaderFactory == nil {
 		return errors.New("loader factory is required")
 	}
@@ -285,6 +295,7 @@ func runWithConfig(ctx context.Context, loaderFactory LoaderFactory, validator p
 		return errors.New("config path is required")
 	}
 	loader := loaderFactory(*configPath)
+	loader = withReportFilter(loader, options.reportIDs)
 	return pipeline.Run(ctx, loader, validator, action)
 }
 

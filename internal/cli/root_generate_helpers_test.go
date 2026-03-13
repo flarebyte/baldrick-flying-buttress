@@ -36,9 +36,13 @@ func runGenerateMarkdownBundleFixture(t *testing.T, fixtureName string, relative
 }
 
 func runGenerateMarkdownWithConfig(configPath string) (int, string, string) {
+	return runGenerateMarkdownWithArgs([]string{"--config", configPath})
+}
+
+func runGenerateMarkdownWithArgs(args []string) (int, string, string) {
 	loaderFactory := func(path string) pipeline.AppLoader { return load.FSAppLoader{ConfigPath: path} }
 	validator := validate.AppDataValidator{}
-	return runCommandWithFactory([]string{"generate", "markdown", "--config", configPath}, loaderFactory, validator)
+	return runCommandWithFactory(append([]string{"generate", "markdown"}, args...), loaderFactory, validator)
 }
 
 func readGeneratedMarkdown(t *testing.T, tmpDir, outputPath string) string {
