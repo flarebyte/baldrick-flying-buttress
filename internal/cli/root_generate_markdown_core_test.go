@@ -131,6 +131,32 @@ func TestGenerateMarkdownDeterministicAcrossRuns(t *testing.T) {
 	}
 }
 
+func TestGenerateMarkdownFullyOverwritesExistingReportFile(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	configPath := writeFixtureConfig(t, tmp, "config.markdown.raw.json")
+	alphaPath := filepath.Join(tmp, "out", "alpha.md")
+	if err := os.MkdirAll(filepath.Dir(alphaPath), 0o755); err != nil {
+		t.Fatalf("create alpha output dir failed: %v", err)
+	}
+	if err := os.WriteFile(alphaPath, []byte("STALE CONTENT THAT SHOULD NOT SURVIVE\n\nextra trailing bytes\n"), 0o644); err != nil {
+		t.Fatalf("seed alpha report failed: %v", err)
+	}
+
+	code, stdout, stderr := runGenerateMarkdownWithConfig(configPath)
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, "", "")
+
+	want := readGolden(t, "generate_markdown_alpha_output.golden")
+	got := readGeneratedMarkdown(t, tmp, filepath.Join("out", "alpha.md"))
+	if got != want {
+		t.Fatalf("expected full overwrite without stale content\nwant: %q\n got: %q", want, got)
+	}
+}
+
 func TestGenerateMarkdownSingleWorkerEqualsMultiWorker(t *testing.T) {
 	tmpSingle := t.TempDir()
 	configSingle := writeFixtureConfig(t, tmpSingle, "config.markdown.raw.json")
