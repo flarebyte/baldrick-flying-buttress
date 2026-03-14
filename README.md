@@ -147,6 +147,8 @@ Useful graph arguments:
 
 These controls are especially useful for large flow-oriented documents where the main path should stay prominent and future or helper branches should be shown selectively.
 
+For plain note sections, `show-labels=true` adds a `Labels: ...` line under each note heading so generated markdown can expose release scope or intent without overloading note titles.
+
 ## Determinism guarantees
 
 - ordering policy is stable for diagnostics, reports, notes, and relationships

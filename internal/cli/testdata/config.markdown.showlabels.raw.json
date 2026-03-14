@@ -1,0 +1,41 @@
+{
+  "source": "markdown-showlabels-app",
+  "name": "markdown-showlabels-app",
+  "modules": ["core"],
+  "reports": [
+    {
+      "title": "Alpha Report",
+      "filepath": "out/alpha.md",
+      "description": "Alpha intro.",
+      "sections": [
+        {
+          "title": "A H2",
+          "description": "A section.",
+          "sections": [
+            {
+              "title": "A-1 H3",
+              "description": "A1 desc.",
+              "arguments": ["show-labels=true"],
+              "notes": ["n.banana", "n.apple"]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "name": "n.apple",
+      "title": "Apple",
+      "markdown": "Apple note.",
+      "labels": ["future", "v1"]
+    },
+    {
+      "name": "n.banana",
+      "title": "Banana",
+      "markdown": "Banana note.",
+      "labels": ["implementation", "method"]
+    }
+  ],
+  "relationships": []
+}

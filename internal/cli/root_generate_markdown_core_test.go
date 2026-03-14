@@ -19,6 +19,17 @@ func TestGenerateMarkdownSuccessWithCueConfig(t *testing.T) {
 	assertGenerateMarkdownSuccessFixture(t, "config.markdown.cue")
 }
 
+func TestGenerateMarkdownCanShowNoteLabelsWhenRequested(t *testing.T) {
+	t.Parallel()
+
+	tmp, code, stdout, stderr := runGenerateMarkdownFixture(t, "config.markdown.showlabels.raw.json")
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, "", "")
+	assertGeneratedMarkdownGolden(t, tmp, filepath.Join("out", "alpha.md"), "generate_markdown_showlabels_output.golden")
+}
+
 func TestGenerateMarkdownWithReportFilterWritesOnlySelectedReport(t *testing.T) {
 	t.Parallel()
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -12,6 +13,7 @@ import (
 	"github.com/flarebyte/baldrick-flying-buttress/internal/orphans"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/renderer"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/safety"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/textutil"
 )
 
 func renderMarkdownReport(ctx context.Context, report domain.MarkdownReport, noteByID map[string]domain.Note, app domain.ValidatedApp, registry renderer.Registry) (string, []domain.Diagnostic, error) {
@@ -168,6 +170,9 @@ func renderMarkdownReport(ctx context.Context, report domain.MarkdownReport, not
 					continue
 				}
 				writeMarkdownHeading(&b, 4, note.Title)
+				if labels := renderNoteLabels(h3.Arguments, note); labels != "" {
+					writeMarkdownParagraph(&b, labels)
+				}
 				body, err := renderNoteBody(ctx, note, app.ConfigDir)
 				if err != nil {
 					return "", nil, fmt.Errorf("render note %s: %w", note.ID, err)
@@ -203,4 +208,31 @@ func writeMarkdownParagraph(b *strings.Builder, text string) {
 
 func escapeMarkdownCell(input string) string {
 	return strings.ReplaceAll(input, "|", "\\|")
+}
+
+func renderNoteLabels(arguments []string, note domain.Note) string {
+	if !resolveShowLabels(arguments) {
+		return ""
+	}
+	labels := textutil.SplitCSV(note.LabelsCSV)
+	if len(labels) == 0 {
+		return ""
+	}
+	return "Labels: " + strings.Join(labels, ", ")
+}
+
+func resolveShowLabels(arguments []string) bool {
+	showLabels := false
+	for _, entry := range ordering.Strings(arguments) {
+		key, value, ok := textutil.ParseKeyValue(entry)
+		if !ok || key != "show-labels" {
+			continue
+		}
+		parsed, err := strconv.ParseBool(value)
+		if err != nil {
+			continue
+		}
+		showLabels = parsed
+	}
+	return showLabels
 }

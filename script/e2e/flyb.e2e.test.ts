@@ -27,6 +27,11 @@ const markdownRendererExplicitFixturePath = join(
   'testdata',
   'markdown.renderer.explicit.raw.json',
 );
+const markdownShowLabelsFixturePath = join(
+  rootDir,
+  'testdata',
+  'markdown.showlabels.raw.json',
+);
 const markdownOrphansFixturePath = join(
   rootDir,
   'testdata',
@@ -276,6 +281,19 @@ test('flyb generate markdown supports explicit mermaid renderer', () => {
       fixture.dir,
       'renderer-explicit.md',
       'generate-markdown-renderer-explicit.golden',
+    );
+  } finally {
+    rmSync(fixture.dir, { recursive: true, force: true });
+  }
+});
+
+test('flyb generate markdown can show note labels when requested', () => {
+  const fixture = makeTempFixture(markdownShowLabelsFixturePath);
+  try {
+    assertGenerateMarkdownOutput(
+      fixture.dir,
+      'showlabels.md',
+      'generate-markdown-showlabels.golden',
     );
   } finally {
     rmSync(fixture.dir, { recursive: true, force: true });
