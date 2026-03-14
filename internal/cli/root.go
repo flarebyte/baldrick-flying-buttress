@@ -50,6 +50,7 @@ func NewRootCmdWithFactory(loaderFactory LoaderFactory, validator pipeline.AppVa
 	cmd.AddCommand(newListCmd(loaderFactory, validator, &configPath))
 	cmd.AddCommand(newLintCmd(loaderFactory, validator, &configPath))
 	cmd.AddCommand(newGenerateCmd(loaderFactory, validator, &configPath))
+	cmd.AddCommand(newExportCmd(loaderFactory, &configPath))
 	return cmd
 }
 
@@ -188,6 +189,28 @@ func newGenerateCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator
 	}
 	cmd.AddCommand(newGenerateJSONCmd(loaderFactory, validator, configPath))
 	cmd.AddCommand(newGenerateMarkdownCmd(loaderFactory, validator, configPath))
+	return cmd
+}
+
+func newExportCmd(loaderFactory LoaderFactory, configPath *string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "export",
+		Short: "Export resolved configuration",
+	}
+	cmd.AddCommand(newExportCueCmd(loaderFactory, configPath))
+	return cmd
+}
+
+func newExportCueCmd(loaderFactory LoaderFactory, configPath *string) *cobra.Command {
+	var reportIDs []string
+	cmd := &cobra.Command{
+		Use:   "cue",
+		Short: "Export resolved config as a single normalized CUE file",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runExportCue(cmd.Context(), loaderFactory, configPath, reportIDs, cmd.OutOrStdout())
+		},
+	}
+	cmd.Flags().StringArrayVar(&reportIDs, "report", nil, "Optional report id filter; repeat flag to target multiple reports")
 	return cmd
 }
 

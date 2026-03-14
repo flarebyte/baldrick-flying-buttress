@@ -168,6 +168,23 @@ test('flyb directory config matches equivalent app.cue package config', () => {
   expect(listFromDir.exitCode).toBe(listFromFile.exitCode);
   expect(bytesHex(listFromDir.stdout)).toBe(bytesHex(listFromFile.stdout));
   expect(bytesHex(listFromDir.stderr)).toBe(bytesHex(listFromFile.stderr));
+
+  const exportFromDir = runFlyb([
+    'export',
+    'cue',
+    '--config',
+    designMetaDirPath,
+  ]);
+  const exportFromFile = runFlyb([
+    'export',
+    'cue',
+    '--config',
+    designMetaAppCuePath,
+  ]);
+
+  expect(exportFromDir.exitCode).toBe(exportFromFile.exitCode);
+  expect(bytesHex(exportFromDir.stdout)).toBe(bytesHex(exportFromFile.stdout));
+  expect(bytesHex(exportFromDir.stderr)).toBe(bytesHex(exportFromFile.stderr));
 });
 
 test('flyb list reports stdout matches golden', () => {

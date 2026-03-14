@@ -46,7 +46,7 @@ func TestCanonicalOrderingFromDifferentInputOrdersProducesIdenticalOutput(t *tes
 	orderedValidator := validatorWith(orderedValidatedAppForOrdering(), orderedReport, nil)
 	unorderedValidator := validatorWith(unorderedValidatedApp(), unorderedReport, nil)
 
-	for _, args := range [][]string{{"validate"}, {"list", "reports"}, {"generate", "json"}} {
+	for _, args := range [][]string{{"validate"}, {"list", "reports"}, {"generate", "json"}, {"export", "cue"}} {
 		orderedCode, orderedStdout, orderedStderr := runCommand(args, stubLoader(), orderedValidator)
 		unorderedCode, unorderedStdout, unorderedStderr := runCommand(args, stubLoader(), unorderedValidator)
 
@@ -79,6 +79,7 @@ func TestDeterministicOutputAcrossRuns(t *testing.T) {
 		{name: "lint orphans", args: []string{"lint", "orphans", "--subject-label", "ingredient"}, loader: stubLoader(), validator: validatorWith(orphansValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
 		{name: "generate json", args: []string{"generate", "json"}, loader: stubLoader(), validator: validatorWith(listValidatedApp(), domain.ValidationReport{}, nil), exitCode: 0},
 		{name: "generate markdown", args: []string{"generate", "markdown"}, loader: stubLoader(), validator: validatorWith(domain.ValidatedApp{}, domain.ValidationReport{}, nil), exitCode: 0},
+		{name: "export cue", args: []string{"export", "cue"}, loader: stubLoader(), validator: validatorWith(domain.ValidatedApp{}, domain.ValidationReport{}, nil), exitCode: 0},
 	}
 
 	for _, tc := range tests {

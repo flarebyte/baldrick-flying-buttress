@@ -102,6 +102,7 @@ relationships: [{
 - `flyb lint orphans`
 - `flyb generate markdown`
 - `flyb generate json`
+- `flyb export cue`
 
 ## Project structure explanation
 
@@ -154,6 +155,17 @@ For plain note sections, `show-labels=true` adds a `Labels: ...` line under each
 - ordering policy is stable for diagnostics, reports, notes, and relationships
 - machine-readable JSON output is deterministic
 - repeated runs with the same config produce reproducible outputs
+
+## Exporting CUE
+
+`flyb export cue` emits the resolved config as a single normalized CUE file. This is useful when the source config is split across a package but you want one flattened artifact for review, debugging, or downstream use.
+
+```bash
+flyb export cue --config .
+flyb export cue --config . --report minimal
+```
+
+The exported file is deterministic: package loading is resolved first, then the result is emitted as one canonical CUE document with stable ordering.
 
 ## Machine-friendly diagnostics
 
