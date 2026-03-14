@@ -2,6 +2,8 @@
 
 `flyb` is a config-driven CLI for validating architecture knowledge and generating deterministic documentation from it.
 
+Project: https://github.com/flarebyte/baldrick-flying-buttress
+
 ## Project overview
 
 `flyb` models architecture as:
@@ -25,6 +27,8 @@ brew install flarebyte/tap/baldrick-flying-buttress
 flyb --help
 ```
 
+Top-level help is designed to be useful to both humans and AI agents: running `flyb` with no arguments explains accepted config forms, core workflows, and the deterministic/machine-friendly behavior of the tool.
+
 Build locally for development:
 
 ```bash
@@ -38,16 +42,25 @@ Use a minimal example project:
 cd examples/minimal
 ```
 
+`--config` accepts a raw JSON file, a standalone CUE file, or a CUE config directory containing `app.cue`. For packaged CUE configs, `flyb` loads the full package from the directory, including sibling `.cue` files and standard CUE imports.
+
 Validate config:
 
 ```bash
-../../.e2e-bin/flyb validate --config app.cue
+flyb validate --config .
 ```
 
 Generate markdown:
 
 ```bash
-../../.e2e-bin/flyb generate markdown --config app.cue
+flyb generate markdown --config .
+```
+
+Target a subset of reports while validating or generating:
+
+```bash
+flyb validate --config . --report minimal
+flyb generate markdown --config . --report minimal
 ```
 
 ## Example CUE configuration
@@ -93,6 +106,7 @@ relationships: [{
 - `flyb lint orphans`
 - `flyb generate markdown`
 - `flyb generate json`
+- `flyb export cue`
 
 ## Project structure explanation
 
@@ -101,11 +115,73 @@ relationships: [{
 - `reports`: generated markdown targets (`title`, `filepath`)
 - `sections`: nested report structure (`H2` and `H3`) for plain, graph, or orphan views
 
+Validation note:
+Notes referenced by report sections, including nested subsections, are treated as intentional documentation nodes and are not flagged as graph orphans just because they have no relationships.
+
+## Graph documentation flows
+
+Graph sections are configured through free-form H3 arguments, so graph rendering can be tuned without changing the core config model. A typical section looks like this:
+
+```cue
+{
+  title: "Flows"
+  arguments: [
+    "graph-subject-label=flow",
+    "graph-edge-label=contains_step",
+    "graph-start-node=cli.root",
+    "graph-child-order=title",
+    "graph-max-depth=3",
+    "graph-branch-priority-label=main",
+    "graph-branch-priority-label=future",
+    "graph-exclude-label=helper",
+    "graph-show-helper-nodes=false",
+    "graph-renderer=markdown-text",
+  ]
+}
+```
+
+Useful graph arguments:
+
+- `graph-child-order=id|title`: stable child ordering for rendered branches
+- `graph-max-depth=<n>`: limit traversal depth from the selected root/start node
+- `graph-include-label=...`: include only notes carrying one of the selected labels
+- `graph-exclude-label=...`: remove notes carrying selected labels
+- `graph-branch-priority-label=...`: prioritize important branches ahead of others
+- `graph-show-helper-nodes=false`: hide helper nodes while keeping the main path readable
+- `graph-helper-label=helper`: define which label marks helper nodes when hiding them
+
+These controls are especially useful for large flow-oriented documents where the main path should stay prominent and future or helper branches should be shown selectively.
+
+For plain note sections, `show-labels=true` adds a `Labels: ...` line under each note heading so generated markdown can expose release scope or intent without overloading note titles.
+
 ## Determinism guarantees
 
 - ordering policy is stable for diagnostics, reports, notes, and relationships
 - machine-readable JSON output is deterministic
 - repeated runs with the same config produce reproducible outputs
+
+## Exporting CUE
+
+`flyb export cue` emits the resolved config as a single normalized CUE file. This is useful when the source config is split across a package but you want one flattened artifact for review, debugging, or downstream use.
+
+```bash
+flyb export cue --config .
+flyb export cue --config . --report minimal
+```
+
+The exported file is deterministic: package loading is resolved first, then the result is emitted as one canonical CUE document with stable ordering.
+
+## Machine-friendly diagnostics
+
+Validation and lint commands emit structured diagnostics designed to be consumable by scripts and AI agents. In addition to `code`, `severity`, `message`, and `path`, diagnostics may now include:
+
+- `normalizedPath`: canonicalized model path for stable matching
+- `configPath` and `configPathAbsolute`: normalized config source paths
+- dedicated fields such as `reportTitle`, `reportId`, `sectionTitle`, `noteName`, and `noteTitle`
+- `relatedNodes`: directly related note or relationship endpoints when applicable
+- `suggestedFixes`: concrete next actions for common failures
+
+These fields are optional and appear only when they can be derived reliably from the config and validation context.
 
 ## Examples
 

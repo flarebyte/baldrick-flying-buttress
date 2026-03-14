@@ -27,6 +27,11 @@ const markdownRendererExplicitFixturePath = join(
   'testdata',
   'markdown.renderer.explicit.raw.json',
 );
+const markdownShowLabelsFixturePath = join(
+  rootDir,
+  'testdata',
+  'markdown.showlabels.raw.json',
+);
 const markdownOrphansFixturePath = join(
   rootDir,
   'testdata',
@@ -47,6 +52,8 @@ const markdownFileRawCSVFixturePath = join(
   'testdata',
   'markdown.file.rawcsv.raw.json',
 );
+const designMetaDirPath = join(rootDir, 'doc', 'design-meta');
+const designMetaAppCuePath = join(designMetaDirPath, 'app.cue');
 
 function runFlyb(args: string[]) {
   const result = Bun.spawnSync({
@@ -122,11 +129,62 @@ test('flyb validate stdout matches golden', () => {
 
 test('flyb validate with cue fixture stdout matches golden', () => {
   const got = runFlyb(['validate', '--config', cueFixturePath]);
-  const wantStdout = readGolden('validate.stdout.golden');
+  const wantStdout = readGolden('validate-cue.stdout.golden');
 
   expect(got.exitCode).toBe(1);
   expect(bytesHex(got.stdout)).toBe(bytesHex(wantStdout));
   expect(bytesHex(got.stderr)).toBe('');
+});
+
+test('flyb directory config matches equivalent app.cue package config', () => {
+  const validateFromDir = runFlyb(['validate', '--config', designMetaDirPath]);
+  const validateFromFile = runFlyb([
+    'validate',
+    '--config',
+    designMetaAppCuePath,
+  ]);
+
+  expect(validateFromDir.exitCode).toBe(validateFromFile.exitCode);
+  expect(bytesHex(validateFromDir.stdout)).toBe(
+    bytesHex(validateFromFile.stdout),
+  );
+  expect(bytesHex(validateFromDir.stderr)).toBe(
+    bytesHex(validateFromFile.stderr),
+  );
+
+  const listFromDir = runFlyb([
+    'list',
+    'reports',
+    '--config',
+    designMetaDirPath,
+  ]);
+  const listFromFile = runFlyb([
+    'list',
+    'reports',
+    '--config',
+    designMetaAppCuePath,
+  ]);
+
+  expect(listFromDir.exitCode).toBe(listFromFile.exitCode);
+  expect(bytesHex(listFromDir.stdout)).toBe(bytesHex(listFromFile.stdout));
+  expect(bytesHex(listFromDir.stderr)).toBe(bytesHex(listFromFile.stderr));
+
+  const exportFromDir = runFlyb([
+    'export',
+    'cue',
+    '--config',
+    designMetaDirPath,
+  ]);
+  const exportFromFile = runFlyb([
+    'export',
+    'cue',
+    '--config',
+    designMetaAppCuePath,
+  ]);
+
+  expect(exportFromDir.exitCode).toBe(exportFromFile.exitCode);
+  expect(bytesHex(exportFromDir.stdout)).toBe(bytesHex(exportFromFile.stdout));
+  expect(bytesHex(exportFromDir.stderr)).toBe(bytesHex(exportFromFile.stderr));
 });
 
 test('flyb list reports stdout matches golden', () => {
@@ -241,6 +299,43 @@ test('flyb generate markdown supports explicit mermaid renderer', () => {
       'renderer-explicit.md',
       'generate-markdown-renderer-explicit.golden',
     );
+  } finally {
+    rmSync(fixture.dir, { recursive: true, force: true });
+  }
+});
+
+test('flyb generate markdown can show note labels when requested', () => {
+  const fixture = makeTempFixture(markdownShowLabelsFixturePath);
+  try {
+    assertGenerateMarkdownOutput(
+      fixture.dir,
+      'showlabels.md',
+      'generate-markdown-showlabels.golden',
+    );
+  } finally {
+    rmSync(fixture.dir, { recursive: true, force: true });
+  }
+});
+
+test('flyb generate markdown can target a single report', () => {
+  const fixture = makeTempFixture(markdownFixturePath);
+  try {
+    const got = runFlyb([
+      'generate',
+      'markdown',
+      '--config',
+      fixture.configPath,
+      '--report',
+      'alpha',
+    ]);
+    const wantAlpha = readGolden('generate-markdown-alpha.golden');
+    const gotAlpha = readFileSync(join(fixture.dir, 'out', 'alpha.md'));
+
+    expect(got.exitCode).toBe(0);
+    expect(bytesHex(got.stdout)).toBe('');
+    expect(bytesHex(got.stderr)).toBe('');
+    expect(bytesHex(gotAlpha)).toBe(bytesHex(wantAlpha));
+    expect(() => readFileSync(join(fixture.dir, 'out', 'beta.md'))).toThrow();
   } finally {
     rmSync(fixture.dir, { recursive: true, force: true });
   }

@@ -15,6 +15,7 @@ type Args struct {
 	Renderer         string
 	MermaidDirection string
 	RendererExplicit bool
+	GraphQuery       graph.Query
 }
 
 type Capability struct {
@@ -35,8 +36,7 @@ func ResolveRegistry() Registry {
 			SupportedShapes: []graph.Shape{graph.ShapeTree, graph.ShapeDAG, graph.ShapeCyclic},
 			SupportedArgs:   []string{"graph-renderer"},
 			Render: func(ctx context.Context, selected graph.Selected, shape graph.Shape, args Args) (string, error) {
-				_ = args
-				return graph.RenderMarkdownText(ctx, selected, shape, graph.CyclePolicyAllow)
+				return graph.RenderMarkdownText(ctx, selected, shape, graph.CyclePolicyAllow, args.GraphQuery)
 			},
 		},
 		{
@@ -89,6 +89,11 @@ func fallbackRendererForShape(shape graph.Shape) string {
 
 func ResolveArgs(app domain.ValidatedApp, h3 domain.MarkdownH3Section, noteByID map[string]domain.Note) (Args, error) {
 	resolved := Args{Renderer: "markdown-text", MermaidDirection: "TD"}
+	query, err := graph.ResolveQuery(h3.Arguments)
+	if err != nil {
+		return Args{}, err
+	}
+	resolved.GraphQuery = query
 
 	for _, def := range app.Registry.Arguments {
 		if def.DefaultValue == nil {

@@ -64,18 +64,22 @@ func TestAppDataValidatorConfiguredArgumentsContextFields(t *testing.T) {
 		t.Fatalf("validate failed: %v", err)
 	}
 
-	var sectionDiag *domain.Diagnostic
-	var noteDiag *domain.Diagnostic
+	var sectionDiag domain.Diagnostic
+	var noteDiag domain.Diagnostic
+	var foundSectionDiag bool
+	var foundNoteDiag bool
 	for i := range report.Diagnostics {
-		d := &report.Diagnostics[i]
+		d := report.Diagnostics[i]
 		if d.Path == "reports[0].sections[0].arguments[0]" {
 			sectionDiag = d
+			foundSectionDiag = true
 		}
 		if d.Path == "notes[0].arguments[0]" {
 			noteDiag = d
+			foundNoteDiag = true
 		}
 	}
-	if sectionDiag == nil || noteDiag == nil {
+	if !foundSectionDiag || !foundNoteDiag {
 		t.Fatalf("expected diagnostics for section and note arguments, got %#v", report.Diagnostics)
 	}
 	if sectionDiag.ArgumentName != "unknown" || sectionDiag.SectionTitle != "Overview" || sectionDiag.ReportTitle != "CPU Overview" {

@@ -37,6 +37,37 @@ func TestRenderMarkdownPlainNote(t *testing.T) {
 	}
 }
 
+func TestRenderMarkdownPlainNoteWithLabelsEnabled(t *testing.T) {
+	t.Parallel()
+
+	report := domain.MarkdownReport{
+		Title: "Inventory",
+		Sections: []domain.MarkdownH2Section{{
+			Title: "Overview",
+			Sections: []domain.MarkdownH3Section{{
+				Title:     "Ingredients",
+				Arguments: []string{"show-labels=true"},
+				NoteIDs:   []string{"n.apple"},
+			}},
+		}},
+	}
+	notes := map[string]domain.Note{
+		"n.apple": {ID: "n.apple", Title: "Apple", Markdown: "Fresh apple.", LabelsCSV: "future,v1"},
+	}
+
+	got, diagnostics, err := renderMarkdownReport(context.Background(), report, notes, domain.ValidatedApp{}, renderer.ResolveRegistry())
+	if err != nil {
+		t.Fatalf("render markdown report failed: %v", err)
+	}
+	if len(diagnostics) != 0 {
+		t.Fatalf("expected no diagnostics, got %#v", diagnostics)
+	}
+	want := "# Inventory\n\n## Overview\n\n### Ingredients\n\n#### Apple\n\nLabels: future, v1\n\nFresh apple.\n\n"
+	if got != want {
+		t.Fatalf("markdown mismatch\nwant: %q\n got: %q", want, got)
+	}
+}
+
 func TestRenderMarkdownDeterministicSections(t *testing.T) {
 	t.Parallel()
 

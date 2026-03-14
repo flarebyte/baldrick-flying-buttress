@@ -1,10 +1,12 @@
 package cli
 
 import (
+	"context"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/outcome"
+	"github.com/flarebyte/baldrick-flying-buttress/internal/pipeline"
 	"github.com/flarebyte/baldrick-flying-buttress/internal/validate"
 )
 
@@ -54,4 +56,46 @@ func TestValidateGoldenOutput(t *testing.T) {
 		t.Fatalf("expected exit code 0, got %d", exitCode)
 	}
 	assertOutput(t, stdout, stderr, readGolden(t, "validate_output.golden"), "")
+}
+
+func TestValidateWithReportFilterTargetsSingleReport(t *testing.T) {
+	t.Parallel()
+
+	loader := pipeline.LoaderFunc(func(context.Context) (domain.RawApp, error) {
+		return domain.RawApp{
+			Source: "app",
+			Reports: []domain.RawReport{
+				{
+					Title:    "Alpha Report",
+					Filepath: "out/alpha.md",
+					Sections: []domain.RawReportSection{{Title: "Overview", Arguments: []string{"unknown=x"}}},
+				},
+				{
+					Title:    "Beta Report",
+					Filepath: "out/beta.md",
+					Sections: []domain.RawReportSection{{Title: "Overview"}},
+				},
+			},
+			Notes:         []domain.RawNote{{Name: "n1", Title: "Service API"}},
+			Relationships: []domain.RawRelationship{},
+			Registry:      domain.RawArgumentRegistry{},
+		}, nil
+	})
+
+	exitCode, stdout, stderr := runCommand([]string{"validate", "--report", "alpha"}, loader, validate.AppDataValidator{})
+	if exitCode != outcome.ExitCodeValidationBlocked {
+		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeValidationBlocked, exitCode)
+	}
+	want := "{\"diagnostics\":[{\"code\":\"FBC002\",\"severity\":\"error\",\"message\":\"unknown configured argument key [reportTitle=Alpha Report, sectionTitle=Overview, argumentName=unknown]\",\"path\":\"reports[0].sections[0].arguments[0]\",\"normalizedPath\":\"reports[0].sections[0].arguments[0]\",\"reportTitle\":\"Alpha Report\",\"reportId\":\"alpha\",\"sectionTitle\":\"Overview\",\"argumentName\":\"unknown\",\"suggestedFixes\":[\"Remove the unknown argument or declare it in argumentRegistry\"]}]}\n"
+	assertOutput(t, stdout, stderr, want, "")
+}
+
+func TestValidateWithUnknownReportFilterFailsAtRuntime(t *testing.T) {
+	t.Parallel()
+
+	exitCode, stdout, stderr := runCommand([]string{"validate", "--report", "missing"}, validate.StubAppLoader{}, validate.StubAppValidator{})
+	if exitCode != outcome.ExitCodeRuntimeFailure {
+		t.Fatalf("expected exit code %d, got %d", outcome.ExitCodeRuntimeFailure, exitCode)
+	}
+	assertOutput(t, stdout, stderr, "", "unknown report filter: missing (available: cpu-overview,memory-health)\n")
 }

@@ -3,6 +3,7 @@ package pipeline
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -43,7 +44,7 @@ func TestRunCallsLoadValidateAction(t *testing.T) {
 				if len(validated.Modules) != len(wantValidated.Modules) || validated.Modules[0] != wantValidated.Modules[0] {
 					t.Fatalf("unexpected modules: %#v", validated.Modules)
 				}
-				if len(report.Diagnostics) != len(wantReport.Diagnostics) || report.Diagnostics[0] != wantReport.Diagnostics[0] {
+				if !reflect.DeepEqual(report.Diagnostics, wantReport.Diagnostics) {
 					t.Fatalf("unexpected report: %#v", report)
 				}
 				return nil

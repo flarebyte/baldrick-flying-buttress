@@ -2,6 +2,7 @@ package graph
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/flarebyte/baldrick-flying-buttress/internal/domain"
@@ -28,6 +29,15 @@ type Query struct {
 	EdgeLabel        string
 	CounterpartLabel string
 	StartNode        string
+	IncludeLabels    []string
+	ExcludeLabels    []string
+	MaxDepth         int
+	MaxDepthSet      bool
+	ChildOrder       ChildOrder
+	BranchPriority   []string
+	ShowHelperNodes  bool
+	ShowHelpersSet   bool
+	HelperLabel      string
 }
 
 type Selected struct {
@@ -37,6 +47,7 @@ type Selected struct {
 }
 
 func Select(app domain.ValidatedApp, query Query) Selected {
+	query = normalizeQuery(query)
 	notes := ordering.Notes(app.Notes)
 	rels := ordering.Relationships(app.Relationships)
 	noteByID := map[string]domain.Note{}
@@ -96,6 +107,15 @@ func Select(app domain.ValidatedApp, query Query) Selected {
 	if strings.TrimSpace(query.StartNode) != "" {
 		includedNotes, includedRels = pruneFromStart(includedNotes, includedRels, query.StartNode)
 	}
+	if len(query.IncludeLabels) > 0 || len(query.ExcludeLabels) > 0 {
+		includedNotes, includedRels = pruneByLabels(includedNotes, includedRels, query)
+	}
+	if !query.ShowHelperNodes {
+		includedNotes, includedRels = collapseHelperNodes(includedNotes, includedRels, query.HelperLabel)
+	}
+	if query.MaxDepth >= 0 {
+		includedNotes, includedRels = pruneToDepth(includedNotes, includedRels, query.StartNode, query.MaxDepth)
+	}
 
 	outNotes := make([]domain.Note, 0, len(includedNotes))
 	for _, note := range includedNotes {
@@ -131,7 +151,20 @@ func ResolveCyclePolicy(arguments []string) (CyclePolicy, error) {
 }
 
 func QueryFromArgs(arguments []string) Query {
-	query := Query{}
+	query := Query{MaxDepth: -1, ChildOrder: ChildOrderID, ShowHelperNodes: true}
+	_ = applyQueryArgs(&query, arguments, false)
+	return normalizeQuery(query)
+}
+
+func ResolveQuery(arguments []string) (Query, error) {
+	query := Query{MaxDepth: -1, ChildOrder: ChildOrderID, ShowHelperNodes: true}
+	if err := applyQueryArgs(&query, arguments, true); err != nil {
+		return Query{}, err
+	}
+	return normalizeQuery(query), nil
+}
+
+func applyQueryArgs(query *Query, arguments []string, strict bool) error {
 	for _, arg := range arguments {
 		k, v, ok := parseArg(arg)
 		if !ok {
@@ -146,9 +179,46 @@ func QueryFromArgs(arguments []string) Query {
 			query.CounterpartLabel = v
 		case "graph-start-node":
 			query.StartNode = v
+		case "graph-include-label":
+			query.IncludeLabels = append(query.IncludeLabels, v)
+		case "graph-exclude-label":
+			query.ExcludeLabels = append(query.ExcludeLabels, v)
+		case "graph-max-depth":
+			maxDepth, err := strconv.Atoi(v)
+			if err != nil || maxDepth < 0 {
+				if !strict {
+					continue
+				}
+				return fmt.Errorf("invalid graph-max-depth: %s", v)
+			}
+			query.MaxDepth = maxDepth
+			query.MaxDepthSet = true
+		case "graph-child-order":
+			if ChildOrder(v) != ChildOrderID && ChildOrder(v) != ChildOrderTitle {
+				if !strict {
+					query.ChildOrder = ChildOrder(v)
+					continue
+				}
+				return fmt.Errorf("invalid graph-child-order: %s", v)
+			}
+			query.ChildOrder = ChildOrder(v)
+		case "graph-branch-priority-label":
+			query.BranchPriority = append(query.BranchPriority, v)
+		case "graph-show-helper-nodes":
+			showHelpers, err := strconv.ParseBool(v)
+			if err != nil {
+				if !strict {
+					continue
+				}
+				return fmt.Errorf("invalid graph-show-helper-nodes: %s", v)
+			}
+			query.ShowHelperNodes = showHelpers
+			query.ShowHelpersSet = true
+		case "graph-helper-label":
+			query.HelperLabel = v
 		}
 	}
-	return query
+	return nil
 }
 
 func HasGraphArgs(arguments []string) bool {
@@ -158,9 +228,52 @@ func HasGraphArgs(arguments []string) bool {
 			continue
 		}
 		switch k {
-		case "graph-subject-label", "graph-edge-label", "graph-counterpart-label", "graph-start-node":
+		case "graph-subject-label", "graph-edge-label", "graph-counterpart-label", "graph-start-node",
+			"graph-include-label", "graph-exclude-label", "graph-max-depth", "graph-child-order",
+			"graph-branch-priority-label", "graph-show-helper-nodes", "graph-helper-label":
 			return true
 		}
 	}
 	return false
+}
+
+func normalizeQuery(query Query) Query {
+	query.IncludeLabels = ordering.Strings(compactStrings(query.IncludeLabels))
+	query.ExcludeLabels = ordering.Strings(compactStrings(query.ExcludeLabels))
+	query.BranchPriority = compactStrings(query.BranchPriority)
+	if !query.MaxDepthSet || query.MaxDepth < -1 {
+		query.MaxDepth = -1
+	}
+	switch query.ChildOrder {
+	case ChildOrderID, ChildOrderTitle:
+	default:
+		query.ChildOrder = ChildOrderID
+	}
+	if !query.ShowHelpersSet {
+		query.ShowHelperNodes = true
+	}
+	if strings.TrimSpace(query.HelperLabel) == "" {
+		query.HelperLabel = "helper"
+	}
+	return query
+}
+
+func compactStrings(values []string) []string {
+	if len(values) == 0 {
+		return nil
+	}
+	seen := map[string]struct{}{}
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			continue
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		out = append(out, value)
+	}
+	return out
 }

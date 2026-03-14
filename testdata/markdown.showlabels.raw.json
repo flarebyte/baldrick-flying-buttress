@@ -1,0 +1,40 @@
+{
+  "source": "markdown-showlabels-app",
+  "name": "markdown-showlabels-app",
+  "modules": ["core"],
+  "reports": [
+    {
+      "title": "Show Labels Report",
+      "filepath": "out/showlabels.md",
+      "description": "Label-aware output.",
+      "sections": [
+        {
+          "title": "Flows",
+          "description": "Current scope.",
+          "sections": [
+            {
+              "title": "Primary",
+              "arguments": ["show-labels=true"],
+              "notes": ["n.future", "n.impl"]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "name": "n.future",
+      "title": "Future Path",
+      "markdown": "Planned branch.",
+      "labels": ["future", "v2"]
+    },
+    {
+      "name": "n.impl",
+      "title": "Implementation",
+      "markdown": "Current implementation.",
+      "labels": ["implementation", "method", "v1"]
+    }
+  ],
+  "relationships": []
+}

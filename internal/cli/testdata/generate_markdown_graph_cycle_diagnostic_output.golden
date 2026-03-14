@@ -1,1 +1,1 @@
-{"diagnostics":[{"code":"GRAPH_CYCLE_DISALLOWED","severity":"warning","message":"cycle detected while cycle-policy=disallow; skipping graph section","path":"reports[0].sections[0].sections[0]"}]}
+{"diagnostics":[{"code":"GRAPH_CYCLE_DISALLOWED","severity":"warning","message":"cycle detected while cycle-policy=disallow; skipping graph section","path":"reports[0].sections[0].sections[0]","reportTitle":"Cycle Report","sectionTitle":"Topology"}]}

@@ -67,8 +67,11 @@ func TestRootWithoutArgsShowsDescriptionAndUsage(t *testing.T) {
 	if stderr != "" {
 		t.Fatalf("expected empty stderr, got %q", stderr)
 	}
-	if !strings.Contains(stdout, "flyb validates application graph configuration") {
+	if !strings.Contains(stdout, "flyb validates architecture knowledge stored as notes, relationships, and reports") {
 		t.Fatalf("expected description in help output, got %q", stdout)
+	}
+	if !strings.Contains(stdout, "https://github.com/flarebyte/baldrick-flying-buttress") {
+		t.Fatalf("expected project link in help output, got %q", stdout)
 	}
 	if !strings.Contains(stdout, "Available Commands:") {
 		t.Fatalf("expected command usage output, got %q", stdout)

@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"unicode"
 
@@ -11,11 +12,10 @@ import (
 	"github.com/flarebyte/baldrick-flying-buttress/internal/safety"
 )
 
-func RenderMarkdownText(ctx context.Context, selected Selected, shape Shape, policy CyclePolicy) (string, error) {
+func RenderMarkdownText(ctx context.Context, selected Selected, shape Shape, policy CyclePolicy, query Query) (string, error) {
 	if err := ctx.Err(); err != nil {
 		return "", err
 	}
-	adj := buildAdj(selected.Relationships)
 	noteByID := map[string]domain.Note{}
 	for _, note := range selected.Notes {
 		if err := ctx.Err(); err != nil {
@@ -23,9 +23,10 @@ func RenderMarkdownText(ctx context.Context, selected Selected, shape Shape, pol
 		}
 		noteByID[note.ID] = note
 	}
-	roots := selected.Roots
+	adj := buildAdjForRender(selected.Relationships, noteByID, query)
+	roots := orderedNodeIDs(selected.Roots, noteByID, query)
 	if len(roots) == 0 {
-		roots = noteIDs(selected.Notes)
+		roots = orderedNodeIDs(noteIDs(selected.Notes), noteByID, query)
 	}
 	anchors := buildNoteAnchors(selected.Notes)
 
@@ -277,4 +278,63 @@ func writeCyclicAdjacencySummary(ctx context.Context, b *strings.Builder, notes 
 		b.WriteString(line)
 		b.WriteByte('\n')
 	}
+}
+
+func buildAdjForRender(rels []domain.Relationship, noteByID map[string]domain.Note, query Query) map[string][]string {
+	adj := buildAdj(rels)
+	for fromID, childIDs := range adj {
+		adj[fromID] = orderedNodeIDs(childIDs, noteByID, query)
+	}
+	return adj
+}
+
+func orderedNodeIDs(ids []string, noteByID map[string]domain.Note, query Query) []string {
+	out := append([]string(nil), ids...)
+	slices.SortStableFunc(out, func(a, b string) int {
+		if v := compareBranchPriority(noteByID[a], noteByID[b], query.BranchPriority); v != 0 {
+			return v
+		}
+		switch query.ChildOrder {
+		case ChildOrderTitle:
+			if v := cmpString(noteDisplayName(noteByID[a]), noteDisplayName(noteByID[b])); v != 0 {
+				return v
+			}
+		}
+		return cmpString(a, b)
+	})
+	return out
+}
+
+func compareBranchPriority(a, b domain.Note, priorities []string) int {
+	if len(priorities) == 0 {
+		return 0
+	}
+	rankA := branchPriorityRank(a, priorities)
+	rankB := branchPriorityRank(b, priorities)
+	if rankA < rankB {
+		return -1
+	}
+	if rankA > rankB {
+		return 1
+	}
+	return 0
+}
+
+func branchPriorityRank(note domain.Note, priorities []string) int {
+	for i, label := range priorities {
+		if noteHasLabel(note, label) {
+			return i
+		}
+	}
+	return len(priorities)
+}
+
+func cmpString(a, b string) int {
+	if a < b {
+		return -1
+	}
+	if a > b {
+		return 1
+	}
+	return 0
 }

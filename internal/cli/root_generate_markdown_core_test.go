@@ -19,6 +19,33 @@ func TestGenerateMarkdownSuccessWithCueConfig(t *testing.T) {
 	assertGenerateMarkdownSuccessFixture(t, "config.markdown.cue")
 }
 
+func TestGenerateMarkdownCanShowNoteLabelsWhenRequested(t *testing.T) {
+	t.Parallel()
+
+	tmp, code, stdout, stderr := runGenerateMarkdownFixture(t, "config.markdown.showlabels.raw.json")
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, "", "")
+	assertGeneratedMarkdownGolden(t, tmp, filepath.Join("out", "alpha.md"), "generate_markdown_showlabels_output.golden")
+}
+
+func TestGenerateMarkdownWithReportFilterWritesOnlySelectedReport(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	configPath := writeFixtureConfig(t, tmp, "config.markdown.raw.json")
+	code, stdout, stderr := runGenerateMarkdownWithArgs([]string{"--config", configPath, "--report", "alpha"})
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, "", "")
+	assertGeneratedMarkdownGolden(t, tmp, filepath.Join("out", "alpha.md"), "generate_markdown_alpha_output.golden")
+	if _, err := os.Stat(filepath.Join(tmp, "out", "beta.md")); !os.IsNotExist(err) {
+		t.Fatalf("expected beta.md to be absent, got stat err %v", err)
+	}
+}
+
 func assertGenerateMarkdownSuccessFixture(t *testing.T, fixtureName string) {
 	t.Helper()
 	tmp, code, stdout, stderr := runGenerateMarkdownFixture(t, fixtureName)
@@ -128,6 +155,32 @@ func TestGenerateMarkdownDeterministicAcrossRuns(t *testing.T) {
 	}
 	if beta1 != beta2 {
 		t.Fatalf("non-deterministic beta markdown\\nfirst: %q\\nsecond: %q", beta1, beta2)
+	}
+}
+
+func TestGenerateMarkdownFullyOverwritesExistingReportFile(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	configPath := writeFixtureConfig(t, tmp, "config.markdown.raw.json")
+	alphaPath := filepath.Join(tmp, "out", "alpha.md")
+	if err := os.MkdirAll(filepath.Dir(alphaPath), 0o755); err != nil {
+		t.Fatalf("create alpha output dir failed: %v", err)
+	}
+	if err := os.WriteFile(alphaPath, []byte("STALE CONTENT THAT SHOULD NOT SURVIVE\n\nextra trailing bytes\n"), 0o644); err != nil {
+		t.Fatalf("seed alpha report failed: %v", err)
+	}
+
+	code, stdout, stderr := runGenerateMarkdownWithConfig(configPath)
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, "", "")
+
+	want := readGolden(t, "generate_markdown_alpha_output.golden")
+	got := readGeneratedMarkdown(t, tmp, filepath.Join("out", "alpha.md"))
+	if got != want {
+		t.Fatalf("expected full overwrite without stale content\nwant: %q\n got: %q", want, got)
 	}
 }
 

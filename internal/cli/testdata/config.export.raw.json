@@ -1,0 +1,51 @@
+{
+  "source": "app",
+  "name": "demo",
+  "modules": ["edge", "core"],
+  "reports": [
+    {
+      "title": "Beta Report",
+      "filepath": "out/beta.md",
+      "sections": [
+        {
+          "title": "Later",
+          "notes": ["n.date"]
+        }
+      ]
+    },
+    {
+      "title": "Alpha Report",
+      "filepath": "out/alpha.md",
+      "sections": [
+        {
+          "title": "Overview",
+          "arguments": ["show-labels=true"],
+          "notes": ["n.banana", "n.apple"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "name": "n.banana",
+      "title": "Banana",
+      "markdown": "Banana note.",
+      "labels": ["method", "implementation"]
+    },
+    {
+      "name": "n.apple",
+      "title": "Apple",
+      "markdown": "Apple note.",
+      "labels": ["v1", "future"]
+    },
+    { "name": "n.date", "title": "Date", "markdown": "Date note." }
+  ],
+  "relationships": [
+    {
+      "from": "n.banana",
+      "to": "n.apple",
+      "label": "depends_on",
+      "labels": ["depends_on", "primary"]
+    }
+  ]
+}

@@ -85,12 +85,10 @@ func checkOrphans(raw domain.RawApp, policy domain.PolicySeverity) []domain.Diag
 		}
 	}
 	for _, report := range raw.Reports {
-		for _, section := range report.Sections {
-			for _, noteName := range section.Notes {
-				n := strings.TrimSpace(noteName)
-				if n != "" {
-					connected[n] = struct{}{}
-				}
+		for _, noteName := range collectReportSectionNoteNames(report.Sections) {
+			n := strings.TrimSpace(noteName)
+			if n != "" {
+				connected[n] = struct{}{}
 			}
 		}
 	}
@@ -160,21 +158,19 @@ func checkCrossReportReferences(raw domain.RawApp, policy domain.GraphIntegrityP
 func collectNoteReportMembership(raw domain.RawApp) map[string][]string {
 	membership := map[string]map[string]struct{}{}
 	for _, report := range raw.Reports {
-		reportID := reportIDFromFilepath(report.Filepath)
+		reportID := domain.ReportIDFromFilepath(report.Filepath)
 		if reportID == "" {
 			reportID = report.Title
 		}
-		for _, section := range report.Sections {
-			for _, noteName := range section.Notes {
-				name := strings.TrimSpace(noteName)
-				if name == "" {
-					continue
-				}
-				if _, ok := membership[name]; !ok {
-					membership[name] = map[string]struct{}{}
-				}
-				membership[name][reportID] = struct{}{}
+		for _, noteName := range collectReportSectionNoteNames(report.Sections) {
+			name := strings.TrimSpace(noteName)
+			if name == "" {
+				continue
 			}
+			if _, ok := membership[name]; !ok {
+				membership[name] = map[string]struct{}{}
+			}
+			membership[name][reportID] = struct{}{}
 		}
 	}
 
@@ -199,4 +195,16 @@ func hasReportOverlap(a, b []string) bool {
 		}
 	}
 	return false
+}
+
+func collectReportSectionNoteNames(sections []domain.RawReportSection) []string {
+	if len(sections) == 0 {
+		return nil
+	}
+	names := make([]string, 0)
+	for _, section := range sections {
+		names = append(names, section.Notes...)
+		names = append(names, collectReportSectionNoteNames(section.Sections)...)
+	}
+	return names
 }

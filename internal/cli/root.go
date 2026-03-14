@@ -32,8 +32,21 @@ func NewRootCmdWithFactory(loaderFactory LoaderFactory, validator pipeline.AppVa
 	cmd := &cobra.Command{
 		Use:   "flyb",
 		Short: "Build, inspect, lint, and generate structured graph-driven reports",
-		Long: "flyb validates application graph configuration and provides deterministic\n" +
-			"commands to list entities, run lint checks, and generate JSON or markdown outputs.",
+		Long: "flyb validates architecture knowledge stored as notes, relationships, and reports,\n" +
+			"then emits deterministic outputs for humans and automation.\n\n" +
+			"Input:\n" +
+			"  --config accepts raw JSON, a standalone CUE file, or a CUE directory containing app.cue.\n" +
+			"  Packaged CUE configs load the full directory package, including sibling .cue files and imports.\n\n" +
+			"Core workflows:\n" +
+			"  validate           check config structure and graph integrity\n" +
+			"  list               inspect reports or names\n" +
+			"  lint               find naming and orphan issues\n" +
+			"  generate           emit JSON or markdown artifacts\n" +
+			"  export cue         flatten resolved config into one normalized CUE file\n\n" +
+			"Behavior:\n" +
+			"  outputs are deterministic, diagnostics are machine-friendly, and --report can target\n" +
+			"  a subset of reports for faster edit and AI repair loops.\n\n" +
+			"Project: https://github.com/flarebyte/baldrick-flying-buttress",
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -43,13 +56,14 @@ func NewRootCmdWithFactory(loaderFactory LoaderFactory, validator pipeline.AppVa
 			return cmd.Help()
 		},
 	}
-	cmd.PersistentFlags().StringVar(&configPath, "config", defaultConfigPath, "Path to raw app config file")
+	cmd.PersistentFlags().StringVar(&configPath, "config", defaultConfigPath, "Path to app config file or directory")
 	cmd.PersistentFlags().BoolVar(&showVersion, "version", false, "Print detailed version metadata as JSON")
 
 	cmd.AddCommand(newValidateCmd(loaderFactory, validator, &configPath))
 	cmd.AddCommand(newListCmd(loaderFactory, validator, &configPath))
 	cmd.AddCommand(newLintCmd(loaderFactory, validator, &configPath))
 	cmd.AddCommand(newGenerateCmd(loaderFactory, validator, &configPath))
+	cmd.AddCommand(newExportCmd(loaderFactory, &configPath))
 	return cmd
 }
 
@@ -109,13 +123,16 @@ func ExecuteContextWithFactory(ctx context.Context, args []string, out io.Writer
 }
 
 func newValidateCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
-	return &cobra.Command{
+	var reportIDs []string
+	cmd := &cobra.Command{
 		Use:   "validate",
 		Short: "Validate configuration",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, validateAction{out: cmd.OutOrStdout()})
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, configRunOptions{reportIDs: reportIDs}, validateAction{out: cmd.OutOrStdout()})
 		},
 	}
+	cmd.Flags().StringArrayVar(&reportIDs, "report", nil, "Optional report id filter; repeat flag to target multiple reports")
+	return cmd
 }
 
 func newListCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
@@ -137,7 +154,7 @@ func newListReportsCmd(loaderFactory LoaderFactory, validator pipeline.AppValida
 			if err := validateReportsFormat(format); err != nil {
 				return err
 			}
-			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, listReportsAction{
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, configRunOptions{}, listReportsAction{
 				out:    cmd.OutOrStdout(),
 				format: format,
 			})
@@ -162,7 +179,7 @@ func newListNamesCmd(loaderFactory LoaderFactory, validator pipeline.AppValidato
 			if err := validateNamesFormat(format); err != nil {
 				return err
 			}
-			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, namesAction{
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, configRunOptions{}, namesAction{
 				out:    cmd.OutOrStdout(),
 				prefix: prefix,
 				kind:   kind,
@@ -185,6 +202,28 @@ func newGenerateCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator
 	}
 	cmd.AddCommand(newGenerateJSONCmd(loaderFactory, validator, configPath))
 	cmd.AddCommand(newGenerateMarkdownCmd(loaderFactory, validator, configPath))
+	return cmd
+}
+
+func newExportCmd(loaderFactory LoaderFactory, configPath *string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "export",
+		Short: "Export resolved configuration",
+	}
+	cmd.AddCommand(newExportCueCmd(loaderFactory, configPath))
+	return cmd
+}
+
+func newExportCueCmd(loaderFactory LoaderFactory, configPath *string) *cobra.Command {
+	var reportIDs []string
+	cmd := &cobra.Command{
+		Use:   "cue",
+		Short: "Export resolved config as a single normalized CUE file",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runExportCue(cmd.Context(), loaderFactory, configPath, reportIDs, cmd.OutOrStdout())
+		},
+	}
+	cmd.Flags().StringArrayVar(&reportIDs, "report", nil, "Optional report id filter; repeat flag to target multiple reports")
 	return cmd
 }
 
@@ -212,7 +251,7 @@ func newLintNamesCmd(loaderFactory LoaderFactory, validator pipeline.AppValidato
 			if err != nil {
 				return err
 			}
-			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, lintNamesAction{
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, configRunOptions{}, lintNamesAction{
 				out:    cmd.OutOrStdout(),
 				prefix: prefix,
 				policy: policy,
@@ -241,7 +280,7 @@ func newLintOrphansCmd(loaderFactory LoaderFactory, validator pipeline.AppValida
 			if err != nil {
 				return err
 			}
-			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, lintOrphansAction{
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, configRunOptions{}, lintOrphansAction{
 				out:      cmd.OutOrStdout(),
 				query:    query,
 				severity: diagSeverity,
@@ -262,22 +301,29 @@ func newGenerateJSONCmd(loaderFactory LoaderFactory, validator pipeline.AppValid
 		Use:   "json",
 		Short: "Generate JSON",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, generateJSONAction{out: cmd.OutOrStdout()})
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, configRunOptions{}, generateJSONAction{out: cmd.OutOrStdout()})
 		},
 	}
 }
 
 func newGenerateMarkdownCmd(loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string) *cobra.Command {
-	return &cobra.Command{
+	var reportIDs []string
+	cmd := &cobra.Command{
 		Use:   "markdown",
 		Short: "Generate markdown reports",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, generateMarkdownAction{out: cmd.OutOrStdout()})
+			return runWithConfig(cmd.Context(), loaderFactory, validator, configPath, configRunOptions{reportIDs: reportIDs}, generateMarkdownAction{out: cmd.OutOrStdout()})
 		},
 	}
+	cmd.Flags().StringArrayVar(&reportIDs, "report", nil, "Optional report id filter; repeat flag to target multiple reports")
+	return cmd
 }
 
-func runWithConfig(ctx context.Context, loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string, action pipeline.CommandAction) error {
+type configRunOptions struct {
+	reportIDs []string
+}
+
+func runWithConfig(ctx context.Context, loaderFactory LoaderFactory, validator pipeline.AppValidator, configPath *string, options configRunOptions, action pipeline.CommandAction) error {
 	if loaderFactory == nil {
 		return errors.New("loader factory is required")
 	}
@@ -285,6 +331,7 @@ func runWithConfig(ctx context.Context, loaderFactory LoaderFactory, validator p
 		return errors.New("config path is required")
 	}
 	loader := loaderFactory(*configPath)
+	loader = withReportFilter(loader, options.reportIDs)
 	return pipeline.Run(ctx, loader, validator, action)
 }
 

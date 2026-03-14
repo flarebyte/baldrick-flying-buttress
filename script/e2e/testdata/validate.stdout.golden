@@ -1,1 +1,1 @@
-{"diagnostics":[{"code":"FBV101","severity":"error","message":"missing required field: report title","path":"reports[0].title"}]}
+{"diagnostics":[{"code":"FBV101","severity":"error","message":"missing required field: report title","path":"reports[0].title","normalizedPath":"reports[0].title","configPath":"/Users/olivier/Documents/github/baldrick-flying-buttress/testdata/app.raw.json","configPathAbsolute":"/Users/olivier/Documents/github/baldrick-flying-buttress/testdata/app.raw.json","suggestedFixes":["Set report title to a non-empty string"]}]}

@@ -1,0 +1,66 @@
+package flyb
+
+source: "markdown-app"
+name:   "markdown-app"
+modules: ["core"]
+reports: [{
+	title:       "Alpha Report"
+	filepath:    "out/alpha.md"
+	description: "Alpha intro."
+	sections: [{
+		description: "A section."
+		title:       "A H2"
+		sections: [{
+			description: "A1 desc."
+			title:       "A-1 H3"
+			notes: ["n.apple", "n.banana"]
+			sections: []
+		}, {
+			description: "A2 desc."
+			title:       "A-2 H3"
+			notes: ["n.banana"]
+			sections: []
+		}]
+	}, {
+		description: "B section."
+		title:       "B H2"
+		sections: [{
+			description: "B2 desc."
+			title:       "B-2 H3"
+			notes: ["n.apple", "n.cherry"]
+			sections: []
+		}]
+	}]
+}]
+notes: [{
+	name:     "n.apple"
+	title:    "Apple"
+	markdown: "Apple note."
+	filepath: ""
+}, {
+	name:     "n.banana"
+	title:    "Banana"
+	markdown: "Banana note."
+	filepath: ""
+}, {
+	name:     "n.cherry"
+	title:    "Cherry"
+	markdown: "Cherry note."
+	filepath: ""
+}, {
+	name:     "n.date"
+	title:    "Date"
+	markdown: "Date note."
+	filepath: ""
+}]
+relationships: []
+argumentRegistry: {
+	version: ""
+	arguments: []
+}
+graphIntegrityPolicy: {
+	missingNode:          ""
+	orphanNode:           ""
+	duplicateNoteName:    ""
+	crossReportReference: ""
+}

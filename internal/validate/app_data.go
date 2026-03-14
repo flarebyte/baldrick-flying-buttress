@@ -74,6 +74,7 @@ func (v AppDataValidator) Validate(ctx context.Context, raw domain.RawApp) (doma
 
 	v.step("diagnostics_collection")
 	diagnostics = collectDiagnostics(diagnostics)
+	diagnostics = enrichDiagnostics(rawModel, diagnostics)
 
 	v.step("validated_app_normalization")
 	validated := normalizeValidatedApp(rawModel, registry, datasetLabels, graphPolicy)

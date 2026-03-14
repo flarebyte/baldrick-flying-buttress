@@ -111,6 +111,53 @@ func TestCommandsWorkWithCueConfigAndFilesystemLoader(t *testing.T) {
 	assertCommandsWorkWithConfig(t, filepath.Join("testdata", "config.cue"))
 }
 
+func TestCommandsWorkWithConfigDirectoryAndEquivalentAppCueFile(t *testing.T) {
+	t.Parallel()
+
+	dirPath := filepath.Join("..", "..", "doc", "design-meta")
+	filePath := filepath.Join(dirPath, "app.cue")
+
+	validateDirCode, validateDirStdout, validateDirStderr := runCommandWithFactory(
+		[]string{"validate", "--config", dirPath},
+		fsLoaderFactory,
+		validate.AppDataValidator{},
+	)
+	validateFileCode, validateFileStdout, validateFileStderr := runCommandWithFactory(
+		[]string{"validate", "--config", filePath},
+		fsLoaderFactory,
+		validate.AppDataValidator{},
+	)
+	if validateDirCode != 0 || validateFileCode != 0 {
+		t.Fatalf("expected validate exit code 0, got %d and %d", validateDirCode, validateFileCode)
+	}
+	if validateDirStdout != validateFileStdout {
+		t.Fatalf("expected matching validate stdout\nfrom dir: %q\nfrom file: %q", validateDirStdout, validateFileStdout)
+	}
+	if validateDirStderr != validateFileStderr {
+		t.Fatalf("expected matching validate stderr\nfrom dir: %q\nfrom file: %q", validateDirStderr, validateFileStderr)
+	}
+
+	listDirCode, listDirStdout, listDirStderr := runCommandWithFactory(
+		[]string{"list", "reports", "--config", dirPath},
+		fsLoaderFactory,
+		validate.AppDataValidator{},
+	)
+	listFileCode, listFileStdout, listFileStderr := runCommandWithFactory(
+		[]string{"list", "reports", "--config", filePath},
+		fsLoaderFactory,
+		validate.AppDataValidator{},
+	)
+	if listDirCode != 0 || listFileCode != 0 {
+		t.Fatalf("expected list exit code 0, got %d and %d", listDirCode, listFileCode)
+	}
+	if listDirStdout != listFileStdout {
+		t.Fatalf("expected matching list stdout\nfrom dir: %q\nfrom file: %q", listDirStdout, listFileStdout)
+	}
+	if listDirStderr != listFileStderr {
+		t.Fatalf("expected matching list stderr\nfrom dir: %q\nfrom file: %q", listDirStderr, listFileStderr)
+	}
+}
+
 func TestCommandsWithInvalidStructureConfigProduceValidationDiagnostics(t *testing.T) {
 	t.Parallel()
 
@@ -120,7 +167,7 @@ func TestCommandsWithInvalidStructureConfigProduceValidationDiagnostics(t *testi
 func TestCommandsWithInvalidStructureCueConfigProduceValidationDiagnostics(t *testing.T) {
 	t.Parallel()
 
-	assertValidateAndListBlocked(t, filepath.Join("testdata", "config.invalid.cue"), "validate_invalid_output.golden")
+	assertValidateAndListBlocked(t, filepath.Join("testdata", "config.invalid.cue"), "validate_invalid_cue_output.golden")
 }
 
 func TestValidateWithInvalidRegistryConfigCollectsMultipleDiagnostics(t *testing.T) {

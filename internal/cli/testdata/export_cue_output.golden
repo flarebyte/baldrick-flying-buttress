@@ -1,0 +1,61 @@
+package flyb
+
+source: "app"
+name:   "demo"
+modules: ["core", "edge"]
+reports: [{
+	title:       "Alpha Report"
+	filepath:    "out/alpha.md"
+	description: ""
+	sections: [{
+		description: ""
+		title:       "Overview"
+		arguments: ["show-labels=true"]
+		notes: ["n.apple", "n.banana"]
+		sections: []
+	}]
+}, {
+	title:       "Beta Report"
+	filepath:    "out/beta.md"
+	description: ""
+	sections: [{
+		description: ""
+		title:       "Later"
+		notes: ["n.date"]
+		sections: []
+	}]
+}]
+notes: [{
+	name:     "n.apple"
+	title:    "Apple"
+	markdown: "Apple note."
+	filepath: ""
+	labels: ["future", "v1"]
+}, {
+	name:     "n.banana"
+	title:    "Banana"
+	markdown: "Banana note."
+	filepath: ""
+	labels: ["implementation", "method"]
+}, {
+	name:     "n.date"
+	title:    "Date"
+	markdown: "Date note."
+	filepath: ""
+}]
+relationships: [{
+	from:  "n.banana"
+	to:    "n.apple"
+	label: "depends_on"
+	labels: ["depends_on", "primary"]
+}]
+argumentRegistry: {
+	version: ""
+	arguments: []
+}
+graphIntegrityPolicy: {
+	missingNode:          ""
+	orphanNode:           ""
+	duplicateNoteName:    ""
+	crossReportReference: ""
+}
