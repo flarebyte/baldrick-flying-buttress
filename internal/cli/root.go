@@ -32,8 +32,21 @@ func NewRootCmdWithFactory(loaderFactory LoaderFactory, validator pipeline.AppVa
 	cmd := &cobra.Command{
 		Use:   "flyb",
 		Short: "Build, inspect, lint, and generate structured graph-driven reports",
-		Long: "flyb validates application graph configuration and provides deterministic\n" +
-			"commands to list entities, run lint checks, and generate JSON or markdown outputs.",
+		Long: "flyb validates architecture knowledge stored as notes, relationships, and reports,\n" +
+			"then emits deterministic outputs for humans and automation.\n\n" +
+			"Input:\n" +
+			"  --config accepts raw JSON, a standalone CUE file, or a CUE directory containing app.cue.\n" +
+			"  Packaged CUE configs load the full directory package, including sibling .cue files and imports.\n\n" +
+			"Core workflows:\n" +
+			"  validate           check config structure and graph integrity\n" +
+			"  list               inspect reports or names\n" +
+			"  lint               find naming and orphan issues\n" +
+			"  generate           emit JSON or markdown artifacts\n" +
+			"  export cue         flatten resolved config into one normalized CUE file\n\n" +
+			"Behavior:\n" +
+			"  outputs are deterministic, diagnostics are machine-friendly, and --report can target\n" +
+			"  a subset of reports for faster edit and AI repair loops.\n\n" +
+			"Project: https://github.com/flarebyte/baldrick-flying-buttress",
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		RunE: func(cmd *cobra.Command, args []string) error {

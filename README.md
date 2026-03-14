@@ -2,6 +2,8 @@
 
 `flyb` is a config-driven CLI for validating architecture knowledge and generating deterministic documentation from it.
 
+Project: https://github.com/flarebyte/baldrick-flying-buttress
+
 ## Project overview
 
 `flyb` models architecture as:
@@ -24,6 +26,8 @@ Install with Homebrew:
 brew install flarebyte/tap/baldrick-flying-buttress
 flyb --help
 ```
+
+Top-level help is designed to be useful to both humans and AI agents: running `flyb` with no arguments explains accepted config forms, core workflows, and the deterministic/machine-friendly behavior of the tool.
 
 Build locally for development:
 
