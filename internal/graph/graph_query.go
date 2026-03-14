@@ -24,17 +24,7 @@ func pruneByLabels(notes map[string]domain.Note, rels []domain.Relationship, que
 		}
 	}
 
-	filteredRels := make([]domain.Relationship, 0, len(rels))
-	for _, rel := range rels {
-		if _, ok := filteredNotes[rel.FromID]; !ok {
-			continue
-		}
-		if _, ok := filteredNotes[rel.ToID]; !ok {
-			continue
-		}
-		filteredRels = append(filteredRels, rel)
-	}
-	return filteredNotes, filteredRels
+	return filteredNotes, filterRelationshipsWithinNotes(filteredNotes, rels)
 }
 
 func noteAllowedByQueryLabels(note domain.Note, query Query) bool {
@@ -109,17 +99,29 @@ func collapseHelperNodes(notes map[string]domain.Note, rels []domain.Relationshi
 		filteredNotes[id] = note
 	}
 
-	filteredRels := make([]domain.Relationship, 0, len(rewired))
-	for _, rel := range rewired {
-		if _, ok := filteredNotes[rel.FromID]; !ok {
+	return filteredNotes, filterRelationshipsWithinNotes(filteredNotes, mapRelationships(rewired))
+}
+
+func filterRelationshipsWithinNotes(notes map[string]domain.Note, rels []domain.Relationship) []domain.Relationship {
+	filtered := make([]domain.Relationship, 0, len(rels))
+	for _, rel := range rels {
+		if _, ok := notes[rel.FromID]; !ok {
 			continue
 		}
-		if _, ok := filteredNotes[rel.ToID]; !ok {
+		if _, ok := notes[rel.ToID]; !ok {
 			continue
 		}
-		filteredRels = append(filteredRels, rel)
+		filtered = append(filtered, rel)
 	}
-	return filteredNotes, filteredRels
+	return filtered
+}
+
+func mapRelationships(input map[string]domain.Relationship) []domain.Relationship {
+	out := make([]domain.Relationship, 0, len(input))
+	for _, rel := range input {
+		out = append(out, rel)
+	}
+	return out
 }
 
 func collapseNonHelperAncestors(nodeID string, parents map[string][]string, helperIDs map[string]struct{}) []string {

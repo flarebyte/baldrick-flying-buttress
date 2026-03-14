@@ -240,49 +240,54 @@ func fixtureGraphApp() domain.ValidatedApp {
 }
 
 func fixtureTreeApp() domain.ValidatedApp {
-	return domain.ValidatedApp{
-		Notes: []domain.Note{
+	return fixtureAppWithEdges(
+		[]domain.Note{
 			{ID: "root", Title: "Root", Markdown: "root body", Label: "graph", LabelsCSV: "graph"},
 			{ID: "left", Title: "Left", Markdown: "left body", Label: "graph", LabelsCSV: "graph"},
 			{ID: "right", Title: "Right", Markdown: "right body", Label: "graph", LabelsCSV: "graph"},
 		},
-		Relationships: []domain.Relationship{{FromID: "root", ToID: "left", Label: "edge", LabelsCSV: "edge"}, {FromID: "root", ToID: "right", Label: "edge", LabelsCSV: "edge"}},
-	}
+		[][2]string{{"root", "left"}, {"root", "right"}},
+	)
 }
 
 func fixtureDAGApp() domain.ValidatedApp {
-	return domain.ValidatedApp{
-		Notes: []domain.Note{
+	return fixtureAppWithEdges(
+		[]domain.Note{
 			{ID: "a", Title: "A", Markdown: "a", Label: "graph", LabelsCSV: "graph"},
 			{ID: "b", Title: "B", Markdown: "b", Label: "graph", LabelsCSV: "graph"},
 			{ID: "c", Title: "C", Markdown: "c", Label: "graph", LabelsCSV: "graph"},
 			{ID: "d", Title: "D", Markdown: "d", Label: "graph", LabelsCSV: "graph"},
 		},
-		Relationships: []domain.Relationship{{FromID: "a", ToID: "b", Label: "edge", LabelsCSV: "edge"}, {FromID: "a", ToID: "c", Label: "edge", LabelsCSV: "edge"}, {FromID: "b", ToID: "d", Label: "edge", LabelsCSV: "edge"}, {FromID: "c", ToID: "d", Label: "edge", LabelsCSV: "edge"}},
-	}
+		[][2]string{{"a", "b"}, {"a", "c"}, {"b", "d"}, {"c", "d"}},
+	)
 }
 
 func fixtureCycleApp() domain.ValidatedApp {
-	return domain.ValidatedApp{
-		Notes: []domain.Note{
+	return fixtureAppWithEdges(
+		[]domain.Note{
 			{ID: "a", Title: "A", Markdown: "a", Label: "graph", LabelsCSV: "graph"},
 			{ID: "b", Title: "B", Markdown: "b", Label: "graph", LabelsCSV: "graph"},
 			{ID: "c", Title: "C", Markdown: "c", Label: "graph", LabelsCSV: "graph"},
 		},
-		Relationships: []domain.Relationship{{FromID: "a", ToID: "b", Label: "edge", LabelsCSV: "edge"}, {FromID: "b", ToID: "c", Label: "edge", LabelsCSV: "edge"}, {FromID: "c", ToID: "a", Label: "edge", LabelsCSV: "edge"}},
-	}
+		[][2]string{{"a", "b"}, {"b", "c"}, {"c", "a"}},
+	)
 }
 
 func fixtureChainApp() domain.ValidatedApp {
-	return domain.ValidatedApp{
-		Notes: []domain.Note{
+	return fixtureAppWithEdges(
+		[]domain.Note{
 			{ID: "a", Title: "A", Markdown: "a", Label: "graph", LabelsCSV: "graph"},
 			{ID: "b", Title: "B", Markdown: "b", Label: "graph", LabelsCSV: "graph"},
 			{ID: "c", Title: "C", Markdown: "c", Label: "graph", LabelsCSV: "graph"},
 		},
-		Relationships: []domain.Relationship{
-			{FromID: "a", ToID: "b", Label: "edge", LabelsCSV: "edge"},
-			{FromID: "b", ToID: "c", Label: "edge", LabelsCSV: "edge"},
-		},
+		[][2]string{{"a", "b"}, {"b", "c"}},
+	)
+}
+
+func fixtureAppWithEdges(notes []domain.Note, edges [][2]string) domain.ValidatedApp {
+	rels := make([]domain.Relationship, 0, len(edges))
+	for _, edge := range edges {
+		rels = append(rels, domain.Relationship{FromID: edge[0], ToID: edge[1], Label: "edge", LabelsCSV: "edge"})
 	}
+	return domain.ValidatedApp{Notes: notes, Relationships: rels}
 }

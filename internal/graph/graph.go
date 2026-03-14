@@ -152,47 +152,19 @@ func ResolveCyclePolicy(arguments []string) (CyclePolicy, error) {
 
 func QueryFromArgs(arguments []string) Query {
 	query := Query{MaxDepth: -1, ChildOrder: ChildOrderID, ShowHelperNodes: true}
-	for _, arg := range arguments {
-		k, v, ok := parseArg(arg)
-		if !ok {
-			continue
-		}
-		switch k {
-		case "graph-subject-label":
-			query.SubjectLabel = v
-		case "graph-edge-label":
-			query.EdgeLabel = v
-		case "graph-counterpart-label":
-			query.CounterpartLabel = v
-		case "graph-start-node":
-			query.StartNode = v
-		case "graph-include-label":
-			query.IncludeLabels = append(query.IncludeLabels, v)
-		case "graph-exclude-label":
-			query.ExcludeLabels = append(query.ExcludeLabels, v)
-		case "graph-max-depth":
-			if maxDepth, err := strconv.Atoi(v); err == nil {
-				query.MaxDepth = maxDepth
-				query.MaxDepthSet = true
-			}
-		case "graph-child-order":
-			query.ChildOrder = ChildOrder(v)
-		case "graph-branch-priority-label":
-			query.BranchPriority = append(query.BranchPriority, v)
-		case "graph-show-helper-nodes":
-			if showHelpers, err := strconv.ParseBool(v); err == nil {
-				query.ShowHelperNodes = showHelpers
-				query.ShowHelpersSet = true
-			}
-		case "graph-helper-label":
-			query.HelperLabel = v
-		}
-	}
+	_ = applyQueryArgs(&query, arguments, false)
 	return normalizeQuery(query)
 }
 
 func ResolveQuery(arguments []string) (Query, error) {
 	query := Query{MaxDepth: -1, ChildOrder: ChildOrderID, ShowHelperNodes: true}
+	if err := applyQueryArgs(&query, arguments, true); err != nil {
+		return Query{}, err
+	}
+	return normalizeQuery(query), nil
+}
+
+func applyQueryArgs(query *Query, arguments []string, strict bool) error {
 	for _, arg := range arguments {
 		k, v, ok := parseArg(arg)
 		if !ok {
@@ -214,23 +186,31 @@ func ResolveQuery(arguments []string) (Query, error) {
 		case "graph-max-depth":
 			maxDepth, err := strconv.Atoi(v)
 			if err != nil || maxDepth < 0 {
-				return Query{}, fmt.Errorf("invalid graph-max-depth: %s", v)
+				if !strict {
+					continue
+				}
+				return fmt.Errorf("invalid graph-max-depth: %s", v)
 			}
 			query.MaxDepth = maxDepth
 			query.MaxDepthSet = true
 		case "graph-child-order":
-			switch ChildOrder(v) {
-			case ChildOrderID, ChildOrderTitle:
-				query.ChildOrder = ChildOrder(v)
-			default:
-				return Query{}, fmt.Errorf("invalid graph-child-order: %s", v)
+			if ChildOrder(v) != ChildOrderID && ChildOrder(v) != ChildOrderTitle {
+				if !strict {
+					query.ChildOrder = ChildOrder(v)
+					continue
+				}
+				return fmt.Errorf("invalid graph-child-order: %s", v)
 			}
+			query.ChildOrder = ChildOrder(v)
 		case "graph-branch-priority-label":
 			query.BranchPriority = append(query.BranchPriority, v)
 		case "graph-show-helper-nodes":
 			showHelpers, err := strconv.ParseBool(v)
 			if err != nil {
-				return Query{}, fmt.Errorf("invalid graph-show-helper-nodes: %s", v)
+				if !strict {
+					continue
+				}
+				return fmt.Errorf("invalid graph-show-helper-nodes: %s", v)
 			}
 			query.ShowHelperNodes = showHelpers
 			query.ShowHelpersSet = true
@@ -238,7 +218,7 @@ func ResolveQuery(arguments []string) (Query, error) {
 			query.HelperLabel = v
 		}
 	}
-	return normalizeQuery(query), nil
+	return nil
 }
 
 func HasGraphArgs(arguments []string) bool {
