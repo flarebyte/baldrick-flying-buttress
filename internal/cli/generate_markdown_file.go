@@ -53,8 +53,8 @@ func renderNoteBody(ctx context.Context, note domain.Note, configDir string) (st
 	if isMediaExt(ext) {
 		return renderFileMedia(note)
 	}
-	if isCodeExt(ext) {
-		return renderFileCode(data, ext), nil
+	if isCodeFile(note.Filepath, ext) {
+		return renderFileCode(data, codeLanguage(note.Filepath, ext)), nil
 	}
 	return "", fmt.Errorf("unsupported note file type: %s", ext)
 }
@@ -281,8 +281,7 @@ func renderFileMedia(note domain.Note) (string, error) {
 	return fmt.Sprintf("![%s](%s)", title, filepath.ToSlash(note.Filepath)), nil
 }
 
-func renderFileCode(data []byte, ext string) string {
-	lang := codeLanguage(ext)
+func renderFileCode(data []byte, lang string) string {
 	var b strings.Builder
 	b.WriteString("```")
 	b.WriteString(lang)
@@ -295,8 +294,25 @@ func renderFileCode(data []byte, ext string) string {
 	return b.String()
 }
 
-func codeLanguage(ext string) string {
+func codeLanguage(path string, ext string) string {
+	base := filepath.Base(path)
+	switch base {
+	case "Dockerfile":
+		return "dockerfile"
+	}
 	switch ext {
+	case ".py":
+		return "python"
+	case ".rs":
+		return "rust"
+	case ".sh", ".bash":
+		return "bash"
+	case ".hbs", ".handlebars":
+		return "handlebars"
+	case ".tex", ".math":
+		return "latex"
+	case ".dockerfile":
+		return "dockerfile"
 	case ".md":
 		return "markdown"
 	case ".mmd", ".mermaid":
@@ -324,11 +340,19 @@ func isMediaExt(ext string) bool {
 
 func isCodeExt(ext string) bool {
 	switch ext {
-	case ".go", ".ts", ".js", ".json", ".md", ".txt", ".mmd", ".mermaid", ".puml", ".plantuml", ".yaml", ".yml", ".sql", ".cue":
+	case ".go", ".ts", ".js", ".json", ".md", ".txt", ".mmd", ".mermaid", ".puml", ".plantuml", ".yaml", ".yml", ".sql", ".cue",
+		".dart", ".py", ".tex", ".math", ".stl", ".sh", ".bash", ".dockerfile", ".css", ".rs", ".toml", ".env", ".hbs", ".handlebars", ".dot", ".diff":
 		return true
 	default:
 		return false
 	}
+}
+
+func isCodeFile(path string, ext string) bool {
+	if isCodeExt(ext) {
+		return true
+	}
+	return filepath.Base(path) == "Dockerfile"
 }
 
 func splitArgLines(input string) []string {

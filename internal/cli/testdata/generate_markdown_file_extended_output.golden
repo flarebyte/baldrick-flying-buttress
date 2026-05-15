@@ -1,0 +1,90 @@
+# Extended File Report
+
+## Files
+
+### Renderers
+
+#### Bash
+
+```bash
+echo "hello"
+```
+
+#### CSS
+
+```css
+body { color: red; }
+```
+
+#### Dart
+
+```dart
+void main() { print('hi'); }
+```
+
+#### Diff
+
+```diff
+--- a/file.txt
++++ b/file.txt
+@@ -1 +1 @@
+-old
++new
+```
+
+#### Dockerfile
+
+```dockerfile
+FROM alpine:3.20
+RUN echo ok
+```
+
+#### DOT
+
+```dot
+digraph G { a -> b; }
+```
+
+#### Env
+
+```env
+PORT=8080
+```
+
+#### Handlebars
+
+```handlebars
+<h1>{{title}}</h1>
+```
+
+#### Math
+
+```latex
+E = mc^2
+```
+
+#### Python
+
+```python
+print("hi")
+```
+
+#### Rust
+
+```rust
+fn main() {}
+```
+
+#### STL
+
+```stl
+solid cube
+endsolid cube
+```
+
+#### TOML
+
+```toml
+name = "demo"
+```
+

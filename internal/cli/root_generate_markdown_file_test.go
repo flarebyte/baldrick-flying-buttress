@@ -83,3 +83,28 @@ func TestGenerateMarkdownFileBackedRawCSVRendering(t *testing.T) {
 	assertOutput(t, stdout, stderr, "", "")
 	assertGeneratedMarkdownGolden(t, tmp, filepath.Join("out", "file-rawcsv.md"), "generate_markdown_file_rawcsv_output.golden")
 }
+
+func TestGenerateMarkdownFileBackedExtendedCodeTypesRendering(t *testing.T) {
+	t.Parallel()
+
+	tmp, code, stdout, stderr := runGenerateMarkdownBundleFixture(t, "config.markdown.file.extended.raw.json", []string{
+		"fixtures/ext/script.bash",
+		"fixtures/ext/style.css",
+		"fixtures/ext/main.dart",
+		"fixtures/ext/change.diff",
+		"fixtures/ext/Dockerfile",
+		"fixtures/ext/graph.dot",
+		"fixtures/ext/app.env",
+		"fixtures/ext/template.handlebars",
+		"fixtures/ext/equation.math",
+		"fixtures/ext/main.py",
+		"fixtures/ext/main.rs",
+		"fixtures/ext/shape.stl",
+		"fixtures/ext/config.toml",
+	})
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	assertOutput(t, stdout, stderr, "", "")
+	assertGeneratedMarkdownGolden(t, tmp, filepath.Join("out", "file-extended.md"), "generate_markdown_file_extended_output.golden")
+}
