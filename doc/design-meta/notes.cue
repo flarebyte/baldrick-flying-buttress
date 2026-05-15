@@ -274,7 +274,7 @@ notes: [
   {
     name: "cli.note.filepath.reference"
     title: "Reference a file from a note"
-    markdown: "Referenced files can be embedded in generated markdown output."
+    markdown: "Referenced files can be embedded in generated markdown output.\n\nSupported file-backed rendering includes:\n- CSV: `.csv` (table or raw mode, with include/exclude filters)\n- Media previews: `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`\n- Fenced code/text: `.go`, `.ts`, `.js`, `.json`, `.md`, `.txt`, `.mmd`, `.mermaid`, `.puml`, `.plantuml`, `.yaml`, `.yml`, `.sql`, `.cue`, `.dart`, `.py`, `.tex`, `.math`, `.stl`, `.sh`, `.bash`, `.dockerfile`, `.css`, `.rs`, `.toml`, `.env`, `.hbs`, `.handlebars`, `.dot`, `.diff`, and `Dockerfile`."
     labels: ["usecase", "design"]
   },
   {

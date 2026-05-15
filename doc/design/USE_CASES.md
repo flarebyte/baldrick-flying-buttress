@@ -98,6 +98,11 @@ Column filters reduce CSV output to the relevant subset using `csv-include=colum
 
 Referenced files can be embedded in generated markdown output.
 
+Supported file-backed rendering includes:
+- CSV: `.csv` (table or raw mode, with include/exclude filters)
+- Media previews: `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`
+- Fenced code/text: `.go`, `.ts`, `.js`, `.json`, `.md`, `.txt`, `.mmd`, `.mermaid`, `.puml`, `.plantuml`, `.yaml`, `.yml`, `.sql`, `.cue`, `.dart`, `.py`, `.tex`, `.math`, `.stl`, `.sh`, `.bash`, `.dockerfile`, `.css`, `.rs`, `.toml`, `.env`, `.hbs`, `.handlebars`, `.dot`, `.diff`, and `Dockerfile`.
+
 #### Preview referenced image files in markdown
 
 Image references render as embedded previews in reports.

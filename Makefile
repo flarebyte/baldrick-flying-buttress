@@ -91,6 +91,17 @@ dup:
 
 review: format test e2e lint
 
+thoth-meta: thoth-meta-go thoth-meta-go-test thoth-meta-ts-e2e
+
+thoth-meta-go:
+	$(THOTH) run --config ./pipeline-go-maat.thoth.cue
+
+thoth-meta-go-test:
+	$(THOTH) run --config ./pipeline-go-test-maat.thoth.cue
+
+thoth-meta-ts-e2e:
+	$(THOTH) run --config ./pipeline-ts-e2e-maat.thoth.cue
+
 help:
 	@printf "Targets:\n"
 	@printf "  lint       Run Biome checks.\n"

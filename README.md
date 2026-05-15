@@ -154,6 +154,25 @@ These controls are especially useful for large flow-oriented documents where the
 
 For plain note sections, `show-labels=true` adds a `Labels: ...` line under each note heading so generated markdown can expose release scope or intent without overloading note titles.
 
+## File-backed note rendering
+
+When a note sets `filepath`, `flyb generate markdown` renders the referenced file by type:
+
+- CSV table/raw CSV: `.csv` (with `format-csv=table|raw`, plus `csv-include` / `csv-exclude`)
+- Media preview: `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`
+- Code/text fenced blocks:
+  - Existing: `.go`, `.ts`, `.js`, `.json`, `.md`, `.txt`, `.mmd`, `.mermaid`, `.puml`, `.plantuml`, `.yaml`, `.yml`, `.sql`, `.cue`
+  - Additional: `.dart`, `.py`, `.tex`, `.math`, `.stl`, `.sh`, `.bash`, `.dockerfile`, `.css`, `.rs`, `.toml`, `.env`, `.hbs`, `.handlebars`, `.dot`, `.diff`, `Dockerfile`
+
+Language-tag mapping used for fenced blocks includes:
+
+- `.py` -> `python`
+- `.rs` -> `rust`
+- `.sh` / `.bash` -> `bash`
+- `.hbs` / `.handlebars` -> `handlebars`
+- `.tex` / `.math` -> `latex`
+- `.dockerfile` / `Dockerfile` -> `dockerfile`
+
 ## Determinism guarantees
 
 - ordering policy is stable for diagnostics, reports, notes, and relationships
