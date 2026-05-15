@@ -1,0 +1,18 @@
+locator: internal/graph/graph.go
+meta:
+  function_list:
+    - HasGraphArgs
+    - QueryFromArgs
+    - ResolveCyclePolicy
+    - ResolveQuery
+    - Select
+    - applyQueryArgs
+    - compactStrings
+    - normalizeQuery
+  import_files_list:
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/ordering
+    - strconv
+    - strings
+  language: go

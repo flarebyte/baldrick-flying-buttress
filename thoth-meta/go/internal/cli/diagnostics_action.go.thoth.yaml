@@ -1,0 +1,10 @@
+locator: internal/cli/diagnostics_action.go
+meta:
+  function_list:
+    - emitDiagnosticsOutcome
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/outcome
+    - github.com/flarebyte/baldrick-flying-buttress/internal/output
+    - io
+  language: go

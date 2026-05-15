@@ -1,0 +1,16 @@
+locator: internal/validate/app_data_diagnostics.go
+meta:
+  function_list:
+    - newArgumentDiagnostic
+    - newDiagnostic
+    - newGraphDiagnostic
+    - newLabelReferenceDiagnostic
+    - newRegistryDiagnostic
+    - noteLocation
+    - registryArgLocation
+    - registryArgNameLocation
+    - relationshipLocation
+  import_files_list:
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+  language: go

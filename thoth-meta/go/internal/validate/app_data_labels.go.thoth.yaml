@@ -1,0 +1,9 @@
+locator: internal/validate/app_data_labels.go
+meta:
+  function_list:
+    - collectDatasetLabels
+    - validateLabelReferences
+  import_files_list:
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+  language: go

@@ -1,0 +1,9 @@
+locator: internal/cli/root_generate_json_test.go
+meta:
+  function_list:
+    - TestGenerateJSONBlockedOnErrorDiagnostic
+    - TestGenerateJSONGoldenOutput
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/outcome
+    - testing
+  language: go

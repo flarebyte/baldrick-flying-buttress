@@ -1,0 +1,20 @@
+locator: internal/load/config_value.go
+meta:
+  function_list:
+    - CompileConfigValue
+    - CompileConfigValueInContext
+    - compileConfigValue
+    - compileCuePackage
+    - cuePackageName
+    - resolveConfigPath
+  import_files_list:
+    - cuelang.org/go/cue
+    - cuelang.org/go/cue/cuecontext
+    - cuelang.org/go/cue/load
+    - cuelang.org/go/cue/parser
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/safety
+    - os
+    - path/filepath
+    - strings
+  language: go

@@ -1,0 +1,12 @@
+locator: internal/cli/lint_test.go
+meta:
+  function_list:
+    - TestLintNamesPrefixScoping
+    - TestLintNamesSeverityOverride
+    - TestResolveLintNamesPolicyDot
+    - TestResolveLintNamesPolicyRegex
+    - TestResolveLintNamesPolicySnake
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - testing
+  language: go

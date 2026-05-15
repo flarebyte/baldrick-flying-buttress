@@ -1,0 +1,15 @@
+locator: internal/cli/root_version_test.go
+meta:
+  function_list:
+    - TestRootVersionFlagOutputsJSON
+    - TestRootWithoutArgsShowsDescriptionAndUsage
+  import_files_list:
+    - bytes
+    - context
+    - github.com/flarebyte/baldrick-flying-buttress/internal/buildinfo
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/pipeline
+    - runtime
+    - strings
+    - testing
+  language: go

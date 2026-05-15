@@ -1,0 +1,9 @@
+locator: internal/validate/app_data_diagnostic_enrich_test.go
+meta:
+  function_list:
+    - TestEnrichDiagnosticsAddsMachineFriendlyFields
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - path/filepath
+    - testing
+  language: go

@@ -1,0 +1,9 @@
+locator: internal/cli/severity.go
+meta:
+  function_list:
+    - resolveSeverity
+  import_files_list:
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - strings
+  language: go

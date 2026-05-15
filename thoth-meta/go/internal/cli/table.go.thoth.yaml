@@ -1,0 +1,7 @@
+locator: internal/cli/table.go
+meta:
+  function_list:
+    - formatAlignedTableRow
+  import_files_list:
+    - strings
+  language: go

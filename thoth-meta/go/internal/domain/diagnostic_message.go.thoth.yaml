@@ -1,0 +1,7 @@
+locator: internal/domain/diagnostic_message.go
+meta:
+  function_list:
+    - FormatDiagnosticMessage
+  import_files_list:
+    - strings
+  language: go

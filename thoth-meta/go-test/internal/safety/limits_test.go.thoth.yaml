@@ -1,0 +1,18 @@
+locator: internal/safety/limits_test.go
+meta:
+  function_list:
+    - TestCheckCSVFileSize
+    - TestCheckCSVRenderedRows
+    - TestCheckConfigFileSize
+    - TestCheckGraphRenderNodeCount
+    - TestCheckNotesCount
+    - TestCheckRelationshipsCount
+    - TestCheckReportsCount
+    - TestIsLimitError
+    - assertLimitCheck
+    - contains
+  import_files_list:
+    - errors
+    - strings
+    - testing
+  language: go

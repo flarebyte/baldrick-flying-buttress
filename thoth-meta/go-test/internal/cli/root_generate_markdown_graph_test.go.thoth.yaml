@@ -1,0 +1,12 @@
+locator: internal/cli/root_generate_markdown_graph_test.go
+meta:
+  function_list:
+    - TestGenerateMarkdownGraphCyclePolicyDisallowSkipsSection
+    - TestGenerateMarkdownGraphRendering
+    - TestGenerateMarkdownRendererExplicitMermaid
+    - TestGenerateMarkdownRendererFallbackWhenUnspecified
+    - TestGenerateMarkdownRendererNoteLevelOverride
+  import_files_list:
+    - path/filepath
+    - testing
+  language: go

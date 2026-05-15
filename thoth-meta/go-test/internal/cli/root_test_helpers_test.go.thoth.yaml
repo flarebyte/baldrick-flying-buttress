@@ -1,0 +1,29 @@
+locator: internal/cli/root_test_helpers_test.go
+meta:
+  function_list:
+    - appFixture
+    - assertDeterministic
+    - assertOutput
+    - errorOnlyReport
+    - listValidatedApp
+    - orderedValidatedAppForOrdering
+    - orphansValidatedApp
+    - readGolden
+    - runCommand
+    - runCommandWithFactory
+    - stubLoader
+    - unorderedValidatedApp
+    - validatorWith
+    - warningOnlyReport
+    - writeFixtureBundle
+    - writeFixtureConfig
+  import_files_list:
+    - bytes
+    - context
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/pipeline
+    - os
+    - path/filepath
+    - testing
+  language: go

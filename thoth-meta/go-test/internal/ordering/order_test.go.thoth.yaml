@@ -1,0 +1,11 @@
+locator: internal/ordering/order_test.go
+meta:
+  function_list:
+    - TestDiagnosticsSortedDeterministically
+    - TestNotesSortedDeterministically
+    - TestRelationshipsSortedDeterministically
+    - TestReportsSortedDeterministically
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - testing
+  language: go

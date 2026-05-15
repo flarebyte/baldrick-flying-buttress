@@ -1,0 +1,12 @@
+locator: internal/validate/app_data_diagnostic_enrich.go
+meta:
+  function_list:
+    - enrichDiagnostics
+    - relatedNodes
+    - suggestedFixes
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - path/filepath
+    - slices
+    - strings
+  language: go

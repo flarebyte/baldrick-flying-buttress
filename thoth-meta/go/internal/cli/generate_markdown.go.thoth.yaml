@@ -1,0 +1,24 @@
+locator: internal/cli/generate_markdown.go
+meta:
+  function_list:
+    - defaultMarkdownReportWorkers
+    - getMarkdownReportWorkers
+    - normalizeWorkerCount
+    - renderReportsConcurrently
+    - writeMarkdownReports
+    - writeMarkdownReportsWithWorkers
+  import_files_list:
+    - context
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/fsio
+    - github.com/flarebyte/baldrick-flying-buttress/internal/ordering
+    - github.com/flarebyte/baldrick-flying-buttress/internal/outcome
+    - github.com/flarebyte/baldrick-flying-buttress/internal/output
+    - github.com/flarebyte/baldrick-flying-buttress/internal/renderer
+    - io
+    - path/filepath
+    - runtime
+    - sync
+    - sync/atomic
+  language: go

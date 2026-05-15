@@ -1,0 +1,12 @@
+locator: internal/cli/lint_orphans_test.go
+meta:
+  function_list:
+    - TestLintOrphansDiagnosticsIncludeContext
+    - TestResolveLintOrphansQueryDefaults
+    - TestResolveLintOrphansQueryInvalidDirection
+    - TestResolveLintOrphansQuerySeverityError
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/orphans
+    - testing
+  language: go

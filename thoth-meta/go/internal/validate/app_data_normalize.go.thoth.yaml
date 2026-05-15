@@ -1,0 +1,13 @@
+locator: internal/validate/app_data_normalize.go
+meta:
+  function_list:
+    - collectDiagnostics
+    - normalizeMarkdownReports
+    - normalizeValidatedApp
+  import_files_list:
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/ordering
+    - path/filepath
+    - strings
+  language: go

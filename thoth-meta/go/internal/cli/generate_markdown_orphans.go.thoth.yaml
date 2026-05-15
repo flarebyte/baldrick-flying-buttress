@@ -1,0 +1,13 @@
+locator: internal/cli/generate_markdown_orphans.go
+meta:
+  function_list:
+    - renderOrphanRows
+    - resolveOrphanQuery
+  import_files_list:
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/ordering
+    - github.com/flarebyte/baldrick-flying-buttress/internal/orphans
+    - github.com/flarebyte/baldrick-flying-buttress/internal/textutil
+    - strings
+  language: go

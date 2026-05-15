@@ -1,0 +1,7 @@
+locator: internal/cli/diagnostics_message.go
+meta:
+  function_list:
+    - withDiagnosticContextMessage
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+  language: go

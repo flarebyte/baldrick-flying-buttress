@@ -1,0 +1,13 @@
+locator: internal/pipeline/run_test.go
+meta:
+  function_list:
+    - TestRunCallsLoadValidateAction
+    - TestRunPropagatesCancellationAcrossStages
+    - TestRunShortCircuitsActionOnValidationErrorDiagnostic
+  import_files_list:
+    - context
+    - errors
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - reflect
+    - testing
+  language: go

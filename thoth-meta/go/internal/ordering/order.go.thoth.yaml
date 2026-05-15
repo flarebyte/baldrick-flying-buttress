@@ -1,0 +1,16 @@
+locator: internal/ordering/order.go
+meta:
+  function_list:
+    - Diagnostics
+    - MarkdownH2Sections
+    - MarkdownH3Sections
+    - MarkdownReports
+    - Notes
+    - Relationships
+    - Reports
+    - Strings
+    - cmpString
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - slices
+  language: go

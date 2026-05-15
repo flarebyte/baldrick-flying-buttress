@@ -1,0 +1,12 @@
+locator: internal/graph/graph_args_labels.go
+meta:
+  function_list:
+    - hasSubject
+    - noteHasLabel
+    - parseArg
+    - relationshipHasLabel
+    - splitCSV
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/textutil
+  language: go

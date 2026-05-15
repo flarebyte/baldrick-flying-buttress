@@ -1,0 +1,16 @@
+locator: internal/safety/limits.go
+meta:
+  function_list:
+    - CheckCSVFileSize
+    - CheckCSVRenderedRows
+    - CheckConfigFileSize
+    - CheckGraphRenderNodeCount
+    - CheckNotesCount
+    - CheckRelationshipsCount
+    - CheckReportsCount
+    - IsLimitError
+    - newLimitError
+  import_files_list:
+    - errors
+    - fmt
+  language: go

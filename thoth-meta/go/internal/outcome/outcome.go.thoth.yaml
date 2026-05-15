@@ -1,0 +1,9 @@
+locator: internal/outcome/outcome.go
+meta:
+  function_list:
+    - FromError
+    - IsValidationBlocked
+    - ValidationBlockedError
+  import_files_list:
+    - errors
+  language: go

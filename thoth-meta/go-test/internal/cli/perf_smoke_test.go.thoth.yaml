@@ -1,0 +1,15 @@
+locator: internal/cli/perf_smoke_test.go
+meta:
+  function_list:
+    - TestPerfSmokeGenerateJSONModerateFixture
+    - TestPerfSmokeGenerateMarkdownModerateFixture
+    - TestPerfSmokeValidateModerateFixture
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/load
+    - github.com/flarebyte/baldrick-flying-buttress/internal/pipeline
+    - github.com/flarebyte/baldrick-flying-buttress/internal/validate
+    - os
+    - path/filepath
+    - strconv
+    - testing
+  language: go

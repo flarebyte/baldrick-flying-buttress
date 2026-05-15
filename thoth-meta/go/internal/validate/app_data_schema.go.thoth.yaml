@@ -1,0 +1,21 @@
+locator: internal/validate/app_data_schema.go
+meta:
+  function_list:
+    - buildRawAppValue
+    - compileSchemaAndApp
+    - isReportSectionsPath
+    - mapSchemaDiagnostic
+    - toCanonicalPath
+    - validateStructure
+  import_files_list:
+    - cuelang.org/go/cue
+    - cuelang.org/go/cue/cuecontext
+    - cuelang.org/go/cue/errors
+    - embed
+    - encoding/json
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/load
+    - strconv
+    - strings
+  language: go

@@ -1,0 +1,16 @@
+locator: internal/graph/graph_shape.go
+meta:
+  function_list:
+    - DetectShape
+    - buildAdj
+    - hasCycle
+    - isTree
+    - noteIDs
+    - pruneFromStart
+    - roots
+    - visitCycle
+    - walk
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/ordering
+  language: go

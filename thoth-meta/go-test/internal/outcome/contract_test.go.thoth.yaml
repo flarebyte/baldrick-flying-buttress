@@ -1,0 +1,8 @@
+locator: internal/outcome/contract_test.go
+meta:
+  function_list:
+    - TestContractExitCodeMapping
+  import_files_list:
+    - errors
+    - testing
+  language: go

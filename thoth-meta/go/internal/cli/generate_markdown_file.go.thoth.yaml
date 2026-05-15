@@ -1,0 +1,35 @@
+locator: internal/cli/generate_markdown_file.go
+meta:
+  function_list:
+    - codeLanguage
+    - escapeMarkdownCells
+    - escapeMarkdownTableCell
+    - isCodeExt
+    - isCodeFile
+    - isMediaExt
+    - matchesAllFilters
+    - matchesAnyFilter
+    - parseCSVFilter
+    - renderFileCSV
+    - renderFileCode
+    - renderFileMedia
+    - renderNoteBody
+    - renderRawCSV
+    - resolveNoteArgs
+    - sortCSVFilters
+    - splitArgLines
+    - valueAtColumn
+  import_files_list:
+    - bytes
+    - context
+    - encoding/csv
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/ordering
+    - github.com/flarebyte/baldrick-flying-buttress/internal/safety
+    - github.com/flarebyte/baldrick-flying-buttress/internal/textutil
+    - os
+    - path/filepath
+    - sort
+    - strings
+  language: go

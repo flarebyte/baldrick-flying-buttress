@@ -1,0 +1,20 @@
+locator: internal/validate/app_data_graph_integrity.go
+meta:
+  function_list:
+    - checkCrossReportReferences
+    - checkDuplicateNoteNames
+    - checkMissingNodes
+    - checkOrphans
+    - collectNoteReportMembership
+    - collectReportSectionNoteNames
+    - hasReportOverlap
+    - normalizeCrossReportPolicy
+    - normalizePolicySeverity
+    - resolveGraphIntegrityPolicy
+    - validateGraphIntegrity
+  import_files_list:
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - slices
+    - strings
+  language: go

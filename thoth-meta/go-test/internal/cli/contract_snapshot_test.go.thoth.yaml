@@ -1,0 +1,19 @@
+locator: internal/cli/contract_snapshot_test.go
+meta:
+  function_list:
+    - TestContractSnapshotGenerateJSONOutput
+    - TestContractSnapshotGenerateMarkdownFiles
+    - TestContractSnapshotLintNamesOutput
+    - TestContractSnapshotLintOrphansOutput
+    - TestContractSnapshotListNamesOutput
+    - TestContractSnapshotListReportsOutput
+    - TestContractSnapshotValidateOutput
+    - assertContractCommandOutput
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/load
+    - github.com/flarebyte/baldrick-flying-buttress/internal/pipeline
+    - github.com/flarebyte/baldrick-flying-buttress/internal/validate
+    - os
+    - path/filepath
+    - testing
+  language: go

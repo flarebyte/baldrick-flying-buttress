@@ -1,0 +1,14 @@
+locator: internal/cli/reports.go
+meta:
+  function_list:
+    - emitReportsTable
+    - validateReportsFormat
+  import_files_list:
+    - context
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/ordering
+    - github.com/flarebyte/baldrick-flying-buttress/internal/output
+    - io
+    - strings
+  language: go

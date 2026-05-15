@@ -1,0 +1,11 @@
+locator: internal/ordering/contract_test.go
+meta:
+  function_list:
+    - TestContractDiagnosticsPermutationInvariant
+    - TestContractNotesPermutationInvariant
+    - TestContractRelationshipsPermutationInvariant
+    - TestContractReportsPermutationInvariant
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - testing
+  language: go

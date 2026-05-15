@@ -1,0 +1,19 @@
+locator: internal/fsio/atomic_test.go
+meta:
+  function_list:
+    - TestWriteFileAtomicCancellationNoDestinationAndNoTempFile
+    - TestWriteFileAtomicCreateNewFile
+    - TestWriteFileAtomicFailureCleansTempFileBestEffort
+    - TestWriteFileAtomicRenameFailureLeavesOriginalUnchanged
+    - TestWriteFileAtomicReplaceExistingFile
+    - assertFileBytes
+    - assertNoAtomicTempFiles
+    - withRenameFailure
+  import_files_list:
+    - context
+    - errors
+    - os
+    - path/filepath
+    - strings
+    - testing
+  language: go

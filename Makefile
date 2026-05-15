@@ -11,6 +11,8 @@ GO := go
 GOLINT := golangci-lint
 GO_ENV := GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache
 GOLINT_ENV := $(GO_ENV) GOLANGCI_LINT_CACHE=$(PWD)/.golangci-lint-cache
+THOTH := thoth
+
 
 lint:
 	$(BIOME) check

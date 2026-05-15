@@ -1,0 +1,23 @@
+locator: internal/cli/generate_markdown_render.go
+meta:
+  function_list:
+    - escapeMarkdownCell
+    - renderMarkdownReport
+    - renderNoteLabels
+    - resolveShowLabels
+    - writeMarkdownHeading
+    - writeMarkdownParagraph
+  import_files_list:
+    - context
+    - errors
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/graph
+    - github.com/flarebyte/baldrick-flying-buttress/internal/ordering
+    - github.com/flarebyte/baldrick-flying-buttress/internal/orphans
+    - github.com/flarebyte/baldrick-flying-buttress/internal/renderer
+    - github.com/flarebyte/baldrick-flying-buttress/internal/safety
+    - github.com/flarebyte/baldrick-flying-buttress/internal/textutil
+    - strconv
+    - strings
+  language: go

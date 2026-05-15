@@ -1,0 +1,12 @@
+locator: internal/cli/lint_orphans.go
+meta:
+  function_list:
+    - resolveLintOrphansQuery
+  import_files_list:
+    - context
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/orphans
+    - io
+    - strings
+  language: go

@@ -1,0 +1,11 @@
+locator: internal/orphans/query.go
+meta:
+  function_list:
+    - Find
+    - hasMatchingRelationship
+    - relationshipMatchesDirection
+  import_files_list:
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/ordering
+  language: go

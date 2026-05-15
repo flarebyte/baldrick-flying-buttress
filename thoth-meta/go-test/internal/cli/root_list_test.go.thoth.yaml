@@ -1,0 +1,20 @@
+locator: internal/cli/root_list_test.go
+meta:
+  function_list:
+    - TestListNamesBlockedOnErrorDiagnostic
+    - TestListNamesDefaultTableOutput
+    - TestListNamesJSONOutput
+    - TestListNamesKindNotesOutput
+    - TestListNamesKindRelationshipsOutput
+    - TestListNamesMissingPrefixReturnsRuntimeFailure
+    - TestListNamesPrefixXOutput
+    - TestListReportsBlockedOnErrorDiagnostic
+    - TestListReportsDeterministicOutput
+    - TestListReportsFormatJSONOutput
+    - TestListReportsFormatTableOutput
+    - TestListReportsGoldenOutput
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/outcome
+    - testing
+  language: go

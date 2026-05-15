@@ -1,0 +1,19 @@
+locator: internal/cli/root_exec_runtime_test.go
+meta:
+  function_list:
+    - TestCanonicalOrderingFromDifferentInputOrdersProducesIdenticalOutput
+    - TestDeterministicOutputAcrossRuns
+    - TestExecuteContextNormalPathMatchesExecuteWithFactory
+    - TestRuntimeFailureMapsToDistinctExitCodeAndStderr
+  import_files_list:
+    - bytes
+    - context
+    - errors
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/load
+    - github.com/flarebyte/baldrick-flying-buttress/internal/outcome
+    - github.com/flarebyte/baldrick-flying-buttress/internal/pipeline
+    - github.com/flarebyte/baldrick-flying-buttress/internal/validate
+    - path/filepath
+    - testing
+  language: go

@@ -1,0 +1,31 @@
+locator: internal/cli/root_exec_config_loader_test.go
+meta:
+  function_list:
+    - TestCommandsWithInvalidStructureConfigProduceValidationDiagnostics
+    - TestCommandsWithInvalidStructureCueConfigProduceValidationDiagnostics
+    - TestCommandsWorkWithConfigDirectoryAndEquivalentAppCueFile
+    - TestCommandsWorkWithConfigFlagAndFilesystemLoader
+    - TestCommandsWorkWithCueConfigAndFilesystemLoader
+    - TestFilesystemLoaderDeterministicOutputAcrossRuns
+    - TestOversizedConfigRuntimeFailureDeterministic
+    - TestValidateWithGraphIntegrityIssuesCollectsDiagnostics
+    - TestValidateWithInvalidConfiguredArgumentsCollectsMultipleDiagnostics
+    - TestValidateWithInvalidRegistryConfigCollectsMultipleDiagnostics
+    - TestValidateWithUnknownLabelReferencesEmitsWarningsOnly
+    - assertCommandsWorkWithConfig
+    - assertValidateAndListBlocked
+    - assertValidateOutput
+    - fsLoaderFactory
+    - runAndAssertCommand
+    - runAndAssertCommandSet
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/load
+    - github.com/flarebyte/baldrick-flying-buttress/internal/outcome
+    - github.com/flarebyte/baldrick-flying-buttress/internal/pipeline
+    - github.com/flarebyte/baldrick-flying-buttress/internal/safety
+    - github.com/flarebyte/baldrick-flying-buttress/internal/validate
+    - os
+    - path/filepath
+    - strings
+    - testing
+  language: go

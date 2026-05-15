@@ -1,0 +1,11 @@
+locator: internal/fsio/atomic.go
+meta:
+  function_list:
+    - WriteFileAtomic
+    - syncDirBestEffort
+  import_files_list:
+    - context
+    - fmt
+    - os
+    - path/filepath
+  language: go

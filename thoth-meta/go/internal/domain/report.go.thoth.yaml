@@ -1,0 +1,8 @@
+locator: internal/domain/report.go
+meta:
+  function_list:
+    - ReportIDFromFilepath
+  import_files_list:
+    - path/filepath
+    - strings
+  language: go

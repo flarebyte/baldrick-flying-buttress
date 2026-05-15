@@ -1,0 +1,10 @@
+locator: internal/pipeline/run.go
+meta:
+  function_list:
+    - Run
+  import_files_list:
+    - context
+    - errors
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/outcome
+  language: go

@@ -1,0 +1,21 @@
+locator: internal/cli/root_generate_markdown_core_test.go
+meta:
+  function_list:
+    - TestGenerateMarkdownBlockedOnErrorDiagnostic
+    - TestGenerateMarkdownCanShowNoteLabelsWhenRequested
+    - TestGenerateMarkdownDeterministicAcrossRuns
+    - TestGenerateMarkdownFailureLeavesExistingFileUnchanged
+    - TestGenerateMarkdownFullyOverwritesExistingReportFile
+    - TestGenerateMarkdownRuntimeFailureOnUnwritablePath
+    - TestGenerateMarkdownSingleWorkerEqualsMultiWorker
+    - TestGenerateMarkdownSuccess
+    - TestGenerateMarkdownSuccessWithCueConfig
+    - TestGenerateMarkdownWithReportFilterWritesOnlySelectedReport
+    - assertGenerateMarkdownSuccessFixture
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/outcome
+    - os
+    - path/filepath
+    - testing
+  language: go

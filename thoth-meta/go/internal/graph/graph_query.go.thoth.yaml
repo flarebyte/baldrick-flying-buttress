@@ -1,0 +1,16 @@
+locator: internal/graph/graph_query.go
+meta:
+  function_list:
+    - collapseBoundaryNodes
+    - collapseHelperNodes
+    - collapseNonHelperAncestors
+    - collapseNonHelperDescendants
+    - filterRelationshipsWithinNotes
+    - mapRelationships
+    - noteAllowedByQueryLabels
+    - pruneByLabels
+    - pruneToDepth
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/ordering
+  language: go

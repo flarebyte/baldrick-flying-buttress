@@ -1,0 +1,11 @@
+locator: internal/validate/app_data.go
+meta:
+  function_list:
+    - enforceRawModelLimits
+    - normalizeRaw
+  import_files_list:
+    - context
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/safety
+  language: go

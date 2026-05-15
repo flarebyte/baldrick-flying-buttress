@@ -1,0 +1,23 @@
+locator: internal/validate/app_data_registry.go
+meta:
+  function_list:
+    - containsScope
+    - containsString
+    - isLabelReferenceArgument
+    - isValidScope
+    - isValidValueType
+    - normalizeAllowedValues
+    - normalizeAllowedValuesWithDuplicateInfo
+    - normalizeDefaultValue
+    - normalizeScopes
+    - parseConfiguredArgument
+    - resolveRegistry
+    - validateRegistry
+    - valueMatchesType
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/textutil
+    - slices
+    - strconv
+    - strings
+  language: go
