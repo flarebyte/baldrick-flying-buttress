@@ -12,6 +12,13 @@ GOLINT := golangci-lint
 GO_ENV := GOCACHE=$(PWD)/.gocache GOMODCACHE=$(PWD)/.gomodcache
 GOLINT_ENV := $(GO_ENV) GOLANGCI_LINT_CACHE=$(PWD)/.golangci-lint-cache
 THOTH := thoth
+TMP_DIR := ./temp
+GO_PACKAGES := ./...
+COVER_PROFILE := $(TMP_DIR)/test-unit.coverage.out
+COVER_HTML := $(TMP_DIR)/test-unit.coverage.html
+CRITICAL_COVER_PROFILE := $(TMP_DIR)/critical.coverage.out
+CRITICAL_PACKAGES := . ./internal/schema ./internal/argv ./internal/validators
+COVERAGE_MIN := 90.0
 
 
 lint:
@@ -30,9 +37,42 @@ format:
 	$(BIOME) format --write .
 	$(BIOME) check --unsafe --write
 
+test-unit:
+	mkdir -p $(TMP_DIR)
+	$(GO_ENV) $(GO) test -v -coverprofile=$(COVER_PROFILE) -covermode=count $(GO_PACKAGES)
+	$(GO_ENV) $(GO) tool cover -func=$(COVER_PROFILE)
+
 test:
 	$(GO_ENV) $(GO) test -coverprofile=coverage.out ./...
 	$(GO_ENV) $(GO) tool cover -func=coverage.out
+
+coverage: coverage-go
+
+coverage-go: test-unit
+	$(GO_ENV) $(GO) tool cover -html=$(COVER_PROFILE) -o $(COVER_HTML)
+	@printf "Coverage HTML: %s\n" "$(COVER_HTML)"
+
+coverage-critical:
+	mkdir -p $(TMP_DIR)
+	$(GO_ENV) $(GO) test -coverprofile=$(CRITICAL_COVER_PROFILE) -covermode=count $(CRITICAL_PACKAGES)
+	$(GO_ENV) $(GO) tool cover -func=$(CRITICAL_COVER_PROFILE)
+	@printf "Critical coverage profile: %s\n" "$(CRITICAL_COVER_PROFILE)"
+
+coverage-threshold:
+	mkdir -p $(TMP_DIR)
+	$(GO_ENV) $(GO) test -coverprofile=$(COVER_PROFILE) -covermode=count $(GO_PACKAGES)
+	@report="$$( $(GO_ENV) $(GO) tool cover -func=$(COVER_PROFILE) )"; \
+	printf "%s\n" "$$report"; \
+	below="$$(printf "%s\n" "$$report" | awk -v min=$(COVERAGE_MIN) ' \
+	/^[^[:space:]].*:[0-9]+:/ { \
+		pct=$$NF; gsub(/%/, "", pct); \
+		if (pct+0 < min+0) print $$0; \
+	} \
+	')"; \
+	if [ -n "$$below" ]; then \
+		printf "\nFunctions below %.1f%% coverage:\n%s\n" $(COVERAGE_MIN) "$$below"; \
+		exit 1; \
+	fi
 
 cov:
 	npm run test:cov
