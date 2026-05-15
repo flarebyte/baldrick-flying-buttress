@@ -3,7 +3,7 @@
 ## - No dynamic variables or shell logic
 ## - Real logic lives in scripts (TypeScript/Bun, bash)
 
-.PHONY: lint format test cov build typecheck e2e release clean complexity sec dup perf-smoke test-race contract-snapshots release-check doc-design help
+.PHONY: lint format test cov build build-dev typecheck e2e release clean complexity sec dup perf-smoke test-race contract-snapshots release-check doc-design review thoth-meta thoth-meta-go thoth-meta-go-test thoth-meta-ts-e2e check-tools install-tools-help help
 
 BIOME := npx @biomejs/biome
 BUN := bun
@@ -104,11 +104,28 @@ thoth-meta-go-test:
 thoth-meta-ts-e2e:
 	$(THOTH) run --config ./pipeline-ts-e2e-maat.thoth.cue
 
+check-tools:
+	@printf "go=%s\n" "$$(command -v $(GO) >/dev/null 2>&1 && echo true || echo false)"
+	@printf "bun=%s\n" "$$(command -v $(BUN) >/dev/null 2>&1 && echo true || echo false)"
+	@printf "npx=%s\n" "$$(command -v npx >/dev/null 2>&1 && echo true || echo false)"
+	@printf "biome=%s\n" "$$(command -v npx >/dev/null 2>&1 && npx --yes @biomejs/biome --version >/dev/null 2>&1 && echo true || echo false)"
+	@printf "golangci-lint=%s\n" "$$(command -v $(GOLINT) >/dev/null 2>&1 && echo true || echo false)"
+	@printf "thoth=%s\n" "$$(command -v $(THOTH) >/dev/null 2>&1 && echo true || echo false)"
+
+install-tools-help:
+	@printf "Install hints:\n"
+	@printf "  go: https://go.dev/doc/install\n"
+	@printf "  bun: https://bun.sh/docs/installation\n"
+	@printf "  npx/npm (Node.js): https://nodejs.org/\n"
+	@printf "  biome: npm i -D @biomejs/biome\n"
+	@printf "  golangci-lint: https://golangci-lint.run/welcome/install/\n"
+	@printf "  thoth: project-specific CLI; ensure it is installed and on PATH\n"
+
 help:
 	@printf "Targets:\n"
 	@printf "  lint       Run Biome checks.\n"
 	@printf "  format     Format code with Biome and apply safe fixes.\n"
-	@printf "  test       Run unit tests (Node test runner via tsx).\n"
+	@printf "  test       Run Go unit tests and coverage summary.\n"
 	@printf "  cov        Run unit tests with coverage report (text-summary + lcov).\n"
 	@printf "  build      Build Go release binaries into build/.\n"
 	@printf "  typecheck  Run TypeScript type-check only.\n"
@@ -123,4 +140,6 @@ help:
 	@printf "  complexity Show top TypeScript files by complexity via scc.\n"
 	@printf "  sec        Run Semgrep security scan.\n"
 	@printf "  dup        Run duplicate code detection (jscpd).\n"
+	@printf "  check-tools Report required tool availability as key=value lines.\n"
+	@printf "  install-tools-help  Show installation hints for required tools.\n"
 	@printf "  help       Show this help message.\n"
