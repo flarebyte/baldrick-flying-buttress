@@ -1,3 +1,6 @@
+// purpose: Formats command outputs in output.go to keep machine and human output contracts deterministic.
+// responsibilities: serialize structured results; format tabular/text output; centralize output policy across commands
+// architecture_notes: Output shaping is centralized to prevent command handlers from duplicating formatting decisions and diverging behavior.
 package output
 
 import (

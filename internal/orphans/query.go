@@ -1,3 +1,6 @@
+// purpose: Implements orphan-query logic in query.go to detect missing contextual links in graph data.
+// responsibilities: evaluate orphan query predicates; filter notes by contextual relationship rules; return deterministic orphan sets
+// architecture_notes: Orphan detection is isolated so lint/report features share one source of truth for contextual orphan semantics.
 package orphans
 
 import (

@@ -1,3 +1,6 @@
+// purpose: Provides deterministic ordering utilities in order.go for stable output across runs and environments.
+// responsibilities: sort domain collections; apply comparator policies; guarantee reproducible ordering contracts
+// architecture_notes: Ordering rules are centralized to avoid subtle drift when multiple features need consistent tie-breaking behavior.
 package ordering
 
 import (

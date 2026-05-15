@@ -1,5 +1,8 @@
 locator: internal/domain/model.go
 meta:
+  purpose: "Declares core domain models in model.go used across validation, pipeline, and CLI layers."
+  responsibilities: "define canonical data structures; hold stable typed contracts; provide shared semantic primitives"
+  architecture_notes: "Domain types are dependency-light and reused broadly to keep cross-layer contracts explicit and avoid cyclic package coupling."
   function_list: []
   import_files_list: []
   language: go

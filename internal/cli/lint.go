@@ -1,3 +1,6 @@
+// purpose: Implements CLI behavior for lint.go so commands expose deterministic, machine-friendly output surfaces.
+// responsibilities: parse command inputs; call pipeline/domain services; render structured outputs or diagnostics; enforce deterministic CLI behavior
+// architecture_notes: CLI logic is split into focused files per command area to keep Cobra wiring thin and to isolate rendering from validation and domain logic.
 package cli
 
 import (

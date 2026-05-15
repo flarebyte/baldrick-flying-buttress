@@ -1,3 +1,6 @@
+// purpose: Defines renderer behavior in mermaid.go for pluggable, shape-aware graph and section rendering.
+// responsibilities: implement renderer contracts; expose capabilities/selection hooks; produce deterministic rendered text artifacts
+// architecture_notes: Renderer registry and implementations are intentionally isolated so new renderers can be added without destabilizing CLI orchestration.
 package renderer
 
 import (

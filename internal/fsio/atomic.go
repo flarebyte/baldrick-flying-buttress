@@ -1,3 +1,6 @@
+// purpose: Provides filesystem IO helpers in atomic.go for safe, deterministic file writes.
+// responsibilities: perform atomic write workflows; encapsulate fs operation patterns; expose predictable file IO behavior
+// architecture_notes: Atomic write behavior is centralized to reduce partial-write risks and keep callers free of low-level fs choreography.
 package fsio
 
 import (

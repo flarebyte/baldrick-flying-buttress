@@ -1,3 +1,6 @@
+// purpose: Defines execution outcome handling in outcome.go so command success/failure semantics stay consistent.
+// responsibilities: model outcome states; convert errors/diagnostics into actionable outcomes; support CLI exit decision flow
+// architecture_notes: Outcome modeling separates decision semantics from command implementations, reducing repeated error-handling branches.
 package outcome
 
 import "errors"

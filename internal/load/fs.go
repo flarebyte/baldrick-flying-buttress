@@ -1,3 +1,6 @@
+// purpose: Loads and resolves external config inputs in fs.go into raw app data for validation.
+// responsibilities: resolve config paths and formats; read filesystem/CUE inputs; normalize load-time source metadata
+// architecture_notes: Load logic isolates format/path resolution so validation and CLI code remain agnostic to input source details.
 package load
 
 import (

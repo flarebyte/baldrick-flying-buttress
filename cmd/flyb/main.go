@@ -1,3 +1,6 @@
+// purpose: Bootstraps the flyb CLI process and wires runtime dependencies for command execution.
+// responsibilities: initialize build metadata references; create cancellable OS-signal context; construct loader/validator wiring; execute root CLI and return process exit code
+// architecture_notes: Dependency wiring is centralized here so internal packages stay decoupled from process lifecycle concerns and signal handling.
 package main
 
 import (

@@ -1,3 +1,6 @@
+// purpose: Coordinates end-to-end app processing in run.go from load to validate to executable outcomes.
+// responsibilities: orchestrate loader and validator calls; propagate execution context; return stable pipeline outputs for CLI commands
+// architecture_notes: Pipeline orchestration is kept minimal and interface-driven so integrations can swap loader/validator implementations in tests and runtime.
 package pipeline
 
 import (
