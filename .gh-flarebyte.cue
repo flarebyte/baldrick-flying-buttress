@@ -93,6 +93,7 @@ repository: {
 build: {
   language:             "go"
   mode:                 "binary"
+  mainPackage:          "./cmd/flyb"
   outputDir:            "build"
   checksumFile:         "build/checksums.txt"
   artifactTargetSuffix: true
