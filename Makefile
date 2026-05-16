@@ -3,7 +3,7 @@
 ## - No dynamic variables or shell logic
 ## - Real logic lives in scripts (TypeScript/Bun, bash)
 
-.PHONY: lint format test cov build build-dev typecheck e2e release clean complexity sec dup perf-smoke test-race contract-snapshots release-check doc-design review thoth-meta thoth-meta-go thoth-meta-go-test thoth-meta-ts-e2e check-tools install-tools-help help
+.PHONY: lint format test test-unit cov coverage coverage-go coverage-critical coverage-threshold build build-dev build-dist typecheck e2e release release-gh clean complexity sec dup perf-smoke test-race contract-snapshots release-check doc-design review thoth-meta thoth-meta-go thoth-meta-go-test thoth-meta-ts-e2e check-tools install-tools-help repo-sync repo-audit help
 
 BIOME := npx @biomejs/biome
 BUN := bun
@@ -80,6 +80,9 @@ cov:
 build:
 	$(BUN) run build-go.ts
 
+build-dist:
+	gh flarebyte build
+
 build-dev:
 	mkdir -p .e2e-bin
 	$(GO_ENV) CGO_ENABLED=0 $(GO) build -o .e2e-bin/flyb ./cmd/flyb
@@ -117,6 +120,9 @@ release-check:
 release: release-check build
 	$(BUN) run release-go.ts
 
+release-gh:
+	gh flarebyte release
+
 clean:
 	npm run clean
 
@@ -144,6 +150,12 @@ thoth-meta-go-test:
 thoth-meta-ts-e2e:
 	$(THOTH) run --config ./pipeline-ts-e2e-maat.thoth.cue
 
+repo-sync:
+	gh flarebyte repo update --repo flarebyte/baldrick-flying-buttress
+
+repo-audit:
+	gh flarebyte repo audit --repo flarebyte/baldrick-flying-buttress
+
 check-tools:
 	@printf "go=%s\n" "$$(command -v $(GO) >/dev/null 2>&1 && echo true || echo false)"
 	@printf "bun=%s\n" "$$(command -v $(BUN) >/dev/null 2>&1 && echo true || echo false)"
@@ -168,6 +180,7 @@ help:
 	@printf "  test       Run Go unit tests and coverage summary.\n"
 	@printf "  cov        Run unit tests with coverage report (text-summary + lcov).\n"
 	@printf "  build      Build Go release binaries into build/.\n"
+	@printf "  build-dist Build distribution artifacts via gh flarebyte build.\n"
 	@printf "  typecheck  Run TypeScript type-check only.\n"
 	@printf "  e2e        Run Bun-powered end-to-end tests.\n"
 	@printf "  doc-design Generate design docs in doc/design from doc/design-meta CUE.\n"
@@ -176,10 +189,13 @@ help:
 	@printf "  contract-snapshots  Run contract snapshot and contract invariants.\n"
 	@printf "  release-check  Run deterministic release gates in fixed order.\n"
 	@printf "  release    Prepare release artifacts (depends on build).\n"
+	@printf "  release-gh Publish GitHub release via gh flarebyte release.\n"
 	@printf "  clean      Remove dist/ artifacts.\n"
 	@printf "  complexity Show top TypeScript files by complexity via scc.\n"
 	@printf "  sec        Run Semgrep security scan.\n"
 	@printf "  dup        Run duplicate code detection (jscpd).\n"
 	@printf "  check-tools Report required tool availability as key=value lines.\n"
 	@printf "  install-tools-help  Show installation hints for required tools.\n"
+	@printf "  repo-sync  Apply .gh-flarebyte.cue settings to GitHub repo.\n"
+	@printf "  repo-audit Audit .gh-flarebyte.cue drift against GitHub repo.\n"
 	@printf "  help       Show this help message.\n"
