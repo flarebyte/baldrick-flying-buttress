@@ -1,3 +1,6 @@
+// purpose: Supplies text parsing helpers in parse.go for argument and markdown-related processing.
+// responsibilities: parse key-value lines; normalize/split textual inputs; provide reusable string utility primitives
+// architecture_notes: Text helpers are small pure functions to maximize reuse and simplify deterministic unit testing.
 package textutil
 
 import "strings"

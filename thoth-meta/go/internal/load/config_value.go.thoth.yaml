@@ -1,0 +1,23 @@
+locator: internal/load/config_value.go
+meta:
+  purpose: "Loads and resolves external config inputs in config_value.go into raw app data for validation."
+  responsibilities: "resolve config paths and formats; read filesystem/CUE inputs; normalize load-time source metadata"
+  architecture_notes: "Load logic isolates format/path resolution so validation and CLI code remain agnostic to input source details."
+  function_list:
+    - CompileConfigValue
+    - CompileConfigValueInContext
+    - compileConfigValue
+    - compileCuePackage
+    - cuePackageName
+    - resolveConfigPath
+  import_files_list:
+    - cuelang.org/go/cue
+    - cuelang.org/go/cue/cuecontext
+    - cuelang.org/go/cue/load
+    - cuelang.org/go/cue/parser
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/safety
+    - os
+    - path/filepath
+    - strings
+  language: go

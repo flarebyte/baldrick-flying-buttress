@@ -1,3 +1,6 @@
+// purpose: Enforces runtime safety limits in limits.go to protect report generation from pathological inputs.
+// responsibilities: define safety thresholds; validate size/count limits; fail fast on unsafe processing conditions
+// architecture_notes: Safety checks are extracted into a dedicated package so guardrails remain consistent across readers/renderers/validators.
 package safety
 
 import (

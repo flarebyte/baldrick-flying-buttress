@@ -251,7 +251,7 @@ func TestRenderFileMedia(t *testing.T) {
 func TestRenderFileCode(t *testing.T) {
 	t.Parallel()
 
-	got := renderFileCode([]byte("graph TD\nA-->B\n"), ".mmd")
+	got := renderFileCode([]byte("graph TD\nA-->B\n"), codeLanguage("fixtures/flow.mmd", ".mmd"))
 	want := "```mermaid\ngraph TD\nA-->B\n```"
 	if got != want {
 		t.Fatalf("code mismatch\nwant: %q\n got: %q", want, got)

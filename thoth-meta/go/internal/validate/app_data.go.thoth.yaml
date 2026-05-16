@@ -1,0 +1,14 @@
+locator: internal/validate/app_data.go
+meta:
+  purpose: "Provides validation logic in app_data.go to keep app configuration and graph semantics safe and deterministic."
+  responsibilities: "validate structured inputs; enforce policy and schema constraints; enrich diagnostics with stable context; normalize data for downstream steps"
+  architecture_notes: "Validation is decomposed by concern (schema, args, labels, graph integrity, diagnostics) to keep rule changes localized and testable."
+  function_list:
+    - enforceRawModelLimits
+    - normalizeRaw
+  import_files_list:
+    - context
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/safety
+  language: go

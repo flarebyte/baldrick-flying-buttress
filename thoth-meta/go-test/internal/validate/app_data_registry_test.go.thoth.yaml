@@ -1,0 +1,10 @@
+locator: internal/validate/app_data_registry_test.go
+meta:
+  function_list:
+    - TestAppDataValidatorRegistryDiagnostics
+    - TestAppDataValidatorRegistryNormalizedOrder
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - reflect
+    - testing
+  language: go

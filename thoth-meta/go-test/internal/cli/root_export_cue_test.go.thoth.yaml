@@ -1,0 +1,12 @@
+locator: internal/cli/root_export_cue_test.go
+meta:
+  function_list:
+    - TestExportCueGoldenOutput
+    - TestExportCueWithReportFilter
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/load
+    - github.com/flarebyte/baldrick-flying-buttress/internal/pipeline
+    - github.com/flarebyte/baldrick-flying-buttress/internal/validate
+    - path/filepath
+    - testing
+  language: go

@@ -1,0 +1,9 @@
+locator: internal/cli/export_cue_test.go
+meta:
+  function_list:
+    - TestEncodeRawAppToCueDeterministicAndNormalized
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - strings
+    - testing
+  language: go

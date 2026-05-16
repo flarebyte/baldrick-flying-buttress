@@ -1,0 +1,12 @@
+locator: internal/textutil/parse.go
+meta:
+  purpose: "Supplies text parsing helpers in parse.go for argument and markdown-related processing."
+  responsibilities: "parse key-value lines; normalize/split textual inputs; provide reusable string utility primitives"
+  architecture_notes: "Text helpers are small pure functions to maximize reuse and simplify deterministic unit testing."
+  function_list:
+    - ParseKeyValue
+    - SplitCSV
+    - SplitNonEmptyLines
+  import_files_list:
+    - strings
+  language: go

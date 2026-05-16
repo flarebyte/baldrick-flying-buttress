@@ -1,0 +1,14 @@
+locator: internal/cli/root_determinism_stress_test.go
+meta:
+  function_list:
+    - TestDeterminismStressGenerateMarkdownFiles
+    - TestDeterminismStressNonFileCommands
+    - assertSameCommandResult
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/load
+    - github.com/flarebyte/baldrick-flying-buttress/internal/pipeline
+    - github.com/flarebyte/baldrick-flying-buttress/internal/validate
+    - os
+    - path/filepath
+    - testing
+  language: go

@@ -1,3 +1,6 @@
+// purpose: Implements graph operations in graph_query.go so report generation and analysis can operate on deterministic graph views.
+// responsibilities: select graph subsets; evaluate shape/properties; render or traverse graph structures; support query helpers used by CLI/report flows
+// architecture_notes: Graph code keeps selection, shape detection, and rendering separated to prevent coupling traversal rules with presentation concerns.
 package graph
 
 import (

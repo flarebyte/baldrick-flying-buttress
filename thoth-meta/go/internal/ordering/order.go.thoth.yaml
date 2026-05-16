@@ -1,0 +1,19 @@
+locator: internal/ordering/order.go
+meta:
+  purpose: "Provides deterministic ordering utilities in order.go for stable output across runs and environments."
+  responsibilities: "sort domain collections; apply comparator policies; guarantee reproducible ordering contracts"
+  architecture_notes: "Ordering rules are centralized to avoid subtle drift when multiple features need consistent tie-breaking behavior."
+  function_list:
+    - Diagnostics
+    - MarkdownH2Sections
+    - MarkdownH3Sections
+    - MarkdownReports
+    - Notes
+    - Relationships
+    - Reports
+    - Strings
+    - cmpString
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - slices
+  language: go

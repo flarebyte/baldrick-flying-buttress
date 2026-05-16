@@ -1,0 +1,16 @@
+locator: internal/output/output.go
+meta:
+  purpose: "Formats command outputs in output.go to keep machine and human output contracts deterministic."
+  responsibilities: "serialize structured results; format tabular/text output; centralize output policy across commands"
+  architecture_notes: "Output shaping is centralized to prevent command handlers from duplicating formatting decisions and diverging behavior."
+  function_list:
+    - EmitDiagnostics
+    - EmitGraphJSON
+    - EmitReportList
+    - emitJSON
+  import_files_list:
+    - encoding/json
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/ordering
+    - io
+  language: go

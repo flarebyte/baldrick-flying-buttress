@@ -1,0 +1,32 @@
+locator: internal/graph/graph_render.go
+meta:
+  purpose: "Implements graph operations in graph_render.go so report generation and analysis can operate on deterministic graph views."
+  responsibilities: "select graph subsets; evaluate shape/properties; render or traverse graph structures; support query helpers used by CLI/report flows"
+  architecture_notes: "Graph code keeps selection, shape detection, and rendering separated to prevent coupling traversal rules with presentation concerns."
+  function_list:
+    - RenderMarkdownText
+    - branchPriorityRank
+    - buildAdjForRender
+    - buildNoteAnchors
+    - cmpString
+    - compareBranchPriority
+    - noteDisplayName
+    - orderedNodeIDs
+    - renderCyclic
+    - renderDAG
+    - renderTree
+    - resolveRenderableNote
+    - stableAnchorSlug
+    - writeCyclicAdjacencySummary
+    - writeNodeLine
+    - writeReferenceLine
+  import_files_list:
+    - context
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/ordering
+    - github.com/flarebyte/baldrick-flying-buttress/internal/safety
+    - slices
+    - strings
+    - unicode
+  language: go

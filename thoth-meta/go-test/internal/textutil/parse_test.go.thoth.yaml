@@ -1,0 +1,10 @@
+locator: internal/textutil/parse_test.go
+meta:
+  function_list:
+    - TestParseKeyValue
+    - TestSplitCSV
+    - TestSplitNonEmptyLines
+  import_files_list:
+    - reflect
+    - testing
+  language: go

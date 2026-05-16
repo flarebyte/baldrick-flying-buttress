@@ -1,0 +1,12 @@
+locator: internal/output/output_test.go
+meta:
+  function_list:
+    - TestEmitDiagnosticsExactBytes
+    - TestEmitGraphJSONExactBytes
+    - TestEmitReportListExactBytes
+    - TestEmitterOutputUnaffectedByUnmappedDomainFields
+  import_files_list:
+    - bytes
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - testing
+  language: go

@@ -1,0 +1,10 @@
+locator: internal/outcome/outcome_test.go
+meta:
+  function_list:
+    - TestFromErrorRuntimeFailure
+    - TestFromErrorSuccess
+    - TestFromErrorValidationBlocked
+  import_files_list:
+    - errors
+    - testing
+  language: go

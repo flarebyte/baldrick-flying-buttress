@@ -1,0 +1,10 @@
+locator: internal/pipeline/contract_test.go
+meta:
+  function_list:
+    - TestContractPipelineStageOrder
+    - TestContractPipelineValidationBlockedShortCircuit
+  import_files_list:
+    - context
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - testing
+  language: go

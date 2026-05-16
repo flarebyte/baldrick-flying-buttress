@@ -1,0 +1,8 @@
+locator: internal/cli/diagnostics_message_test.go
+meta:
+  function_list:
+    - TestWithDiagnosticContextMessageDeterministicOrder
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - testing
+  language: go

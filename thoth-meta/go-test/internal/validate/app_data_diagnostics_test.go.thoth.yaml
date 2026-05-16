@@ -1,0 +1,9 @@
+locator: internal/validate/app_data_diagnostics_test.go
+meta:
+  function_list:
+    - TestFormatDiagnosticMessageDeterministicOrder
+    - TestNewArgumentDiagnosticIncludesContextInMessage
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - testing
+  language: go

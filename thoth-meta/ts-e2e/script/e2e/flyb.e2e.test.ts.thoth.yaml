@@ -1,0 +1,30 @@
+locator: script/e2e/flyb.e2e.test.ts
+meta:
+  import_files_list:
+    - bun:test
+    - node:fs
+    - node:os
+    - node:path
+  language: typescript
+  testcase_titles_list:
+    - flyb directory config matches equivalent app.cue package config
+    - flyb generate json stdout matches golden
+    - flyb generate markdown can show note labels when requested
+    - flyb generate markdown can target a single report
+    - flyb generate markdown file-backed output is deterministic across runs
+    - flyb generate markdown is deterministic across repeated runs
+    - flyb generate markdown renders csv table with multiple filters
+    - flyb generate markdown renders file-backed sections
+    - flyb generate markdown renders graph sections
+    - flyb generate markdown renders orphan sections
+    - flyb generate markdown renders raw csv mode
+    - flyb generate markdown supports explicit mermaid renderer
+    - flyb generate markdown writes deterministic report files
+    - flyb lint names stdout matches golden
+    - flyb lint orphans stdout matches golden
+    - flyb list names stdout matches golden
+    - flyb list reports stdout matches golden
+    - flyb outputs are deterministic across repeated runs
+    - flyb validate oversized config fails deterministically
+    - flyb validate stdout matches golden
+    - flyb validate with cue fixture stdout matches golden

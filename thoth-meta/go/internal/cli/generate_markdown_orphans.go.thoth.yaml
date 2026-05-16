@@ -1,0 +1,16 @@
+locator: internal/cli/generate_markdown_orphans.go
+meta:
+  purpose: "Implements CLI behavior for generate_markdown_orphans.go so commands expose deterministic, machine-friendly output surfaces."
+  responsibilities: "parse command inputs; call pipeline/domain services; render structured outputs or diagnostics; enforce deterministic CLI behavior"
+  architecture_notes: "CLI logic is split into focused files per command area to keep Cobra wiring thin and to isolate rendering from validation and domain logic."
+  function_list:
+    - renderOrphanRows
+    - resolveOrphanQuery
+  import_files_list:
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/ordering
+    - github.com/flarebyte/baldrick-flying-buttress/internal/orphans
+    - github.com/flarebyte/baldrick-flying-buttress/internal/textutil
+    - strings
+  language: go

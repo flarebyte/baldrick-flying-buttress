@@ -1,0 +1,11 @@
+locator: internal/output/contract_test.go
+meta:
+  function_list:
+    - TestContractDiagnosticsEmitterBytesAndRunTwice
+    - TestContractGraphEmitterBytesAndRunTwice
+    - TestContractReportListEmitterPermutationInvariant
+  import_files_list:
+    - bytes
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - testing
+  language: go

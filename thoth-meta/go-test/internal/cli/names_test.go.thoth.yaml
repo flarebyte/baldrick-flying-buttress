@@ -1,0 +1,16 @@
+locator: internal/cli/names_test.go
+meta:
+  function_list:
+    - TestEmitNamesJSONDeterministic
+    - TestEmitNamesTableDeterministic
+    - TestEmitNamesTableEmptyLabelsDeterministic
+    - TestFilterNamesKindAllNotesRelationships
+    - TestFilterNamesPrefixNotes
+    - TestFilterNamesPrefixRelationships
+    - TestJoinSortedLabelsDeterministic
+    - listNamesValidatedApp
+  import_files_list:
+    - bytes
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - testing
+  language: go

@@ -1,0 +1,8 @@
+locator: internal/domain/model_test.go
+meta:
+  function_list:
+    - TestValidatedAppModelFieldsAreExplicit
+    - TestValidationReportCanonicalSetsEmptySlice
+  import_files_list:
+    - testing
+  language: go

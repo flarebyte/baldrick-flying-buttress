@@ -1,0 +1,10 @@
+locator: internal/cli/reports_test.go
+meta:
+  function_list:
+    - TestEmitReportsTableDeterministic
+    - TestEmitReportsTableVaryingTitleLengths
+  import_files_list:
+    - bytes
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - testing
+  language: go

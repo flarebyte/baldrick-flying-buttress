@@ -1,0 +1,84 @@
+{
+  "source": "markdown-file-extended-app",
+  "name": "markdown-file-extended-app",
+  "modules": ["core"],
+  "reports": [
+    {
+      "title": "Extended File Report",
+      "filepath": "out/file-extended.md",
+      "sections": [
+        {
+          "title": "Files",
+          "sections": [
+            {
+              "title": "Renderers",
+              "notes": [
+                "n01.bash",
+                "n02.css",
+                "n03.dart",
+                "n04.diff",
+                "n05.dockerfile",
+                "n06.dot",
+                "n07.env",
+                "n08.handlebars",
+                "n09.math",
+                "n10.python",
+                "n11.rust",
+                "n12.stl",
+                "n13.toml"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "name": "n01.bash",
+      "title": "Bash",
+      "filepath": "fixtures/ext/script.bash"
+    },
+    { "name": "n02.css", "title": "CSS", "filepath": "fixtures/ext/style.css" },
+    {
+      "name": "n03.dart",
+      "title": "Dart",
+      "filepath": "fixtures/ext/main.dart"
+    },
+    {
+      "name": "n04.diff",
+      "title": "Diff",
+      "filepath": "fixtures/ext/change.diff"
+    },
+    {
+      "name": "n05.dockerfile",
+      "title": "Dockerfile",
+      "filepath": "fixtures/ext/Dockerfile"
+    },
+    { "name": "n06.dot", "title": "DOT", "filepath": "fixtures/ext/graph.dot" },
+    { "name": "n07.env", "title": "Env", "filepath": "fixtures/ext/app.env" },
+    {
+      "name": "n08.handlebars",
+      "title": "Handlebars",
+      "filepath": "fixtures/ext/template.handlebars"
+    },
+    {
+      "name": "n09.math",
+      "title": "Math",
+      "filepath": "fixtures/ext/equation.math"
+    },
+    {
+      "name": "n10.python",
+      "title": "Python",
+      "filepath": "fixtures/ext/main.py"
+    },
+    { "name": "n11.rust", "title": "Rust", "filepath": "fixtures/ext/main.rs" },
+    { "name": "n12.stl", "title": "STL", "filepath": "fixtures/ext/shape.stl" },
+    {
+      "name": "n13.toml",
+      "title": "TOML",
+      "filepath": "fixtures/ext/config.toml"
+    }
+  ],
+  "relationships": []
+}

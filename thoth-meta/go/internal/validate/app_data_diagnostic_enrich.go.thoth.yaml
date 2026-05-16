@@ -1,0 +1,15 @@
+locator: internal/validate/app_data_diagnostic_enrich.go
+meta:
+  purpose: "Provides validation logic in app_data_diagnostic_enrich.go to keep app configuration and graph semantics safe and deterministic."
+  responsibilities: "validate structured inputs; enforce policy and schema constraints; enrich diagnostics with stable context; normalize data for downstream steps"
+  architecture_notes: "Validation is decomposed by concern (schema, args, labels, graph integrity, diagnostics) to keep rule changes localized and testable."
+  function_list:
+    - enrichDiagnostics
+    - relatedNodes
+    - suggestedFixes
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - path/filepath
+    - slices
+    - strings
+  language: go

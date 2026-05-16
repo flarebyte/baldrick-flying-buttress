@@ -1,0 +1,13 @@
+locator: internal/orphans/query_test.go
+meta:
+  function_list:
+    - TestFindCounterpartLabelFiltering
+    - TestFindDirectionFiltering
+    - TestFindEdgeLabelFiltering
+    - TestFindMultipleOrphansDetected
+    - TestFindSubjectLabelFiltering
+    - queryFixtureApp
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - testing
+  language: go

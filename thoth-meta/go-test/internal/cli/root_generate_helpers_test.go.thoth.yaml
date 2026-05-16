@@ -1,0 +1,20 @@
+locator: internal/cli/root_generate_helpers_test.go
+meta:
+  function_list:
+    - assertGeneratedMarkdownGolden
+    - assertGeneratedMarkdownGoldens
+    - readGeneratedMarkdown
+    - runGenerateMarkdownBundleFixture
+    - runGenerateMarkdownFixture
+    - runGenerateMarkdownWithArgs
+    - runGenerateMarkdownWithConfig
+    - setMarkdownReportWorkersForTest
+  import_files_list:
+    - github.com/flarebyte/baldrick-flying-buttress/internal/load
+    - github.com/flarebyte/baldrick-flying-buttress/internal/pipeline
+    - github.com/flarebyte/baldrick-flying-buttress/internal/validate
+    - os
+    - path/filepath
+    - sync/atomic
+    - testing
+  language: go

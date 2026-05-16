@@ -1,0 +1,27 @@
+locator: internal/cli/names.go
+meta:
+  purpose: "Implements CLI behavior for names.go so commands expose deterministic, machine-friendly output surfaces."
+  responsibilities: "parse command inputs; call pipeline/domain services; render structured outputs or diagnostics; enforce deterministic CLI behavior"
+  architecture_notes: "CLI logic is split into focused files per command area to keep Cobra wiring thin and to isolate rendering from validation and domain logic."
+  function_list:
+    - emitAlignedTable
+    - emitNamesJSON
+    - emitNamesTable
+    - filterNames
+    - joinSortedLabels
+    - matchesNotePrefix
+    - matchesRelationshipPrefix
+    - splitCSVLabels
+    - validateNamesFormat
+    - validateNamesKind
+  import_files_list:
+    - context
+    - encoding/json
+    - errors
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/ordering
+    - io
+    - sort
+    - strings
+  language: go

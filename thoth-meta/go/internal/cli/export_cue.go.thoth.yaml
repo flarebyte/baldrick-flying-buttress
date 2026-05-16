@@ -1,0 +1,28 @@
+locator: internal/cli/export_cue.go
+meta:
+  purpose: "Implements CLI behavior for export_cue.go so commands expose deterministic, machine-friendly output surfaces."
+  responsibilities: "parse command inputs; call pipeline/domain services; render structured outputs or diagnostics; enforce deterministic CLI behavior"
+  architecture_notes: "CLI logic is split into focused files per command area to keep Cobra wiring thin and to isolate rendering from validation and domain logic."
+  function_list:
+    - canonicalRawApp
+    - canonicalRawArgumentDefinitions
+    - canonicalRawNotes
+    - canonicalRawRegistry
+    - canonicalRawRelationships
+    - canonicalRawReports
+    - canonicalRawSections
+    - encodeRawAppToCue
+    - runExportCue
+  import_files_list:
+    - context
+    - cuelang.org/go/cue
+    - cuelang.org/go/cue/ast
+    - cuelang.org/go/cue/cuecontext
+    - cuelang.org/go/cue/format
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/ordering
+    - io
+    - slices
+    - strings
+  language: go

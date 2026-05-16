@@ -1,0 +1,14 @@
+locator: internal/fsio/atomic.go
+meta:
+  purpose: "Provides filesystem IO helpers in atomic.go for safe, deterministic file writes."
+  responsibilities: "perform atomic write workflows; encapsulate fs operation patterns; expose predictable file IO behavior"
+  architecture_notes: "Atomic write behavior is centralized to reduce partial-write risks and keep callers free of low-level fs choreography."
+  function_list:
+    - WriteFileAtomic
+    - syncDirBestEffort
+  import_files_list:
+    - context
+    - fmt
+    - os
+    - path/filepath
+  language: go

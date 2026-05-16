@@ -1,3 +1,6 @@
+// purpose: Provides validation logic in app_data_diagnostic_enrich.go to keep app configuration and graph semantics safe and deterministic.
+// responsibilities: validate structured inputs; enforce policy and schema constraints; enrich diagnostics with stable context; normalize data for downstream steps
+// architecture_notes: Validation is decomposed by concern (schema, args, labels, graph integrity, diagnostics) to keep rule changes localized and testable.
 package validate
 
 import (

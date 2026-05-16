@@ -1,0 +1,40 @@
+locator: internal/cli/root.go
+meta:
+  purpose: "Implements CLI behavior for root.go so commands expose deterministic, machine-friendly output surfaces."
+  responsibilities: "parse command inputs; call pipeline/domain services; render structured outputs or diagnostics; enforce deterministic CLI behavior"
+  architecture_notes: "CLI logic is split into focused files per command area to keep Cobra wiring thin and to isolate rendering from validation and domain logic."
+  function_list:
+    - Execute
+    - ExecuteContext
+    - ExecuteContextWithFactory
+    - ExecuteWithFactory
+    - NewRootCmd
+    - NewRootCmdWithFactory
+    - emitVersionJSON
+    - newExportCmd
+    - newExportCueCmd
+    - newGenerateCmd
+    - newGenerateJSONCmd
+    - newGenerateMarkdownCmd
+    - newLintCmd
+    - newLintNamesCmd
+    - newLintOrphansCmd
+    - newListCmd
+    - newListNamesCmd
+    - newListReportsCmd
+    - newValidateCmd
+    - runWithConfig
+  import_files_list:
+    - context
+    - encoding/json
+    - errors
+    - fmt
+    - github.com/flarebyte/baldrick-flying-buttress/internal/buildinfo
+    - github.com/flarebyte/baldrick-flying-buttress/internal/domain
+    - github.com/flarebyte/baldrick-flying-buttress/internal/outcome
+    - github.com/flarebyte/baldrick-flying-buttress/internal/output
+    - github.com/flarebyte/baldrick-flying-buttress/internal/pipeline
+    - github.com/spf13/cobra
+    - io
+    - runtime
+  language: go

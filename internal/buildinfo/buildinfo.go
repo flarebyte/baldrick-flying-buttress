@@ -1,3 +1,6 @@
+// purpose: Exposes build metadata plumbing in buildinfo.go so binaries can report version provenance.
+// responsibilities: hold link-time build variables; provide stable build metadata access points
+// architecture_notes: Build metadata is isolated from CLI/runtime logic so release tooling can inject values without touching behavior code.
 package buildinfo
 
 var (
